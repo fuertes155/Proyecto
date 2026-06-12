@@ -47,6 +47,9 @@ fintech:
       aes-key: ${AES_KEY:change-me-32-chars-key-for-aes256!!}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+  compliance:
+    entity-code: ${COMPLIANCE_ENTITY_CODE:COOP001}
+    storage-path: ${COMPLIANCE_STORAGE_PATH:./data/regulatory-reports}
 
 logging:
   level:

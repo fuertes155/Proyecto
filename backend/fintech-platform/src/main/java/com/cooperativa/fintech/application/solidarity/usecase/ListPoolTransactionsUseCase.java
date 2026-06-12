@@ -1,0 +1,29 @@
+package com.cooperativa.fintech.application.solidarity.usecase;
+
+import com.cooperativa.fintech.application.solidarity.dto.PoolTransactionResponse;
+import com.cooperativa.fintech.application.solidarity.mapper.SolidarityMapper;
+import com.cooperativa.fintech.application.solidarity.service.SolidarityAuthorizationService;
+import com.cooperativa.fintech.domain.solidarity.port.PoolTransactionPort;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class ListPoolTransactionsUseCase {
+
+    private final SolidarityAuthorizationService authorizationService;
+    private final PoolTransactionPort transactionPort;
+    private final SolidarityMapper mapper;
+
+    @Transactional(readOnly = true)
+    public List<PoolTransactionResponse> execute(UUID userId, UUID groupId) {
+        authorizationService.requireMembership(groupId, userId);
+        return transactionPort.findByGroupId(groupId).stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+}

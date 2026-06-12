@@ -1,0 +1,15 @@
+package com.cooperativa.fintech.infrastructure.persistence.solidarity.repository;
+
+import com.cooperativa.fintech.domain.solidarity.model.InstallmentStatus;
+import com.cooperativa.fintech.infrastructure.persistence.solidarity.entity.LoanInstallmentJpaEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface LoanInstallmentJpaRepository extends JpaRepository<LoanInstallmentJpaEntity, UUID> {
+
+    List<LoanInstallmentJpaEntity> findByLoanIdOrderByInstallmentNumberAsc(UUID loanId);
+
+    long countByLoanIdAndStatusNot(UUID loanId, InstallmentStatus status);
+}

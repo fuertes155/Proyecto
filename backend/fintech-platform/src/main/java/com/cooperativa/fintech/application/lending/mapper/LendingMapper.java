@@ -1,0 +1,73 @@
+package com.cooperativa.fintech.application.lending.mapper;
+
+import com.cooperativa.fintech.application.lending.dto.AmortizationInstallmentResponse;
+import com.cooperativa.fintech.application.lending.dto.LoanApplicationResponse;
+import com.cooperativa.fintech.application.lending.dto.LoanSimulationResponse;
+import com.cooperativa.fintech.domain.lending.model.AmortizationInstallment;
+import com.cooperativa.fintech.domain.lending.model.LoanSimulationResult;
+import com.cooperativa.fintech.domain.lending.model.PersonalLoanApplication;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class LendingMapper {
+
+    public LoanSimulationResponse toResponse(LoanSimulationResult result) {
+        return new LoanSimulationResponse(
+                result.getAmount(),
+                result.getTermMonths(),
+                result.getAnnualInterestRate(),
+                result.getMonthlyInterestRate(),
+                result.getMonthlyPayment(),
+                result.getTotalInterest(),
+                result.getTotalPayment(),
+                result.getSchedule().stream().map(this::toResponse).toList()
+        );
+    }
+
+    public LoanApplicationResponse toResponse(PersonalLoanApplication application, List<AmortizationInstallment> schedule) {
+        return new LoanApplicationResponse(
+                application.getId(),
+                application.getAmount(),
+                application.getTermMonths(),
+                application.getAnnualInterestRate(),
+                application.getMonthlyPayment(),
+                application.getTotalInterest(),
+                application.getTotalPayment(),
+                application.getPurpose(),
+                application.getStatus(),
+                application.getRejectionReason(),
+                application.getSubmittedAt(),
+                schedule.stream().map(this::toResponse).toList()
+        );
+    }
+
+    public LoanApplicationResponse toSummary(PersonalLoanApplication application) {
+        return new LoanApplicationResponse(
+                application.getId(),
+                application.getAmount(),
+                application.getTermMonths(),
+                application.getAnnualInterestRate(),
+                application.getMonthlyPayment(),
+                application.getTotalInterest(),
+                application.getTotalPayment(),
+                application.getPurpose(),
+                application.getStatus(),
+                application.getRejectionReason(),
+                application.getSubmittedAt(),
+                List.of()
+        );
+    }
+
+    public AmortizationInstallmentResponse toResponse(AmortizationInstallment installment) {
+        return new AmortizationInstallmentResponse(
+                installment.getInstallmentNumber(),
+                installment.getPaymentAmount(),
+                installment.getPrincipalAmount(),
+                installment.getInterestAmount(),
+                installment.getRemainingBalance(),
+                installment.getDueDate()
+        );
+    }
+}

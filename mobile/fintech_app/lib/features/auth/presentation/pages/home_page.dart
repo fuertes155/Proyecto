@@ -43,18 +43,28 @@ class HomePage extends ConsumerWidget {
               icon: Icons.savings,
               title: 'Ahorro programado',
               subtitle: 'Configura aportes automáticos',
+              onTap: () => context.push('/savings/scheduled'),
             ),
             const SizedBox(height: 16),
             _FeatureCard(
               icon: Icons.handshake,
               title: 'Ahorro solidario',
               subtitle: 'Micropréstamos entre asociados',
+              onTap: () => context.push('/solidarity'),
             ),
             const SizedBox(height: 16),
             _FeatureCard(
               icon: Icons.calculate,
               title: 'Simular préstamo',
               subtitle: 'Calcula cuotas y solicita',
+              onTap: () => context.push('/loans/simulate'),
+            ),
+            const SizedBox(height: 16),
+            _FeatureCard(
+              icon: Icons.description_outlined,
+              title: 'Reportes Supersolidaria',
+              subtitle: 'Archivos planos regulatorios',
+              onTap: () => context.push('/compliance/reports'),
             ),
             const Spacer(),
             AccessibleButton(
@@ -74,11 +84,13 @@ class _FeatureCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +101,7 @@ class _FeatureCard extends StatelessWidget {
         title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 16)),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
