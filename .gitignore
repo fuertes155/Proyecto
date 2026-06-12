@@ -1,0 +1,41 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Flutter
+mobile/fintech_app/.dart_tool/
+mobile/fintech_app/.flutter-plugins
+mobile/fintech_app/.flutter-plugins-dependencies
+mobile/fintech_app/.packages
+mobile/fintech_app/build/
+mobile/fintech_app/.pub-cache/
+mobile/fintech_app/.pub/
+mobile/fintech_app/pubspec.lock
+
+# Go
+services/**/bin/
+services/**/vendor/
+
+# Env & secrets
+.env
+.env.*
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+postgres_data/
