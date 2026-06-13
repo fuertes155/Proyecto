@@ -12,4 +12,12 @@ import java.util.List;
 public class FintechCorsProperties {
 
     private List<String> allowedOrigins = List.of();
+
+    public List<String> getAllowedOrigins() {
+        return allowedOrigins;
+    }
+
+    public void setAllowedOrigins(List<String> allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
 }

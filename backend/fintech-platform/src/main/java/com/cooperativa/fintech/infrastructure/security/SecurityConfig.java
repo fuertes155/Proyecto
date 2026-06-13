@@ -1,7 +1,6 @@
 package com.cooperativa.fintech.infrastructure.security;
 
 import com.cooperativa.fintech.infrastructure.config.FintechCorsProperties;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,11 +18,15 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final FintechCorsProperties corsProperties;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, FintechCorsProperties corsProperties) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.corsProperties = corsProperties;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
