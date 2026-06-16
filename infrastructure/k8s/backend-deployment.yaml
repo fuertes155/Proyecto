@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fintech-backend
-  namespace: fintech
+  name: met-backend
+  namespace: met
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: fintech-backend
+      app: met-backend
   template:
     metadata:
       labels:
-        app: fintech-backend
+        app: met-backend
     spec:
       containers:
         - name: backend
-          image: fintech/backend:latest
+          image: met/backend:latest
           ports:
             - containerPort: 8080
           envFrom:
             - secretRef:
-                name: fintech-backend-secrets
+                name: met-backend-secrets
           readinessProbe:
             httpGet:
               path: /api/actuator/health
@@ -44,11 +44,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fintech-backend
-  namespace: fintech
+  name: met-backend
+  namespace: met
 spec:
   selector:
-    app: fintech-backend
+    app: met-backend
   ports:
     - port: 80
       targetPort: 8080

@@ -1,4 +1,4 @@
-module github.com/cooperativa/fintech/notification-service
+module github.com/cooperativa/met/notification-service
 
 go 1.23
 

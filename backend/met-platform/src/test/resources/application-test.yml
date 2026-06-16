@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:met;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  flyway:
+    enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+met:
+  security:
+    jwt:
+      secret: test-secret-key-with-minimum-256-bits-length-for-jwt-hmac-sha
+      expiration-ms: 3600000
+      refresh-expiration-ms: 604800000
+    encryption:
+      aes-key: test-aes-key-32-characters-long!!
+  cors:
+    allowed-origins:
+      - http://localhost:3000

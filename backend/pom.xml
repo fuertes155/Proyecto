@@ -12,13 +12,13 @@
     </parent>
 
     <groupId>com.cooperativa</groupId>
-    <artifactId>fintech-parent</artifactId>
+    <artifactId>met-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fintech Platform Parent</name>
+    <name>Met Platform Parent</name>
 
     <modules>
-        <module>fintech-platform</module>
+        <module>met-platform</module>
     </modules>
 
     <properties>

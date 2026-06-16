@@ -13,13 +13,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: fintech
-          POSTGRES_USER: fintech
-          POSTGRES_PASSWORD: fintech_secret
+          POSTGRES_DB: met
+          POSTGRES_USER: met
+          POSTGRES_PASSWORD: met_secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U fintech -d fintech"
+          --health-cmd "pg_isready -U met -d met"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -36,13 +36,13 @@ jobs:
           cache: maven
       - name: Build and test backend
         working-directory: backend
-        run: mvn -pl fintech-platform -am verify
+        run: mvn -pl met-platform -am verify
         env:
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_NAME: fintech
-          DB_USER: fintech
-          DB_PASSWORD: fintech_secret
+          DB_NAME: met
+          DB_USER: met
+          DB_PASSWORD: met_secret
 
   notification-service:
     runs-on: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
         with:
           channel: stable
       - name: Analyze Flutter app
-        working-directory: mobile/fintech_app
+        working-directory: mobile/met_app
         run: |
           flutter pub get
           flutter analyze

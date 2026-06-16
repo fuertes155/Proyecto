@@ -1,24 +1,24 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: fintech-postgres
+    container_name: met-postgres
     environment:
-      POSTGRES_DB: fintech
-      POSTGRES_USER: fintech
-      POSTGRES_PASSWORD: fintech_secret
+      POSTGRES_DB: met
+      POSTGRES_USER: met
+      POSTGRES_PASSWORD: met_secret
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fintech -d fintech"]
+      test: ["CMD-SHELL", "pg_isready -U met -d met"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: fintech-redis
+    container_name: met-redis
     ports:
       - "6379:6379"
     healthcheck:
@@ -30,8 +30,8 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: fintech-platform/Dockerfile
-    container_name: fintech-backend
+      dockerfile: met-platform/Dockerfile
+    container_name: met-backend
     depends_on:
       postgres:
         condition: service_healthy
@@ -40,9 +40,9 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: fintech
-      DB_USER: fintech
-      DB_PASSWORD: fintech_secret
+      DB_NAME: met
+      DB_USER: met
+      DB_PASSWORD: met_secret
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: dev-jwt-secret-key-with-minimum-256-bits-length-required
@@ -55,7 +55,7 @@ services:
     build:
       context: ./services/notification-service
       dockerfile: Dockerfile
-    container_name: fintech-notifications
+    container_name: met-notifications
     ports:
       - "8090:8090"
 

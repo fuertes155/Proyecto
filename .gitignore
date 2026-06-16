@@ -14,14 +14,14 @@ target/
 *.swo
 
 # Flutter
-mobile/fintech_app/.dart_tool/
-mobile/fintech_app/.flutter-plugins
-mobile/fintech_app/.flutter-plugins-dependencies
-mobile/fintech_app/.packages
-mobile/fintech_app/build/
-mobile/fintech_app/.pub-cache/
-mobile/fintech_app/.pub/
-mobile/fintech_app/pubspec.lock
+mobile/met_app/.dart_tool/
+mobile/met_app/.flutter-plugins
+mobile/met_app/.flutter-plugins-dependencies
+mobile/met_app/.packages
+mobile/met_app/build/
+mobile/met_app/.pub-cache/
+mobile/met_app/.pub/
+mobile/met_app/pubspec.lock
 
 # Go
 services/**/bin/

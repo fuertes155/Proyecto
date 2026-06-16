@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fintech-notifications
-  namespace: fintech
+  name: met-notifications
+  namespace: met
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: fintech-notifications
+      app: met-notifications
   template:
     metadata:
       labels:
-        app: fintech-notifications
+        app: met-notifications
     spec:
       containers:
         - name: notifications
-          image: fintech/notifications:latest
+          image: met/notifications:latest
           ports:
             - containerPort: 8090
           readinessProbe:
@@ -28,11 +28,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fintech-notifications
-  namespace: fintech
+  name: met-notifications
+  namespace: met
 spec:
   selector:
-    app: fintech-notifications
+    app: met-notifications
   ports:
     - port: 80
       targetPort: 8090
