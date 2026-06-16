@@ -1,4 +1,4 @@
-# fintech_app
+# Met
 
 A new Flutter project.
 

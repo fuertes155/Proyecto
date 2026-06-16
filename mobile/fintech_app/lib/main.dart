@@ -7,11 +7,11 @@ import 'core/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: FintechApp()));
+  runApp(const ProviderScope(child: MetApp()));
 }
 
-class FintechApp extends ConsumerWidget {
-  const FintechApp({super.key});
+class MetApp extends ConsumerWidget {
+  const MetApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
