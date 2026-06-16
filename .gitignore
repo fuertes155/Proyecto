@@ -28,8 +28,11 @@ services/**/bin/
 services/**/vendor/
 
 # Env & secrets
+# .env.example SÍ se versiona (es la plantilla)
 .env
-.env.*
+.env.local
+.env.production
+.env.staging
 *.pem
 *.key
 

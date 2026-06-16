@@ -1,6 +1,9 @@
 package com.cooperativa.met.infrastructure.security;
 
 import com.cooperativa.met.infrastructure.config.MetCorsProperties;
+import com.cooperativa.met.infrastructure.config.RateLimitProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,10 +25,17 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final MetCorsProperties corsProperties;
+    private final RateLimitProperties rateLimitProperties;
+    private final ObjectMapper objectMapper;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, MetCorsProperties corsProperties) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          MetCorsProperties corsProperties,
+                          RateLimitProperties rateLimitProperties,
+                          ObjectMapper objectMapper) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.corsProperties = corsProperties;
+        this.rateLimitProperties = rateLimitProperties;
+        this.objectMapper = objectMapper;
     }
 
     @Bean
@@ -44,6 +54,20 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Registra el filtro de rate limiting ANTES del filtro de Spring Security,
+     * con orden 1 para que sea el primero en ejecutarse.
+     */
+    @Bean
+    public FilterRegistrationBean<AuthRateLimitFilter> rateLimitFilterRegistration() {
+        FilterRegistrationBean<AuthRateLimitFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new AuthRateLimitFilter(rateLimitProperties, objectMapper));
+        registration.addUrlPatterns("/api/v1/auth/*");
+        registration.setOrder(1);
+        registration.setName("authRateLimitFilter");
+        return registration;
     }
 
     @Bean

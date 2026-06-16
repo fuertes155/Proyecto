@@ -2,7 +2,11 @@ package com.cooperativa.met.infrastructure.web.common;
 
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.common.exception.DomainException;
+import com.cooperativa.met.domain.common.exception.RateLimitExceededException;
 import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
+import com.cooperativa.met.infrastructure.config.RateLimitProperties;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -15,11 +19,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final RateLimitProperties rateLimitProperties;
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleRateLimit(RateLimitExceededException ex) {
+        ApiErrorResponse body = new ApiErrorResponse(ex.getCode(), ex.getMessage(), Instant.now(), null);
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(rateLimitProperties.getWindowSeconds()))
+                .body(body);
     }
 
     @ExceptionHandler(BusinessRuleException.class)

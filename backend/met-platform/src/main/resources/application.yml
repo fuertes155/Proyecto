@@ -51,6 +51,12 @@ met:
   compliance:
     entity-code: ${COMPLIANCE_ENTITY_CODE:COOP001}
     storage-path: ${COMPLIANCE_STORAGE_PATH:./data/regulatory-reports}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    # Máximo de intentos de autenticación permitidos por IP en la ventana de tiempo
+    max-requests: ${RATE_LIMIT_MAX_REQUESTS:10}
+    # Ventana de tiempo en segundos (60 = 10 intentos por minuto por IP)
+    window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:60}
 
 logging:
   level:
