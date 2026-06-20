@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static const Color primaryColor = Color(0xFF0B5FFF);
@@ -15,12 +16,14 @@ class AppTheme {
         error: errorColor,
         brightness: Brightness.light,
       ),
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-        titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(fontSize: 18, height: 1.5),
-        bodyMedium: TextStyle(fontSize: 16, height: 1.5),
-        labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      textTheme: GoogleFonts.outfitTextTheme(
+        const TextTheme(
+          headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          bodyLarge: TextStyle(fontSize: 18, height: 1.5),
+          bodyMedium: TextStyle(fontSize: 16, height: 1.5),
+          labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
