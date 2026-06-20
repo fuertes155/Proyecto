@@ -1,19 +1,22 @@
 package com.cooperativa.met.infrastructure.security;
 
-import com.cooperativa.met.domain.common.exception.BusinessRuleException;
-import com.cooperativa.met.domain.identity.port.TokenPort;
-import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.stereotype.Component;
+
+import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.identity.port.TokenPort;
+import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -32,37 +35,70 @@ public class JwtTokenAdapter implements TokenPort {
     public String generateRefreshToken(UUID userId) {
         Instant now = Instant.now();
         Instant expiry = now.plusMillis(securityProperties.getJwt().getRefreshExpirationMs());
-        return buildToken(userId, null, now, expiry, "refresh");
+        UUID jti = UUID.randomUUID();
+        return buildToken(userId, null, now, expiry, "refresh", jti);
     }
 
     @Override
     public UUID validateAccessToken(String token) {
-        Claims claims = parseClaims(token);
-        if (!"access".equals(claims.get("type", String.class))) {
-            throw new BusinessRuleException("INVALID_TOKEN", "Token de acceso inválido");
-        }
-        return UUID.fromString(claims.getSubject());
+        TokenPort.RefreshTokenClaims claims = validateTokenAndType(token, "access");
+        return claims.userId();
     }
 
     @Override
     public UUID validateRefreshToken(String token) {
-        Claims claims = parseClaims(token);
-        if (!"refresh".equals(claims.get("type", String.class))) {
-            throw new BusinessRuleException("INVALID_TOKEN", "Token de refresco inválido");
-        }
-        return UUID.fromString(claims.getSubject());
+        TokenPort.RefreshTokenClaims claims = validateTokenAndType(token, "refresh");
+        return claims.userId();
     }
 
-    private String buildToken(UUID userId, String email, Instant issuedAt, Instant expiry, String type) {
+    @Override
+    public TokenPort.RefreshTokenClaims validateRefreshTokenClaims(String token) {
+        Claims claims = parseClaims(token);
+        String type = claims.get("type", String.class);
+        if (!"refresh".equals(type)) {
+            throw new BusinessRuleException("INVALID_TOKEN", "Token de refresco inválido");
+        }
+
+        UUID userId = UUID.fromString(claims.getSubject());
+        UUID jti = UUID.fromString(claims.get("jti", String.class));
+        return new TokenPort.RefreshTokenClaims(userId, jti);
+    }
+
+    private TokenPort.RefreshTokenClaims validateTokenAndType(String token, String expectedType) {
+        Claims claims = parseClaims(token);
+        String type = claims.get("type", String.class);
+        if (!expectedType.equals(type)) {
+            throw new BusinessRuleException("INVALID_TOKEN", "Token inválido");
+        }
+
+        UUID userId = UUID.fromString(claims.getSubject());
+        UUID jti = null;
+        Object jtiRaw = claims.get("jti");
+        if (jtiRaw != null) {
+            jti = UUID.fromString(jtiRaw.toString());
+        }
+        return new TokenPort.RefreshTokenClaims(userId, jti);
+    }
+
+    private String buildToken(UUID userId, String email, Instant issuedAt, Instant expiry, String type, UUID jti) {
         var builder = Jwts.builder()
                 .subject(userId.toString())
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(expiry))
                 .claim("type", type);
+
+        if (jti != null) {
+            builder.claim("jti", jti.toString());
+        }
+
         if (email != null) {
             builder.claim("email", email);
         }
         return builder.signWith(secretKey()).compact();
+    }
+
+    private String buildToken(UUID userId, String email, Instant issuedAt, Instant expiry, String type) {
+        return buildToken(userId, email, issuedAt, expiry, type, null);
     }
 
     private Claims parseClaims(String token) {

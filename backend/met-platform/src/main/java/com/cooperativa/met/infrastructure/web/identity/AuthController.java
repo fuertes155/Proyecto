@@ -1,16 +1,9 @@
 package com.cooperativa.met.infrastructure.web.identity;
 
-import com.cooperativa.met.application.identity.dto.AuthResponse;
-import com.cooperativa.met.application.identity.dto.BiometricRegistrationRequest;
-import com.cooperativa.met.application.identity.dto.LoginRequest;
-import com.cooperativa.met.application.identity.dto.RegisterUserRequest;
-import com.cooperativa.met.application.identity.dto.UserResponse;
-import com.cooperativa.met.application.identity.usecase.GetUserProfileUseCase;
-import com.cooperativa.met.application.identity.usecase.LoginUseCase;
-import com.cooperativa.met.application.identity.usecase.RegisterBiometricUseCase;
-import com.cooperativa.met.application.identity.usecase.RegisterUserUseCase;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,8 +13,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-import java.util.UUID;
+import com.cooperativa.met.application.identity.dto.AuthResponse;
+import com.cooperativa.met.application.identity.dto.BiometricRegistrationRequest;
+import com.cooperativa.met.application.identity.dto.LoginRequest;
+import com.cooperativa.met.application.identity.dto.RegisterUserRequest;
+import com.cooperativa.met.application.identity.dto.UserResponse;
+import com.cooperativa.met.application.identity.usecase.GetUserProfileUseCase;
+import com.cooperativa.met.application.identity.usecase.LoginUseCase;
+import com.cooperativa.met.application.identity.usecase.RefreshTokenUseCase;
+import com.cooperativa.met.application.identity.usecase.RegisterBiometricUseCase;
+import com.cooperativa.met.application.identity.usecase.RegisterUserUseCase;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -32,6 +36,7 @@ public class AuthController {
     private final RegisterBiometricUseCase registerBiometricUseCase;
     private final LoginUseCase loginUseCase;
     private final GetUserProfileUseCase getUserProfileUseCase;
+    private final RefreshTokenUseCase refreshTokenUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
@@ -48,6 +53,21 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(loginUseCase.execute(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(
+            @org.springframework.web.bind.annotation.RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        // Esperado: Authorization: Bearer <refreshToken>
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new com.cooperativa.met.domain.common.exception.BusinessRuleException(
+                    "INVALID_TOKEN",
+                    "Falta Authorization Bearer para refresh token"
+            );
+        }
+        String refreshToken = authorization.substring(7);
+        return ResponseEntity.ok(refreshTokenUseCase.execute(refreshToken));
     }
 
     @GetMapping("/me")

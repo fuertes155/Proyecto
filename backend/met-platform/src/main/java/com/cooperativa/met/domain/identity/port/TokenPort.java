@@ -11,4 +11,9 @@ public interface TokenPort {
     UUID validateAccessToken(String token);
 
     UUID validateRefreshToken(String token);
+
+    RefreshTokenClaims validateRefreshTokenClaims(String token);
+
+    record RefreshTokenClaims(UUID userId, UUID jti) {
+    }
 }

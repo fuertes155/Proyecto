@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,10 +32,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final LocalAuthentication auth = LocalAuthentication();
   final _storage = const FlutterSecureStorage();
 
+  bool get _isWeb => kIsWeb;
+
   @override
   void initState() {
     super.initState();
-    _checkBiometrics();
+    if (!_isWeb) {
+      _checkBiometrics();
+    } else {
+      _canCheckBiometrics = false;
+    }
     _loadSavedDocument();
   }
 
@@ -45,7 +52,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       setState(() {
         _rememberMe = true;
         if (savedDoc.length > 4) {
-          _documentController.text = '*' * (savedDoc.length - 4) + savedDoc.substring(savedDoc.length - 4);
+          _documentController.text = '*' * (savedDoc.length - 4) +
+              savedDoc.substring(savedDoc.length - 4);
         } else {
           _documentController.text = savedDoc;
         }
@@ -61,14 +69,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   void _onKeypadBackspace() {
     if (_pinController.text.isNotEmpty) {
-      _pinController.text = _pinController.text.substring(0, _pinController.text.length - 1);
+      _pinController.text =
+          _pinController.text.substring(0, _pinController.text.length - 1);
     }
   }
 
   Future<void> _checkBiometrics() async {
+    if (_isWeb) return;
+
     bool canCheckBiometrics;
     try {
-      canCheckBiometrics = await auth.canCheckBiometrics || await auth.isDeviceSupported();
+      canCheckBiometrics =
+          await auth.canCheckBiometrics || await auth.isDeviceSupported();
     } on PlatformException catch (_) {
       canCheckBiometrics = false;
     }
@@ -85,19 +97,38 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _showFriendlyError(String errorMsg) {
-    String friendlyMessage = 'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
+  String _getErrorMessage(Object error) {
+    return error.toString();
+  }
+
+  void _showFriendlyErrorFromErrorObject(Object error) {
+    final errorMsg = _getErrorMessage(error);
+    String friendlyMessage =
+        'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
     final lowerError = errorMsg.toLowerCase();
-    
-    if (lowerError.contains('pin') || lowerError.contains('incorrect')) {
-      friendlyMessage = 'El PIN es incorrecto. Por favor, verifica e intenta de nuevo.';
-    } else if (lowerError.contains('not found') || lowerError.contains('usuario')) {
+
+    if (lowerError.contains('rate') ||
+        lowerError.contains('429') ||
+        lowerError.contains('too many requests')) {
+      friendlyMessage =
+          'Demasiados intentos. Espera unos segundos e inténtalo de nuevo.';
+    } else if (lowerError.contains('pin') || lowerError.contains('incorrect')) {
+      friendlyMessage =
+          'El PIN es incorrecto. Por favor, verifica e intenta de nuevo.';
+    } else if (lowerError.contains('not found') ||
+        lowerError.contains('usuario')) {
       friendlyMessage = 'No encontramos un usuario con este documento.';
+    } else if (lowerError.contains('401') ||
+        lowerError.contains('unauthorized')) {
+      friendlyMessage =
+          'No autorizado. Verifica tus credenciales e inténtalo de nuevo.';
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(friendlyMessage),
+        content: Text(
+          '$friendlyMessage\n${errorMsg.length > 200 ? errorMsg.substring(0, 200) + '...' : errorMsg}',
+        ),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
       ),
@@ -132,7 +163,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     final state = ref.read(authStateProvider);
     if (state.hasError) {
-      _showFriendlyError(state.error.toString());
+      _showFriendlyErrorFromErrorObject(state.error!);
       return;
     }
     if (state.hasValue && state.value != null) {
@@ -141,6 +172,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _loginWithBiometric() async {
+    if (_isWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Biometría no disponible en la versión web.'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     try {
       final authenticated = await auth.authenticate(
         localizedReason: 'Por favor, autentícate para ingresar a Met',
@@ -151,13 +193,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
 
       if (!authenticated) return;
-      
+
       final token = await _storage.read(key: 'biometric_token');
       if (token == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No hay huella vinculada a tu cuenta. Inicia con PIN primero.'),
+            content: Text(
+                'No hay huella vinculada a tu cuenta. Inicia con PIN primero.'),
             backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
           ),
@@ -185,7 +228,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       final state = ref.read(authStateProvider);
       if (state.hasError) {
-        _showFriendlyError(state.error.toString());
+        _showFriendlyErrorFromErrorObject(state.error!);
         return;
       }
       if (state.hasValue && state.value != null) {
@@ -206,7 +249,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final defaultPinTheme = PinTheme(
       width: 56,
       height: 56,
-      textStyle: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
+      textStyle: const TextStyle(
+          fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
         border: Border.all(color: Colors.white.withOpacity(0.5)),
@@ -244,7 +288,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Icon(Icons.account_balance_wallet, size: 64, color: Colors.white),
+                          const Icon(Icons.account_balance_wallet,
+                              size: 64, color: Colors.white),
                           const SizedBox(height: 16),
                           const Text(
                             'Bienvenido',
@@ -273,22 +318,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               value: _documentType,
                               dropdownColor: const Color(0xFFE65100),
                               iconEnabledColor: Colors.white,
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 16),
                               decoration: InputDecoration(
                                 labelText: 'Tipo de documento',
-                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+                                labelStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.8)),
                                 enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                  borderSide: BorderSide(
+                                      color: Colors.white.withOpacity(0.5)),
                                 ),
                                 focusedBorder: const UnderlineInputBorder(
                                   borderSide: BorderSide(color: Colors.white),
                                 ),
                               ),
                               items: const [
-                                DropdownMenuItem(value: 'CC', child: Text('Cédula de ciudadanía')),
-                                DropdownMenuItem(value: 'CE', child: Text('Cédula de extranjería')),
+                                DropdownMenuItem(
+                                    value: 'CC',
+                                    child: Text('Cédula de ciudadanía')),
+                                DropdownMenuItem(
+                                    value: 'CE',
+                                    child: Text('Cédula de extranjería')),
                               ],
-                              onChanged: (value) => setState(() => _documentType = value ?? 'CC'),
+                              onChanged: (value) =>
+                                  setState(() => _documentType = value ?? 'CC'),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -297,17 +350,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               labelText: 'Número de documento',
-                              labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+                              labelStyle: TextStyle(
+                                  color: Colors.white.withOpacity(0.8)),
                               enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                borderSide: BorderSide(
+                                    color: Colors.white.withOpacity(0.5)),
                               ),
                               focusedBorder: const UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.white),
                               ),
                             ),
                             keyboardType: TextInputType.number,
-                            validator: (value) =>
-                                value == null || value.isEmpty ? 'Campo requerido' : null,
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Campo requerido'
+                                : null,
                             onChanged: (val) => _rawSavedDocument = null,
                           ),
                           const SizedBox(height: 8),
@@ -321,16 +377,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   value: _rememberMe,
                                   activeColor: Colors.white,
                                   checkColor: const Color(0xFFE65100),
-                                  onChanged: (value) => setState(() => _rememberMe = value ?? false),
+                                  onChanged: (value) => setState(
+                                      () => _rememberMe = value ?? false),
                                 ),
                               ),
-                              const Text('Recordarme', style: TextStyle(color: Colors.white)),
+                              const Text('Recordarme',
+                                  style: TextStyle(color: Colors.white)),
                             ],
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'PIN de acceso',
-                            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           Pinput(
@@ -359,7 +419,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Flujo de recuperación de PIN en construcción'),
+                                    content: Text(
+                                        'Flujo de recuperación de PIN en construcción'),
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -372,7 +433,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                               child: const Text(
                                 '¿Olvidaste tu PIN?',
-                                style: TextStyle(decoration: TextDecoration.underline, fontSize: 14),
+                                style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 14),
                               ),
                             ),
                           ),
@@ -399,17 +462,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 ? const SizedBox(
                                     width: 24,
                                     height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   )
                                 : const Text(
                                     'Ingresar',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
                                   ),
                           ),
                           const SizedBox(height: 24),
                           TextButton(
                             onPressed: () => context.push('/register'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.white),
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.white),
                             child: const Text('¿No tienes cuenta? Regístrate'),
                           ),
                         ],

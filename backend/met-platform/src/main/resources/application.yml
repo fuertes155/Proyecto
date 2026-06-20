@@ -41,11 +41,13 @@ management:
 met:
   security:
     jwt:
-      secret: ${JWT_SECRET:change-me-in-production-use-256-bit-key-minimum-length-required}
+      # Obligatorio: no usar defaults en producción
+      secret: ${JWT_SECRET}
       expiration-ms: ${JWT_EXPIRATION_MS:3600000}
       refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
     encryption:
-      aes-key: ${AES_KEY:change-me-32-chars-key-for-aes256!!}
+      # Obligatorio: no usar defaults en producción
+      aes-key: ${AES_KEY}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
   compliance:

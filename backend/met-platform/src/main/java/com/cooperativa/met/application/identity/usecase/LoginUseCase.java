@@ -7,13 +7,17 @@ import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.EncryptionPort;
+import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
 import com.cooperativa.met.domain.identity.port.TokenPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
+import com.cooperativa.met.domain.identity.model.RefreshToken;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class LoginUseCase {
     private final UserRepositoryPort userRepository;
     private final EncryptionPort encryptionPort;
     private final TokenPort tokenPort;
+    private final RefreshTokenRepositoryPort refreshTokenRepository;
     private final MetSecurityProperties securityProperties;
 
     @Transactional(readOnly = true)
@@ -40,6 +45,19 @@ public class LoginUseCase {
 
         String accessToken = tokenPort.generateAccessToken(user.getId(), user.getEmail());
         String refreshToken = tokenPort.generateRefreshToken(user.getId());
+
+        // Persistir refresh token para permitir revocación/rotación
+        var refreshClaims = tokenPort.validateRefreshTokenClaims(refreshToken);
+        Instant now = Instant.now();
+        Instant expiresAt = now.plusMillis(securityProperties.getJwt().getRefreshExpirationMs());
+        RefreshToken tokenEntity = new RefreshToken(
+                refreshClaims.jti(),
+                refreshClaims.userId(),
+                now,
+                expiresAt,
+                false
+        );
+        refreshTokenRepository.save(tokenEntity);
 
         return AuthResponse.of(
                 user.getId(),
