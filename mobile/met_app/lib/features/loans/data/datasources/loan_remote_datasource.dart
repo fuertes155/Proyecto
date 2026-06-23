@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_client_provider.dart';
 import '../models/loan_models.dart';
 
 final loanRemoteDataSourceProvider = Provider<LoanRemoteDataSource>((ref) {
@@ -13,12 +13,15 @@ class LoanRemoteDataSource {
   final Dio _dio;
 
   Future<LoanSimulationResult> simulate(SimulateLoanRequest request) async {
-    final response = await _dio.post('/v1/loans/simulate', data: request.toJson());
+    final response =
+        await _dio.post('/v1/loans/simulate', data: request.toJson());
     return LoanSimulationResult.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<LoanApplication> submitApplication(SubmitLoanApplicationRequest request) async {
-    final response = await _dio.post('/v1/loans/applications', data: request.toJson());
+  Future<LoanApplication> submitApplication(
+      SubmitLoanApplicationRequest request) async {
+    final response =
+        await _dio.post('/v1/loans/applications', data: request.toJson());
     return LoanApplication.fromJson(response.data as Map<String, dynamic>);
   }
 

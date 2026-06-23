@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_client_provider.dart';
 import '../models/compliance_models.dart';
 
-final complianceRemoteDataSourceProvider = Provider<ComplianceRemoteDataSource>((ref) {
+final complianceRemoteDataSourceProvider =
+    Provider<ComplianceRemoteDataSource>((ref) {
   return ComplianceRemoteDataSource(ref.watch(apiClientProvider));
 });
 
@@ -30,7 +31,8 @@ class ComplianceRemoteDataSource {
   }
 
   Future<RegulatoryReport> generateReport(GenerateReportRequest request) async {
-    final response = await _dio.post('/v1/compliance/reports/generate', data: request.toJson());
+    final response = await _dio.post('/v1/compliance/reports/generate',
+        data: request.toJson());
     return RegulatoryReport.fromJson(response.data as Map<String, dynamic>);
   }
 

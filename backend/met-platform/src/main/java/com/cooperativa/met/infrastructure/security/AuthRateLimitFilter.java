@@ -62,10 +62,25 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
+        // IMPORTANTE: no interceptar preflight CORS.
+        // El preflight es OPTIONS y Spring necesita poder agregar los headers CORS.
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            // Asegurar que el preflight tenga headers CORS incluso si algún filtro/handler
+            // corta la ejecución antes de que Spring los agregue.
+            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin") == null ? "*" : request.getHeader("Origin"));
+            response.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "*");
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setStatus(HttpStatus.OK.value());
+            return;
+        }
+
+
         if (!isEnabled() || !isProtectedPath(request)) {
             filterChain.doFilter(request, response);
             return;
         }
+
 
         String clientIp = extractClientIp(request);
         boolean ipAllowed = tryConsumeIp(clientIp);

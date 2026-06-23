@@ -1,27 +1,27 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:convert';
 
-import '../config/app_config.dart';
-import '../storage/secure_storage_service.dart';
+import 'package:http/http.dart' as http;
 
-final apiClientProvider = Provider<Dio>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  final dio = Dio(BaseOptions(
-    baseUrl: AppConfig.apiBaseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-    headers: {'Content-Type': 'application/json'},
-  ));
+class ApiClient {
+  final String baseUrl;
 
-  dio.interceptors.add(InterceptorsWrapper(
-    onRequest: (options, handler) async {
-      final token = await storage.readAccessToken();
-      if (token != null && token.isNotEmpty) {
-        options.headers['Authorization'] = 'Bearer $token';
-      }
-      handler.next(options);
-    },
-  ));
+  const ApiClient({
+    required this.baseUrl,
+  });
 
-  return dio;
-});
+  Future<http.Response> postJson(
+    String path, {
+    required Map<String, dynamic> body,
+    Map<String, String>? headers,
+  }) {
+    final uri = Uri.parse('$baseUrl$path');
+    return http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        ...?headers,
+      },
+      body: jsonEncode(body),
+    );
+  }
+}

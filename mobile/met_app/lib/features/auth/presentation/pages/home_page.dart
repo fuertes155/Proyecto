@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/accessible_button.dart';
+import 'home_widgets/quick_actions.dart';
+import 'home_widgets/_more_actions_sheet.dart';
 import '../providers/auth_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -74,14 +76,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                         const SizedBox(height: 16),
                         _buildHeroCard(),
                         const SizedBox(height: 32),
-                        _buildQuickActions(),
+                        QuickActions(
+                          onTapMore: () => MoreActionsSheet.show(context),
+                        ),
                         const SizedBox(height: 32),
                         Text(
                           'Servicios',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const SizedBox(height: 16),
                         _FeatureCard(
@@ -114,7 +119,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                         const SizedBox(height: 32),
                         AccessibleButton(
                           label: 'Soporte 24/7',
-                          semanticLabel: 'Abrir chat de soporte veinticuatro siete',
+                          semanticLabel:
+                              'Abrir chat de soporte veinticuatro siete',
                           onPressed: () {},
                         ),
                         const SizedBox(height: 40),
@@ -171,7 +177,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_none, color: Colors.white),
+                  icon:
+                      const Icon(Icons.notifications_none, color: Colors.white),
                   onPressed: () {},
                 ),
                 IconButton(
@@ -270,19 +277,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildQuickActions() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const _QuickAction(icon: Icons.swap_horiz, label: 'Transferir'),
-        const _QuickAction(icon: Icons.payment, label: 'Pagar'),
-        const _QuickAction(icon: Icons.add_circle_outline, label: 'Recargar'),
-        const _QuickAction(icon: Icons.grid_view, label: 'Más'),
-      ],
-    );
-  }
-
   Widget _buildBottomNav() {
+    final location =
+        GoRouter.of(context).routeInformationProvider.value.uri.toString();
+    final activeIndex = _activeTabIndexFromLocation(location);
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
@@ -293,44 +292,82 @@ class _HomePageState extends ConsumerState<HomePage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              _BottomNavItem(icon: Icons.home, label: 'Inicio', isActive: true),
-              _BottomNavItem(icon: Icons.history, label: 'Movimientos'),
-              _BottomNavItem(icon: Icons.credit_card, label: 'Tarjetas'),
-              _BottomNavItem(icon: Icons.person_outline, label: 'Perfil'),
+            children: [
+              _BottomNavItem(
+                icon: Icons.home,
+                label: 'Inicio',
+                isActive: activeIndex == 0,
+                onTap: () => context.go('/home'),
+              ),
+              _BottomNavItem(
+                icon: Icons.history,
+                label: 'Movimientos',
+                isActive: activeIndex == 1,
+                onTap: () => context.push('/loans/applications'),
+              ),
+              _BottomNavItem(
+                icon: Icons.credit_card,
+                label: 'Tarjetas',
+                isActive: activeIndex == 2,
+                onTap: () => context.push('/savings/scheduled'),
+              ),
+              _BottomNavItem(
+                icon: Icons.person_outline,
+                label: 'Perfil',
+                isActive: activeIndex == 3,
+                onTap: () => context.push('/login'),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  int _activeTabIndexFromLocation(String location) {
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/movements')) return 1;
+    if (location.startsWith('/cards')) return 2;
+    if (location.startsWith('/profile')) return 3;
+    return 0;
+  }
 }
 
 class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
-  const _QuickAction({required this.icon, required this.label});
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.05),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.05),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
-          child: Icon(icon, color: Colors.white, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style:
+                TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -405,33 +442,42 @@ class _BottomNavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isActive;
+  final VoidCallback? onTap;
 
   const _BottomNavItem({
     required this.icon,
     required this.label,
     this.isActive = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: isActive ? const Color(0xFFFF9800) : Colors.white54,
-          size: 28,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isActive ? const Color(0xFFFF9800) : Colors.white54,
+              size: 28,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? const Color(0xFFFF9800) : Colors.white54,
+                fontSize: 12,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isActive ? const Color(0xFFFF9800) : Colors.white54,
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

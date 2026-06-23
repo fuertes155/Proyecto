@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_client_provider.dart';
 import '../models/auth_models.dart';
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
@@ -14,7 +14,8 @@ class AuthRemoteDataSource {
   final Dio _dio;
 
   Future<UserResponse> register(RegisterRequest request) async {
-    final response = await _dio.post('/v1/auth/register', data: request.toJson());
+    final response =
+        await _dio.post('/v1/auth/register', data: request.toJson());
     return UserResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
