@@ -10,8 +10,8 @@ import 'home_widgets/_more_actions_sheet.dart';
 import '../providers/auth_provider.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
-import 'widgets/expense_chart.dart';
-import 'widgets/animated_virtual_card.dart';
+import '../../../home/presentation/widgets/expense_chart.dart';
+import '../../../home/presentation/widgets/animated_virtual_card.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
