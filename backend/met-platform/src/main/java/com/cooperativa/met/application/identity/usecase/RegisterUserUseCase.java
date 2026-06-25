@@ -42,8 +42,8 @@ public class RegisterUserUseCase {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .pinHash(encryptionPort.hashPin(request.pin()))
-                .status(UserStatus.PENDING_VERIFICATION)
-                .kycStatus(KycStatus.PENDING)
+                .status(UserStatus.ACTIVE)
+                .kycStatus(KycStatus.APPROVED)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();

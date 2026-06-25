@@ -9,6 +9,10 @@ import 'home_widgets/quick_actions.dart';
 import 'home_widgets/_more_actions_sheet.dart';
 import '../providers/auth_provider.dart';
 
+import 'package:flutter_animate/flutter_animate.dart';
+import 'widgets/expense_chart.dart';
+import 'widgets/animated_virtual_card.dart';
+
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -39,7 +43,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFE65100).withOpacity(0.2),
+                    const Color(0xFF53A835).withOpacity(0.15),
                     Colors.transparent,
                   ],
                 ),
@@ -56,7 +60,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFFF9800).withOpacity(0.15),
+                    const Color(0xFF9CB794).withOpacity(0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -74,11 +78,27 @@ class _HomePageState extends ConsumerState<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
-                        _buildHeroCard(),
+                        AnimatedVirtualCard(
+                          obscureBalance: _obscureBalance,
+                          onToggleObscure: () {
+                            setState(() {
+                              _obscureBalance = !_obscureBalance;
+                            });
+                            HapticFeedback.lightImpact();
+                          },
+                        ).animate().fade(duration: 500.ms).slideY(begin: 0.1, end: 0),
+                        
+                        const SizedBox(height: 32),
+                        const ExpenseChart()
+                            .animate(delay: 200.ms)
+                            .fade(duration: 500.ms)
+                            .slideY(begin: 0.1, end: 0),
+                            
                         const SizedBox(height: 32),
                         QuickActions(
                           onTapMore: () => MoreActionsSheet.show(context),
-                        ),
+                        ).animate(delay: 400.ms).fade(),
+                        
                         const SizedBox(height: 32),
                         Text(
                           'Servicios',
@@ -87,42 +107,42 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
-                        ),
+                        ).animate(delay: 600.ms).fade(),
                         const SizedBox(height: 16),
                         _FeatureCard(
                           icon: Icons.savings_outlined,
                           title: 'Ahorro programado',
                           subtitle: 'Configura aportes automáticos',
                           onTap: () => context.push('/savings/scheduled'),
-                        ),
+                        ).animate(delay: 700.ms).fade().slideX(begin: 0.1),
                         const SizedBox(height: 12),
                         _FeatureCard(
                           icon: Icons.handshake_outlined,
                           title: 'Ahorro solidario',
                           subtitle: 'Micropréstamos entre asociados',
                           onTap: () => context.push('/solidarity'),
-                        ),
+                        ).animate(delay: 800.ms).fade().slideX(begin: 0.1),
                         const SizedBox(height: 12),
                         _FeatureCard(
                           icon: Icons.calculate_outlined,
                           title: 'Simular préstamo',
                           subtitle: 'Calcula cuotas y solicita',
                           onTap: () => context.push('/loans/simulate'),
-                        ),
+                        ).animate(delay: 900.ms).fade().slideX(begin: 0.1),
                         const SizedBox(height: 12),
                         _FeatureCard(
                           icon: Icons.description_outlined,
                           title: 'Reportes Supersolidaria',
                           subtitle: 'Archivos planos regulatorios',
                           onTap: () => context.push('/compliance/reports'),
-                        ),
+                        ).animate(delay: 1000.ms).fade().slideX(begin: 0.1),
                         const SizedBox(height: 32),
                         AccessibleButton(
                           label: 'Soporte 24/7',
                           semanticLabel:
                               'Abrir chat de soporte veinticuatro siete',
                           onPressed: () {},
-                        ),
+                        ).animate(delay: 1100.ms).fade(),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -196,86 +216,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildHeroCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF9800), Color(0xFFE65100)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFF9800).withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Saldo Total',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _obscureBalance = !_obscureBalance;
-                  });
-                  HapticFeedback.lightImpact();
-                },
-                child: Icon(
-                  _obscureBalance ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white.withOpacity(0.9),
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _obscureBalance ? '••••••••' : '\$12,450,000',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -1,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Cuenta Met •••• 4092',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 14,
-                ),
-              ),
-              const Icon(
-                Icons.account_balance_wallet,
-                color: Colors.white,
-                size: 24,
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildBottomNav() {
     final location =

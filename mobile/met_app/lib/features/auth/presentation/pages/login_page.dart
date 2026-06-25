@@ -667,23 +667,39 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Logo premium Met — sin recuadro
+                      // Logo Met — estilo app icon
                       _AnimatedEntrance(
                         delayMs: 0,
                         child: Center(
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            width: 160,
-                            height: 160,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Text(
-                              'E',
-                              style: TextStyle(
-                                fontSize: 120,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                letterSpacing: -4,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF2D4A1E).withOpacity(0.6),
+                                  blurRadius: 32,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                width: 130,
+                                height: 130,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Text(
+                                  'E',
+                                  style: TextStyle(
+                                    fontSize: 120,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: -4,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
