@@ -56,4 +56,11 @@ class ScheduledSavingsRemoteDataSource {
         .map((e) => ContributionItem.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<void> withdraw(String accountId, WithdrawSavingsRequest request) async {
+    await _dio.post(
+      '/v1/savings/scheduled/$accountId/withdraw',
+      data: request.toJson(),
+    );
+  }
 }

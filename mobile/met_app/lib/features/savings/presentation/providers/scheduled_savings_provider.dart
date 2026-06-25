@@ -42,6 +42,11 @@ class ScheduledSavingsListNotifier extends StateNotifier<AsyncValue<List<Schedul
     await _dataSource.updateAccount(accountId, UpdateScheduledSavingsRequest(status: 'CANCELLED'));
     await load();
   }
+
+  Future<void> withdrawAccount(String accountId, double amount, String type) async {
+    await _dataSource.withdraw(accountId, WithdrawSavingsRequest(amount: amount, withdrawalType: type));
+    await load();
+  }
 }
 
 final scheduledSavingsDetailProvider = FutureProvider.family<ScheduledSavingsAccount, String>((ref, accountId) {

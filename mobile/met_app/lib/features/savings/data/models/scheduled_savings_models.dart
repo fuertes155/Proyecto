@@ -131,3 +131,18 @@ class ContributionItem {
         _ => status,
       };
 }
+
+class WithdrawSavingsRequest {
+  WithdrawSavingsRequest({
+    required this.amount,
+    required this.withdrawalType,
+  });
+
+  final double amount;
+  final String withdrawalType; // "PARTIAL" or "FULL"
+
+  Map<String, dynamic> toJson() => {
+        'amount': amount,
+        'withdrawalType': withdrawalType,
+      };
+}

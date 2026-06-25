@@ -35,6 +35,7 @@ public class ScheduledSavingsController {
     private final GetScheduledSavingsUseCase getUseCase;
     private final UpdateScheduledSavingsUseCase updateUseCase;
     private final GetContributionHistoryUseCase historyUseCase;
+    private final com.cooperativa.met.application.savings.usecase.WithdrawSavingsUseCase withdrawUseCase;
 
     @PostMapping
     public ResponseEntity<ScheduledSavingsResponse> create(
@@ -73,5 +74,16 @@ public class ScheduledSavingsController {
             @PathVariable UUID accountId) {
         UUID userId = (UUID) authentication.getPrincipal();
         return ResponseEntity.ok(historyUseCase.execute(userId, accountId));
+    }
+
+    @PostMapping("/{accountId}/withdraw")
+    public ResponseEntity<Void> withdraw(
+            Authentication authentication,
+            @PathVariable UUID accountId,
+            @Valid @RequestBody com.cooperativa.met.application.savings.dto.WithdrawSavingsRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        request.setAccountId(accountId);
+        withdrawUseCase.execute(userId, request);
+        return ResponseEntity.noContent().build();
     }
 }

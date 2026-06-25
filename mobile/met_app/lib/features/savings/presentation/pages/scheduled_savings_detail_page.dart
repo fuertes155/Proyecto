@@ -62,11 +62,14 @@ class ScheduledSavingsDetailPage extends ConsumerWidget {
               if (account.status == 'ACTIVE' || account.status == 'PAUSED') ...[
                 const SizedBox(height: 12),
                 OutlinedButton(
-                  onPressed: () async {
-                    await ref.read(scheduledSavingsListProvider.notifier).cancelAccount(accountId);
-                    if (context.mounted) Navigator.of(context).pop();
-                  },
-                  child: const Text('Cancelar meta'),
+                  onPressed: () => _showPartialWithdrawalModal(context, ref, account),
+                  child: const Text('Retiro Parcial (Max 40%)'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                  onPressed: () => _showFullWithdrawalConfirm(context, ref, account),
+                  child: const Text('Retirar todo y Cerrar cuenta'),
                 ),
               ],
               const SizedBox(height: 32),
@@ -98,6 +101,105 @@ class ScheduledSavingsDetailPage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showPartialWithdrawalModal(BuildContext context, WidgetRef ref, dynamic account) {
+    final maxAllowed = account.currentBalance * 0.40;
+    final controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Retiro Parcial', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('Puedes retirar hasta el 40% de tu saldo actual (${formatCop(maxAllowed)}).'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Monto a retirar',
+                  prefixText: '\$ ',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () async {
+                  final amount = double.tryParse(controller.text) ?? 0.0;
+                  if (amount <= 0 || amount > maxAllowed) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(content: Text('Monto inválido o excede el 40% permitido.')),
+                    );
+                    return;
+                  }
+                  Navigator.of(ctx).pop();
+                  try {
+                    await ref.read(scheduledSavingsListProvider.notifier).withdrawAccount(account.id, amount, 'PARTIAL');
+                    ref.invalidate(scheduledSavingsDetailProvider(account.id));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Retiro parcial exitoso.')));
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  }
+                },
+                child: const Text('Confirmar Retiro'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFullWithdrawalConfirm(BuildContext context, WidgetRef ref, dynamic account) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Retirar todo y Cerrar'),
+          content: const Text(
+            'Esta acción extraerá todo tu dinero y cancelará tu meta de ahorro permanentemente. ¿Estás seguro?',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                try {
+                  await ref.read(scheduledSavingsListProvider.notifier).withdrawAccount(account.id, account.currentBalance, 'FULL');
+                  ref.invalidate(scheduledSavingsDetailProvider(account.id));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cuenta cancelada y retiro exitoso.')));
+                    Navigator.of(context).pop(); // Go back to list
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                }
+              },
+              child: const Text('Sí, retirar y cerrar', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
