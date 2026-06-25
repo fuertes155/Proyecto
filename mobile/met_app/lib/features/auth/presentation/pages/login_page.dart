@@ -667,47 +667,23 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // MEJORA 2: Logo premium Met
+                      // Logo premium Met — sin recuadro
                       _AnimatedEntrance(
                         delayMs: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF53A835).withOpacity(0.4),
-                                blurRadius: 30,
-                                spreadRadius: 5,
-                              )
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white.withOpacity(0.1),
-                                  border: Border.all(
-                                      color: Colors.white.withOpacity(0.3), width: 1.5),
-                                ),
-                                child: Image.asset(
-                                  'assets/images/logo.png',
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Text(
-                                    'E',
-                                    style: TextStyle(
-                                      fontSize: 54,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: -2,
-                                    ),
-                                  ),
-                                ),
+                        child: Center(
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            width: 160,
+                            height: 160,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Text(
+                              'E',
+                              style: TextStyle(
+                                fontSize: 120,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: -4,
                               ),
                             ),
                           ),
