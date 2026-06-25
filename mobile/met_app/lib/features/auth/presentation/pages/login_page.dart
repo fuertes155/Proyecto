@@ -96,7 +96,7 @@ class _PinIndicator extends StatelessWidget {
     if (isError) {
       color = Colors.redAccent;
     } else if (isFilled) {
-      color = const Color(0xFFFF9800);
+      color = const Color(0xFF53A835);
     } else {
       color = Colors.transparent;
     }
@@ -111,7 +111,7 @@ class _PinIndicator extends StatelessWidget {
         border: Border.all(
           color: isError
               ? Colors.redAccent
-              : (isFilled ? const Color(0xFFFF9800) : Colors.white.withOpacity(0.5)),
+              : (isFilled ? const Color(0xFF53A835) : Colors.white.withOpacity(0.5)),
           width: 2,
         ),
       ),
@@ -247,7 +247,7 @@ class _BiometricButtonState extends State<_BiometricButton> {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFF9800).withOpacity(_isHovered ? 0.5 : 0.2),
+                color: const Color(0xFF53A835).withOpacity(_isHovered ? 0.5 : 0.2),
                 blurRadius: _isHovered ? 20 : 10,
                 spreadRadius: _isHovered ? 5 : 2,
               )
@@ -612,7 +612,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+                colors: [Color(0xFF637C5A), Color(0xFF415739)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -645,7 +645,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFFF9800).withOpacity(0.3),
+                    const Color(0xFF53A835).withOpacity(0.3),
                     Colors.transparent,
                   ],
                 ),
@@ -675,7 +675,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFFF9800).withOpacity(0.4),
+                                color: const Color(0xFF53A835).withOpacity(0.4),
                                 blurRadius: 30,
                                 spreadRadius: 5,
                               )
@@ -692,13 +692,20 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                   border: Border.all(
                                       color: Colors.white.withOpacity(0.3), width: 1.5),
                                 ),
-                                child: const Text(
-                                  'M',
-                                  style: TextStyle(
-                                    fontSize: 54,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    letterSpacing: -2,
+                                child: Image.asset(
+                                  'assets/images/logo.png',
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Text(
+                                    'E',
+                                    style: TextStyle(
+                                      fontSize: 54,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: -2,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -758,7 +765,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                           duration: const Duration(milliseconds: 200),
                                           padding: const EdgeInsets.symmetric(vertical: 12),
                                           decoration: BoxDecoration(
-                                            color: _documentType == 'CC' ? const Color(0xFFFF9800) : Colors.transparent,
+                                            color: _documentType == 'CC' ? const Color(0xFF53A835) : Colors.transparent,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           alignment: Alignment.center,
@@ -773,7 +780,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                           duration: const Duration(milliseconds: 200),
                                           padding: const EdgeInsets.symmetric(vertical: 12),
                                           decoration: BoxDecoration(
-                                            color: _documentType == 'CE' ? const Color(0xFFFF9800) : Colors.transparent,
+                                            color: _documentType == 'CE' ? const Color(0xFF53A835) : Colors.transparent,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           alignment: Alignment.center,
@@ -800,7 +807,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFFFF9800), width: 1.5),
+                                    borderSide: const BorderSide(color: Color(0xFF53A835), width: 1.5),
                                   ),
                                   prefixIcon: const Icon(Icons.badge_outlined, color: Colors.white70),
                                 ),
@@ -819,7 +826,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                       style: TextStyle(color: Colors.white, fontSize: 16)),
                                   Switch(
                                     value: _rememberMe,
-                                    activeColor: const Color(0xFFFF9800),
+                                    activeColor: const Color(0xFF53A835),
                                     inactiveTrackColor: Colors.white.withOpacity(0.1),
                                     onChanged: (value) => setState(
                                         () => _rememberMe = value),
@@ -881,7 +888,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                             // Botón Ingresar
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF9800),
+                                backgroundColor: const Color(0xFF53A835),
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
@@ -890,7 +897,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                 ),
                                 elevation: 5,
                                 shadowColor:
-                                    const Color(0xFFFF9800).withOpacity(0.5),
+                                    const Color(0xFF53A835).withOpacity(0.5),
                               ),
                               onPressed: _isLoading ? null : _loginWithPin,
                               child: _isLoading
@@ -914,6 +921,20 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                   foregroundColor: Colors.white),
                               child:
                                   const Text('¿No tienes cuenta? Regístrate'),
+                            ),
+                            // Acceso Admin (discreto)
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: () => context.push('/admin/login'),
+                              icon: const Icon(Icons.admin_panel_settings_rounded,
+                                  size: 14, color: Color(0xFFCF3232)),
+                              label: const Text(
+                                'Acceso Administrador',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFFCF3232),
+                                    fontWeight: FontWeight.w500),
+                              ),
                             ),
                           ],
                         ),

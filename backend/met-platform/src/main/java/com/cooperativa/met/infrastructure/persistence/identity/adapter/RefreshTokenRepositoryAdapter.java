@@ -36,4 +36,10 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryPort
             repository.save(entity);
         });
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void revokeAllByUserId(UUID userId) {
+        repository.revokeAllByUserId(userId);
+    }
 }

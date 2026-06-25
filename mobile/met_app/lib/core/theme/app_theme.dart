@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF0B5FFF);
-  static const Color secondaryColor = Color(0xFF00A86B);
+  static const Color primaryColor = Color(0xFF53A835);
+  static const Color secondaryColor = Color(0xFF9CB794);
   static const Color errorColor = Color(0xFFD32F2F);
 
   static ThemeData get lightTheme {

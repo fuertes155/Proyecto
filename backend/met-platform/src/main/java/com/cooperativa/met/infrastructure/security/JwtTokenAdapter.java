@@ -46,6 +46,31 @@ public class JwtTokenAdapter implements TokenPort {
     }
 
     @Override
+    public String generateAdminAccessToken(UUID adminId, String username, String role) {
+        Instant now = Instant.now();
+        Instant expiry = now.plusMillis(securityProperties.getJwt().getExpirationMs());
+        return Jwts.builder()
+                .subject(adminId.toString())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiry))
+                .claim("type", "access")
+                .claim("role", role)
+                .claim("username", username)
+                .signWith(secretKey())
+                .compact();
+    }
+
+    @Override
+    public String extractRole(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return claims.get("role", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
     public UUID validateRefreshToken(String token) {
         TokenPort.RefreshTokenClaims claims = validateTokenAndType(token, "refresh");
         return claims.userId();

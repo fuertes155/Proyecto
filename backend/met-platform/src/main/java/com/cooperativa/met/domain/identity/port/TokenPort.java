@@ -14,6 +14,12 @@ public interface TokenPort {
 
     RefreshTokenClaims validateRefreshTokenClaims(String token);
 
+    /** Genera un JWT de acceso para administradores con claim 'role' */
+    String generateAdminAccessToken(UUID adminId, String username, String role);
+
+    /** Extrae el claim 'role' de un token (null si no existe) */
+    String extractRole(String token);
+
     record RefreshTokenClaims(UUID userId, UUID jti) {
     }
 }

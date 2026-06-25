@@ -12,4 +12,7 @@ public interface RefreshTokenRepositoryPort {
     Optional<RefreshToken> findByJti(UUID jti);
 
     void revoke(UUID jti);
+
+    /** Revoca todos los refresh tokens activos de un usuario (bloqueo de emergencia) */
+    void revokeAllByUserId(UUID userId);
 }
