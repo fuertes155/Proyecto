@@ -49,7 +49,7 @@ met:
       # Obligatorio: no usar defaults en producción
       aes-key: ${AES_KEY}
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+    allowed-origins: ${CORS_ORIGINS:*}
   compliance:
     entity-code: ${COMPLIANCE_ENTITY_CODE:COOP001}
     storage-path: ${COMPLIANCE_STORAGE_PATH:./data/regulatory-reports}
