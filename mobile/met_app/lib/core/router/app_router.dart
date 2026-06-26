@@ -16,6 +16,10 @@ import '../../features/loans/presentation/pages/loan_application_detail_page.dar
 import '../../features/loans/presentation/pages/loan_applications_list_page.dart';
 import '../../features/loans/presentation/pages/loan_simulation_page.dart';
 import '../../features/compliance/presentation/pages/regulatory_reports_page.dart';
+// Investment Module
+import '../../features/investment/presentation/pages/investment_home_page.dart';
+import '../../features/investment/presentation/pages/create_portfolio_page.dart';
+import '../../features/investment/presentation/pages/portfolio_detail_page.dart';
 // Admin Module
 import '../../features/admin/presentation/pages/admin_login_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
@@ -63,6 +67,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/compliance/reports', builder: (context, state) => const RegulatoryReportsPage()),
+      // ── Investment Module ──────────────────────────────────────────────────
+      GoRoute(path: '/investments', builder: (context, state) => const InvestmentHomePage()),
+      GoRoute(path: '/investments/create', builder: (context, state) => const CreatePortfolioPage()),
+      GoRoute(
+        path: '/investments/portfolio/:portfolioId',
+        builder: (context, state) => PortfolioDetailPage(
+          portfolioId: state.pathParameters['portfolioId']!,
+        ),
+      ),
       // ── Admin Module ──────────────────────────────────────────────────────
       GoRoute(path: '/admin/login', builder: (context, state) => const AdminLoginPage()),
       GoRoute(path: '/admin/dashboard', builder: (context, state) => const AdminDashboardPage()),

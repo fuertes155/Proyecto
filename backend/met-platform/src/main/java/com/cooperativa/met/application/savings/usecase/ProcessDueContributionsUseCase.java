@@ -13,6 +13,7 @@ import com.cooperativa.met.domain.savings.port.SavingsBalanceCachePort;
 import com.cooperativa.met.domain.savings.port.ScheduledContributionPort;
 import com.cooperativa.met.domain.savings.port.ScheduledSavingsAccountPort;
 import com.cooperativa.met.domain.savings.service.ContributionDateCalculator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class ProcessDueContributionsUseCase {
     private final ScheduledContributionPort contributionPort;
     private final DebitSourcePort debitSourcePort;
     private final SavingsBalanceCachePort balanceCachePort;
-    
+
     private final FeeScheduleRepositoryPort feeRepositoryPort;
     private final PlatformRevenuePort platformRevenuePort;
 
@@ -43,7 +44,7 @@ public class ProcessDueContributionsUseCase {
     public int execute() {
         LocalDate today = LocalDate.now();
         List<ScheduledSavingsAccount> dueAccounts = accountPort.findDueAccounts(today, ScheduledSavingsStatus.ACTIVE);
-        
+
         // Obtener la tarifa vigente
         Optional<FeeSchedule> depositFeeOpt = feeRepositoryPort.findVigentes().stream()
                 .filter(f -> "DEPOSIT_FEE".equals(f.getTipoTarifa()))
@@ -68,7 +69,8 @@ public class ProcessDueContributionsUseCase {
 
         if (depositFee != null) {
             if (depositFee.isEsPorcentaje()) {
-                feeAmount = baseAmount.multiply(depositFee.getValor()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                feeAmount = baseAmount.multiply(depositFee.getValor()).divide(BigDecimal.valueOf(100), 2,
+                        RoundingMode.HALF_UP);
             } else {
                 feeAmount = depositFee.getValor();
             }
@@ -100,13 +102,12 @@ public class ProcessDueContributionsUseCase {
                             account.getFrequency(),
                             account.getDebitDayOfWeek(),
                             account.getDebitDayOfMonth(),
-                            today
-                    ));
+                            today));
 
             if (updatedAccount.isTargetReached()) {
                 updatedAccount = updatedAccount.withStatus(ScheduledSavingsStatus.COMPLETED);
             }
-            
+
             // Guardar la ganancia de la plataforma si hubo cobro
             if (feeAmount.compareTo(BigDecimal.ZERO) > 0) {
                 PlatformRevenue revenue = PlatformRevenue.builder()
@@ -122,13 +123,13 @@ public class ProcessDueContributionsUseCase {
             }
 
         } else {
-            result = contributionPort.save(pending.markFailed("Fondos insuficientes en cuenta origen (Monto requerido: " + totalCharge + ")"));
+            result = contributionPort.save(
+                    pending.markFailed("Fondos insuficientes en cuenta origen (Monto requerido: " + totalCharge + ")"));
             updatedAccount = account.withNextContributionDate(ContributionDateCalculator.calculateNextDate(
                     account.getFrequency(),
                     account.getDebitDayOfWeek(),
                     account.getDebitDayOfMonth(),
-                    today
-            ));
+                    today));
             log.warn("Aporte fallido para cuenta {}: fondos insuficientes", account.getId());
         }
 
