@@ -26,6 +26,7 @@ import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 import '../../features/admin/presentation/pages/emergency_lock_page.dart';
 import '../../features/admin/presentation/pages/operation_limits_page.dart';
 import '../../features/admin/presentation/pages/audit_log_page.dart';
+import 'package:met/features/support/presentation/pages/chat_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -82,6 +83,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/emergency-lock', builder: (context, state) => const EmergencyLockPage()),
       GoRoute(path: '/admin/limits', builder: (context, state) => const OperationLimitsPage()),
       GoRoute(path: '/admin/audit-log', builder: (context, state) => const AuditLogPage()),
+      GoRoute(
+        path: '/support/chat',
+        builder: (context, state) => const ChatPage(),
+      ),
     ],
   );
 });

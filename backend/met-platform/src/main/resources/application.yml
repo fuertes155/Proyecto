@@ -48,6 +48,9 @@ met:
     encryption:
       # Obligatorio: no usar defaults en producción
       aes-key: ${AES_KEY}
+  ai:
+    gemini:
+      api-key: ${GEMINI_API_KEY}
   cors:
     allowed-origins: ${CORS_ORIGINS:*}
   compliance:
