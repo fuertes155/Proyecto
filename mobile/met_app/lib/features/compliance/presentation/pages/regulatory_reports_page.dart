@@ -94,6 +94,7 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
               error: (e, _) => Text('Error: $e'),
               data: (types) => DropdownButtonFormField<String>(
                 value: _selectedType,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Tipo de reporte'),
                 items: types
                     .map((t) => DropdownMenuItem(value: t.code, child: Text(t.description)))

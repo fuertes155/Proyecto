@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../data/models/investment_models.dart';
 import '../providers/investment_providers.dart';
 
@@ -41,21 +42,21 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
     final cs = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1623),
+      
       body: CustomScrollView(
         slivers: [
           // ── Header con gradiente ──────────────────────────────────────
           SliverAppBar(
             expandedHeight: 180,
             pinned: true,
-            backgroundColor: const Color(0xFF0F1623),
+            
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1A2E1A), Color(0xFF0F1623)],
+                    colors: [Color(0xFF1A2E1A), const Color(0xFF121212)],
                   ),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 80, 20, 16),
@@ -67,11 +68,11 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF53A835).withOpacity(0.2),
+                            color: AppTheme.primaryColor.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(Icons.trending_up,
-                              color: Color(0xFF53A835), size: 28),
+                              color: AppTheme.primaryColor, size: 28),
                         ),
                         const SizedBox(width: 12),
                         Column(
@@ -94,9 +95,9 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
             ),
             bottom: TabBar(
               controller: _tabController,
-              labelColor: const Color(0xFF53A835),
+              labelColor: AppTheme.primaryColor,
               unselectedLabelColor: Colors.white38,
-              indicatorColor: const Color(0xFF53A835),
+              indicatorColor: AppTheme.primaryColor,
               tabs: const [
                 Tab(text: 'Instrumentos'),
                 Tab(text: 'Mis Portfolios'),
@@ -120,7 +121,7 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
       // ── FAB: Invertir ────────────────────────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/investments/create'),
-        backgroundColor: const Color(0xFF53A835),
+        backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_circle_outline),
         label: const Text('Invertir',
@@ -142,7 +143,7 @@ class _InstrumentsTab extends ConsumerWidget {
 
     return instrumentsAsync.when(
       loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF53A835))),
+          child: CircularProgressIndicator(color: AppTheme.primaryColor)),
       error: (e, _) => Center(
           child: Text('Error cargando instrumentos',
               style: TextStyle(color: Colors.white54))),
@@ -179,9 +180,9 @@ class _InstrumentCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1C2B1C), Color(0xFF1A2332)],
+          colors: [const Color(0xFF1E291E), const Color(0xFF1E1E1E)],
         ),
-        border: Border.all(color: const Color(0xFF53A835).withOpacity(0.2)),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -203,14 +204,14 @@ class _InstrumentCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF53A835).withOpacity(0.15),
+                    color: AppTheme.primaryColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: const Color(0xFF53A835).withOpacity(0.5)),
+                        color: AppTheme.primaryColor.withOpacity(0.5)),
                   ),
                   child: Text(instrument.tasaLabel,
                       style: const TextStyle(
-                          color: Color(0xFF53A835),
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 15)),
                 ),
@@ -271,7 +272,7 @@ class _PortfoliosTab extends ConsumerWidget {
 
     return portfoliosAsync.when(
       loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF53A835))),
+          child: CircularProgressIndicator(color: AppTheme.primaryColor)),
       error: (e, _) => Center(
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -327,7 +328,7 @@ class _PortfolioCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive = portfolio.estado == 'ACTIVE';
     final accentColor =
-        isActive ? const Color(0xFF53A835) : Colors.white24;
+        isActive ? AppTheme.primaryColor : Colors.white24;
 
     return GestureDetector(
       onTap: () =>
@@ -340,7 +341,7 @@ class _PortfolioCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isActive
-                ? [const Color(0xFF1C2B1C), const Color(0xFF1A2332)]
+                ? [const Color(0xFF1E291E), const Color(0xFF1E1E1E)]
                 : [const Color(0xFF1A1A1A), const Color(0xFF1A1A1A)],
           ),
           border: Border.all(color: accentColor.withOpacity(0.3)),
@@ -379,12 +380,12 @@ class _PortfolioCard extends StatelessWidget {
               Row(
                 children: [
                   const Icon(Icons.show_chart,
-                      size: 16, color: Color(0xFF53A835)),
+                      size: 16, color: AppTheme.primaryColor),
                   const SizedBox(width: 4),
                   Text(
                     'Rendimiento proyectado: ${currencyFormat.format(portfolio.rendimientoTotalProyectado)}',
                     style: const TextStyle(
-                        color: Color(0xFF53A835), fontSize: 14),
+                        color: AppTheme.primaryColor, fontSize: 14),
                   ),
                 ],
               ),

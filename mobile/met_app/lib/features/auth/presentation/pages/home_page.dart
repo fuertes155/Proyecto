@@ -141,7 +141,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                           label: 'Soporte 24/7',
                           semanticLabel:
                               'Abrir chat de soporte veinticuatro siete',
-                          onPressed: () {},
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('El chat de soporte estará disponible próximamente.'),
+                              ),
+                            );
+                          },
                         ).animate(delay: 1100.ms).fade(),
                         const SizedBox(height: 40),
                       ],

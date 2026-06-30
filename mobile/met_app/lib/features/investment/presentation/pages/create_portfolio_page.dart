@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../data/models/investment_models.dart';
 import '../providers/investment_providers.dart';
 
@@ -80,9 +81,9 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
     final instrumentsAsync = ref.watch(investmentInstrumentsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1623),
+      
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F1623),
+        
         foregroundColor: Colors.white,
         title: const Text('Crear Portfolio',
             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -99,15 +100,15 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF53A835).withOpacity(0.1),
+                  color: AppTheme.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: const Color(0xFF53A835).withOpacity(0.3)),
+                      color: AppTheme.primaryColor.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.info_outline,
-                        color: Color(0xFF53A835), size: 20),
+                        color: AppTheme.primaryColor, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -136,13 +137,13 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                 decoration: InputDecoration(
                   prefixText: '\$ ',
                   prefixStyle: const TextStyle(
-                      color: Color(0xFF53A835),
+                      color: AppTheme.primaryColor,
                       fontSize: 24,
                       fontWeight: FontWeight.bold),
                   hintText: '100,000',
                   hintStyle: const TextStyle(color: Colors.white24),
                   filled: true,
-                  fillColor: const Color(0xFF1A2332),
+                  fillColor: const Color(0xFF1E1E1E),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
@@ -150,7 +151,7 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: const BorderSide(
-                        color: Color(0xFF53A835), width: 2),
+                        color: AppTheme.primaryColor, width: 2),
                   ),
                 ),
                 validator: (v) {
@@ -210,7 +211,7 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                                         fontSize: 11, color: Colors.white70),
                                   ),
                                   backgroundColor:
-                                      const Color(0xFF1A2332),
+                                      const Color(0xFF1E1E1E),
                                   side: BorderSide.none,
                                 ))
                             .toList(),
@@ -228,7 +229,7 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF53A835),
+                    backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
@@ -290,11 +291,11 @@ class _StrategyTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: isSelected
-              ? const Color(0xFF53A835).withOpacity(0.15)
-              : const Color(0xFF1A2332),
+              ? AppTheme.primaryColor.withOpacity(0.15)
+              : const Color(0xFF1E1E1E),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF53A835)
+                ? AppTheme.primaryColor
                 : Colors.white.withOpacity(0.08),
             width: isSelected ? 2 : 1,
           ),
@@ -305,14 +306,14 @@ class _StrategyTile extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: (isSelected
-                        ? const Color(0xFF53A835)
+                        ? AppTheme.primaryColor
                         : Colors.white24)
                     .withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon,
                   color: isSelected
-                      ? const Color(0xFF53A835)
+                      ? AppTheme.primaryColor
                       : Colors.white38,
                   size: 22),
             ),
@@ -324,7 +325,7 @@ class _StrategyTile extends StatelessWidget {
                   Text(label,
                       style: TextStyle(
                           color: isSelected
-                              ? const Color(0xFF53A835)
+                              ? AppTheme.primaryColor
                               : Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 15)),
@@ -336,7 +337,7 @@ class _StrategyTile extends StatelessWidget {
             ),
             if (isSelected)
               const Icon(Icons.check_circle,
-                  color: Color(0xFF53A835), size: 22),
+                  color: AppTheme.primaryColor, size: 22),
           ],
         ),
       ),

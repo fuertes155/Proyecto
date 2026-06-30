@@ -2,7 +2,7 @@ package com.cooperativa.met.infrastructure.security;
 
 import java.time.Duration;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedisRateLimiter {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     public boolean tryConsume(String key, long limit, Duration ttl) {
         ValueOperations<String, String> ops = redisTemplate.opsForValue();

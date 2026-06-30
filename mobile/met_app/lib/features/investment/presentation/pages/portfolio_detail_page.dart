@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../data/models/investment_models.dart';
 import '../providers/investment_providers.dart';
 
@@ -22,9 +23,9 @@ class PortfolioDetailPage extends ConsumerWidget {
     final portfolioAsync = ref.watch(portfolioDetailProvider(portfolioId));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1623),
+      
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F1623),
+        
         foregroundColor: Colors.white,
         title: const Text('Detalle del Portfolio',
             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -32,7 +33,7 @@ class PortfolioDetailPage extends ConsumerWidget {
       ),
       body: portfolioAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF53A835))),
+            child: CircularProgressIndicator(color: AppTheme.primaryColor)),
         error: (e, _) => Center(
             child: Text('Error al cargar el portfolio',
                 style: const TextStyle(color: Colors.white54))),
@@ -75,10 +76,10 @@ class _PortfolioDetailContent extends ConsumerWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1C3320), Color(0xFF1A2332)],
+                    colors: [const Color(0xFF1E291E), const Color(0xFF1E1E1E)],
                   ),
                   border: Border.all(
-                      color: const Color(0xFF53A835).withOpacity(0.3)),
+                      color: AppTheme.primaryColor.withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +95,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: (isActive
-                                    ? const Color(0xFF53A835)
+                                    ? AppTheme.primaryColor
                                     : Colors.white24)
                                 .withOpacity(0.15),
                             borderRadius: BorderRadius.circular(20),
@@ -102,7 +103,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
                           child: Text(portfolio.estadoLabel,
                               style: TextStyle(
                                   color: isActive
-                                      ? const Color(0xFF53A835)
+                                      ? AppTheme.primaryColor
                                       : Colors.white38,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold)),
@@ -127,7 +128,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
                             label: 'Rendimiento',
                             value: currencyFormat.format(
                                 portfolio.rendimientoTotalProyectado),
-                            valueColor: const Color(0xFF53A835),
+                            valueColor: AppTheme.primaryColor,
                             subValue: '+${(portfolio.rendimientoPercentage).toStringAsFixed(2)}%',
                           ),
                         ),
@@ -188,7 +189,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
                 child: Row(
                   children: [
                     const Icon(Icons.pie_chart_outline,
-                        color: Color(0xFF53A835), size: 18),
+                        color: AppTheme.primaryColor, size: 18),
                     const SizedBox(width: 8),
                     const Text('Posiciones',
                         style: TextStyle(
@@ -222,7 +223,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2332),
+        
         title: const Text('¿Cancelar portfolio?',
             style: TextStyle(color: Colors.white)),
         content: const Text(
@@ -254,7 +255,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Portfolio cancelado. Capital devuelto a tu saldo.'),
-                backgroundColor: Color(0xFF53A835)),
+                backgroundColor: AppTheme.primaryColor),
           );
         }
       } catch (e) {
@@ -318,7 +319,7 @@ class _PositionCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        color: const Color(0xFF141D2B),
+        color: const Color(0xFF121212),
         border: Border.all(color: Colors.white.withOpacity(0.07)),
       ),
       child: Column(
@@ -337,7 +338,7 @@ class _PositionCard extends StatelessWidget {
               Text(
                 currencyFormat.format(position.montoInvertido),
                 style: const TextStyle(
-                    color: Color(0xFF53A835),
+                    color: AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 15),
               ),
