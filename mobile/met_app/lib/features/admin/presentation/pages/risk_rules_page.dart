@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
 import '../../data/models/admin_models.dart';
 
-class MaintenancePage extends ConsumerWidget {
-  const MaintenancePage({super.key});
+class RiskRulesPage extends ConsumerWidget {
+  const RiskRulesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(maintenanceProvider);
-    const primaryColor = Color(0xFF53A835);
+    final rulesState = ref.watch(riskRulesProvider);
+    const primaryColor = Color(0xFF53A835); // Verde oscuro
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0D),
@@ -18,35 +18,34 @@ class MaintenancePage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         title: const Row(children: [
-          Icon(Icons.build_circle_rounded, color: primaryColor, size: 24),
+          Icon(Icons.policy_rounded, color: primaryColor, size: 24),
           SizedBox(width: 10),
-          Text('Mantenimiento',
+          Text('Reglas de Riesgo',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ]),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-            onPressed: () => ref.read(maintenanceProvider.notifier).load(),
+            onPressed: () => ref.read(riskRulesProvider.notifier).load(),
           ),
         ],
       ),
-      body: state.when(
+      body: rulesState.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
             child: Text('Error: $e', style: const TextStyle(color: Colors.white70))),
-        data: (windows) {
-          if (windows.isEmpty) {
+        data: (rules) {
+          if (rules.isEmpty) {
             return const Center(
-              child: Text('No hay ventanas de mantenimiento configuradas.',
-                  style: TextStyle(color: Colors.white54)),
-            );
+                child: Text('No hay reglas configuradas',
+                    style: TextStyle(color: Colors.white54)));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: windows.length,
+            itemCount: rules.length,
             itemBuilder: (context, i) =>
-                _MaintenanceCard(window: windows[i], color: primaryColor),
+                _RiskRuleCard(rule: rules[i], color: primaryColor),
           );
         },
       ),
@@ -54,9 +53,9 @@ class MaintenancePage extends ConsumerWidget {
   }
 }
 
-class _MaintenanceCard extends ConsumerWidget {
-  const _MaintenanceCard({required this.window, required this.color});
-  final MaintenanceWindow window;
+class _RiskRuleCard extends ConsumerWidget {
+  const _RiskRuleCard({required this.rule, required this.color});
+  final RiskRule rule;
   final Color color;
 
   @override
@@ -68,7 +67,7 @@ class _MaintenanceCard extends ConsumerWidget {
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-            color: window.activo ? color.withOpacity(0.5) : Colors.white12),
+            color: rule.activo ? color.withOpacity(0.5) : Colors.white12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,35 +78,40 @@ class _MaintenanceCard extends ConsumerWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: window.activo
+                    color: rule.activo
                         ? color.withOpacity(0.2)
                         : Colors.white.withOpacity(0.05)),
-                child: Icon(
-                    window.activo ? Icons.build_rounded : Icons.power_off_rounded,
-                    color: window.activo ? color : Colors.white38,
-                    size: 22),
+                child: Icon(Icons.security_rounded,
+                    color: rule.activo ? color : Colors.white38, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(window.descripcion,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(rule.nombre,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
+                    if (rule.descripcion != null)
+                      Text(rule.descripcion!,
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.6), fontSize: 12)),
+                  ],
+                ),
               ),
               Switch(
-                value: window.activo,
+                value: rule.activo,
                 activeColor: color,
                 onChanged: (val) async {
                   try {
                     await ref
-                        .read(maintenanceProvider.notifier)
-                        .toggle(window.id, val);
+                        .read(riskRulesProvider.notifier)
+                        .toggle(rule.id, val);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(val
-                            ? 'Mantenimiento activado'
-                            : 'Mantenimiento desactivado'),
+                        content: Text(val ? 'Regla activada' : 'Regla desactivada'),
                         backgroundColor: val ? color : Colors.grey[800],
                         behavior: SnackBarBehavior.floating,
                       ));
@@ -126,9 +130,9 @@ class _MaintenanceCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
-          _DetailRow('Inicio', window.inicio),
+          _DetailRow('Condición', rule.condicion),
           const SizedBox(height: 6),
-          _DetailRow('Fin estimado', window.fin),
+          _DetailRow('Acción', rule.accion),
         ],
       ),
     );
@@ -144,12 +148,12 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.access_time_rounded, color: Colors.white38, size: 16),
+        Icon(Icons.code_rounded, color: Colors.white38, size: 16),
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
         const Spacer(),
-        Text(value.replaceAll('T', ' ').substring(0, 19),
+        Text(value,
             style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13)),
       ],

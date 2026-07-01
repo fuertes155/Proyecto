@@ -104,6 +104,11 @@ class FeeScheduleNotifier extends StateNotifier<AsyncValue<List<FeeSchedule>>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> createFee(Map<String, dynamic> data) async {
+    await _repo.createFee(data);
+    await load();
+  }
 }
 
 // ── Maintenance ───────────────────────────────────────────────────────────────

@@ -273,7 +273,7 @@ class _ModuleCardState extends State<_ModuleCard> {
                 color: Colors.white.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                    color: widget.module.color.withOpacity(0.35), width: 1.5),
+                    color: const Color(0xFF53A835).withOpacity(0.35), width: 1.5),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -282,12 +282,12 @@ class _ModuleCardState extends State<_ModuleCard> {
                     width: 52, height: 52,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: widget.module.color.withOpacity(0.2),
+                      color: const Color(0xFF53A835).withOpacity(0.2),
                       border: Border.all(
-                          color: widget.module.color.withOpacity(0.5)),
+                          color: const Color(0xFF53A835).withOpacity(0.5), width: 1.0),
                     ),
                     child: Icon(widget.module.icon,
-                        color: widget.module.color, size: 26),
+                        color: const Color(0xFF53A835), size: 26),
                   ),
                   const SizedBox(height: 10),
                   Text(

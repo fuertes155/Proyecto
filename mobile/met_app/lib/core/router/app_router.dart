@@ -26,6 +26,11 @@ import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 import '../../features/admin/presentation/pages/emergency_lock_page.dart';
 import '../../features/admin/presentation/pages/operation_limits_page.dart';
 import '../../features/admin/presentation/pages/audit_log_page.dart';
+import '../../features/admin/presentation/pages/maintenance_page.dart';
+import '../../features/admin/presentation/pages/fees_page.dart';
+import '../../features/admin/presentation/pages/risk_rules_page.dart';
+import '../../features/admin/presentation/pages/transaction_reversal_page.dart';
+import '../../features/admin/presentation/pages/reset_credentials_page.dart';
 import 'package:met/features/support/presentation/pages/chat_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -68,6 +73,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/compliance/reports', builder: (context, state) => const RegulatoryReportsPage()),
+      GoRoute(path: '/admin/reports', builder: (context, state) => const RegulatoryReportsPage()),
       // ── Investment Module ──────────────────────────────────────────────────
       GoRoute(path: '/investments', builder: (context, state) => const InvestmentHomePage()),
       GoRoute(path: '/investments/create', builder: (context, state) => const CreatePortfolioPage()),
@@ -82,6 +88,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/dashboard', builder: (context, state) => const AdminDashboardPage()),
       GoRoute(path: '/admin/emergency-lock', builder: (context, state) => const EmergencyLockPage()),
       GoRoute(path: '/admin/maintenance', builder: (context, state) => const MaintenancePage()),
+      GoRoute(path: '/admin/fees', builder: (context, state) => const FeesPage()),
+      GoRoute(path: '/admin/risk-rules', builder: (context, state) => const RiskRulesPage()),
+      GoRoute(path: '/admin/transaction-reversal', builder: (context, state) => const TransactionReversalPage()),
+      GoRoute(path: '/admin/reset-credentials', builder: (context, state) => const ResetCredentialsPage()),
       GoRoute(path: '/admin/limits', builder: (context, state) => const OperationLimitsPage()),
       GoRoute(path: '/admin/audit-log', builder: (context, state) => const AuditLogPage()),
       GoRoute(

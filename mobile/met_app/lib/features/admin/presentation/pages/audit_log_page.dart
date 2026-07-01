@@ -17,7 +17,7 @@ class AuditLogPage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         title: const Row(children: [
-          Icon(Icons.history_rounded, color: Color(0xFFFF9800), size: 24),
+          Icon(Icons.history_rounded, color: Color(0xFF53A835), size: 24),
           SizedBox(width: 10),
           Text('Log de Auditoría',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -31,7 +31,7 @@ class AuditLogPage extends ConsumerWidget {
       ),
       body: logState.when(
         loading: () =>
-            const Center(child: CircularProgressIndicator(color: Color(0xFFFF9800))),
+            const Center(child: CircularProgressIndicator(color: Color(0xFF53A835))),
         error: (e, _) => Center(
             child: Text('Error: $e', style: const TextStyle(color: Colors.white70))),
         data: (data) {
@@ -48,14 +48,14 @@ class AuditLogPage extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF9800).withOpacity(0.1),
+                  color: const Color(0xFF53A835).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFFF9800).withOpacity(0.3)),
+                  border: Border.all(color: const Color(0xFF53A835).withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.format_list_bulleted_rounded,
-                        color: Color(0xFFFF9800), size: 20),
+                        color: Color(0xFF53A835), size: 20),
                     const SizedBox(width: 10),
                     Text('$total eventos registrados',
                         style: const TextStyle(
@@ -114,7 +114,7 @@ class _AuditCard extends StatelessWidget {
     if (accion.contains('LOCK') || accion.contains('BLOCKED')) return const Color(0xFFCF3232);
     if (accion.contains('LOGIN')) return const Color(0xFF0B5FFF);
     if (accion.contains('CREATED')) return const Color(0xFF00A86B);
-    if (accion.contains('UPDATED') || accion.contains('RESET')) return const Color(0xFFFF9800);
+    if (accion.contains('UPDATED') || accion.contains('RESET')) return const Color(0xFF53A835);
     if (accion.contains('DELETED') || accion.contains('REVERSED')) return const Color(0xFFE91E63);
     return const Color(0xFF9E9E9E);
   }

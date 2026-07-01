@@ -17,7 +17,7 @@ class OperationLimitsPage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         title: const Row(children: [
-          Icon(Icons.attach_money_rounded, color: Color(0xFF00A86B), size: 24),
+          Icon(Icons.attach_money_rounded, color: Color(0xFF53A835), size: 24),
           SizedBox(width: 10),
           Text('Límites de Operación',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -30,7 +30,7 @@ class OperationLimitsPage extends ConsumerWidget {
         ],
       ),
       body: limitsState.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF00A86B))),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF53A835))),
         error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.white70))),
         data: (limits) => ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -69,7 +69,7 @@ class OperationLimitsPage extends ConsumerWidget {
             child: const Text('Cancelar', style: TextStyle(color: Colors.white60)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00A86B)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF53A835)),
             onPressed: () async {
               Navigator.of(ctx).pop();
               try {
@@ -81,7 +81,7 @@ class OperationLimitsPage extends ConsumerWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text('✓ Límites actualizados'),
-                    backgroundColor: Color(0xFF00A86B),
+                    backgroundColor: Color(0xFF53A835),
                     behavior: SnackBarBehavior.floating,
                   ));
                 }
@@ -122,7 +122,7 @@ class OperationLimitsPage extends ConsumerWidget {
             borderSide: BorderSide(color: Colors.white.withOpacity(0.12))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF00A86B), width: 1.5)),
+            borderSide: const BorderSide(color: Color(0xFF53A835), width: 1.5)),
       ),
     );
   }

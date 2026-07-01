@@ -41,7 +41,7 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
         backgroundColor: const Color(0xFF1A0A0A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(children: [
-          Icon(Icons.warning_amber_rounded, color: Color(0xFFCF3232), size: 28),
+          Icon(Icons.warning_amber_rounded, color: Color(0xFF53A835), size: 28),
           SizedBox(width: 10),
           Text('¿Confirmar bloqueo?',
               style: TextStyle(color: Colors.white, fontSize: 18)),
@@ -56,7 +56,7 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
             child: const Text('Cancelar', style: TextStyle(color: Colors.white60)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFCF3232)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF53A835)),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('SÍ, BLOQUEAR', style: TextStyle(color: Colors.white)),
           ),
@@ -99,7 +99,7 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         title: const Row(children: [
-          Icon(Icons.emergency_rounded, color: Color(0xFFCF3232), size: 24),
+          Icon(Icons.emergency_rounded, color: Color(0xFF53A835), size: 24),
           SizedBox(width: 10),
           Text('Bloqueo de Emergencia',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -157,12 +157,12 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _execute,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCF3232),
+                    backgroundColor: const Color(0xFF53A835),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                     elevation: 8,
-                    shadowColor: const Color(0xFFCF3232).withOpacity(0.5),
+                    shadowColor: const Color(0xFF53A835).withOpacity(0.5),
                   ),
                   icon: _isLoading
                       ? const SizedBox(width: 20, height: 20,
@@ -195,7 +195,7 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
             borderSide: BorderSide(color: Colors.white.withOpacity(0.1))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFFCF3232), width: 1.5)),
+            borderSide: const BorderSide(color: Color(0xFF53A835), width: 1.5)),
       );
 }
 
@@ -208,9 +208,9 @@ class _WarningBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFCF3232).withOpacity(0.15),
+        color: const Color(0xFF53A835).withOpacity(0.15),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFCF3232).withOpacity(0.4)),
+        border: Border.all(color: const Color(0xFF53A835).withOpacity(0.4)),
       ),
       child: Row(
         children: [
@@ -250,18 +250,18 @@ class _ScopeOption extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFCF3232).withOpacity(0.2)
+              ? const Color(0xFF53A835).withOpacity(0.2)
               : Colors.white.withOpacity(0.04),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
               color: selected
-                  ? const Color(0xFFCF3232).withOpacity(0.7)
+                  ? const Color(0xFF53A835).withOpacity(0.7)
                   : Colors.white.withOpacity(0.1)),
         ),
         child: Row(
           children: [
             Icon(icon,
-                color: selected ? const Color(0xFFCF3232) : Colors.white38, size: 24),
+                color: selected ? const Color(0xFF53A835) : Colors.white38, size: 24),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -278,7 +278,7 @@ class _ScopeOption extends StatelessWidget {
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle_rounded, color: Color(0xFFCF3232), size: 22),
+              const Icon(Icons.check_circle_rounded, color: Color(0xFF53A835), size: 22),
           ],
         ),
       ),
