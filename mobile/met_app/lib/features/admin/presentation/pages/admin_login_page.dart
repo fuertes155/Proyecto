@@ -56,7 +56,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
     if (state.hasError) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Acceso denegado: ${state.error}'),
-        backgroundColor: const Color(0xFFCF3232),
+        backgroundColor: const Color(0xFF53A835),
         behavior: SnackBarBehavior.floating,
       ));
       return;
@@ -91,7 +91,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(colors: [
-                    const Color(0xFFCF3232).withOpacity(0.35),
+                    const Color(0xFF53A835).withOpacity(0.35),
                     Colors.transparent,
                   ]),
                 ),
@@ -105,7 +105,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  const Color(0xFFFF6B00).withOpacity(0.2),
+                  const Color(0xFF53A835).withOpacity(0.2),
                   Colors.transparent,
                 ]),
               ),
@@ -132,11 +132,11 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: const LinearGradient(
-                              colors: [Color(0xFFCF3232), Color(0xFFFF6B00)],
+                              colors: [Color(0xFF53A835), Color(0xFF53A835)],
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFCF3232).withOpacity(0.5),
+                                color: const Color(0xFF53A835).withOpacity(0.5),
                                 blurRadius: 30, spreadRadius: 5,
                               )
                             ],
@@ -176,7 +176,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                               color: Colors.white.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                  color: const Color(0xFFCF3232).withOpacity(0.4)),
+                                  color: const Color(0xFF53A835).withOpacity(0.4)),
                             ),
                             child: Column(
                               children: [
@@ -229,11 +229,11 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _login,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFCF3232),
+                            backgroundColor: const Color(0xFF53A835),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16)),
-                            shadowColor: const Color(0xFFCF3232).withOpacity(0.5),
+                            shadowColor: const Color(0xFF53A835).withOpacity(0.5),
                             elevation: 8,
                           ),
                           child: _isLoading
@@ -292,7 +292,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide:
-            const BorderSide(color: Color(0xFFCF3232), width: 1.5),
+            const BorderSide(color: Color(0xFF53A835), width: 1.5),
       ),
     );
   }

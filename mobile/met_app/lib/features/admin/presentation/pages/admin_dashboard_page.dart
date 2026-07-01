@@ -17,13 +17,13 @@ class AdminDashboardPage extends ConsumerWidget {
       _AdminModule(
         icon: Icons.emergency_rounded,
         label: 'Bloqueo\nEmergencia',
-        color: const Color(0xFFCF3232),
+        color: const Color(0xFF53A835),
         route: '/admin/emergency-lock',
       ),
       _AdminModule(
         icon: Icons.policy_rounded,
         label: 'Reglas de\nRiesgo',
-        color: const Color(0xFFFF6B00),
+        color: const Color(0xFF53A835),
         route: '/admin/risk-rules',
       ),
       _AdminModule(
@@ -89,7 +89,7 @@ class AdminDashboardPage extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  const Color(0xFFCF3232).withOpacity(0.2),
+                  const Color(0xFF53A835).withOpacity(0.2),
                   Colors.transparent,
                 ]),
               ),
@@ -108,10 +108,10 @@ class AdminDashboardPage extends ConsumerWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: const LinearGradient(
-                              colors: [Color(0xFFCF3232), Color(0xFFFF6B00)]),
+                              colors: [Color(0xFF53A835), Color(0xFF53A835)]),
                           boxShadow: [
                             BoxShadow(
-                                color: const Color(0xFFCF3232).withOpacity(0.4),
+                                color: const Color(0xFF53A835).withOpacity(0.4),
                                 blurRadius: 16)
                           ],
                         ),
@@ -133,7 +133,7 @@ class AdminDashboardPage extends ConsumerWidget {
                             Text(
                               admin?.role ?? 'ADMIN',
                               style: TextStyle(
-                                  color: const Color(0xFFCF3232).withOpacity(0.9),
+                                  color: const Color(0xFF53A835).withOpacity(0.9),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 1.2),
@@ -162,15 +162,15 @@ class AdminDashboardPage extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFCF3232).withOpacity(0.15),
+                          color: const Color(0xFF53A835).withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: const Color(0xFFCF3232).withOpacity(0.3)),
+                              color: const Color(0xFF53A835).withOpacity(0.3)),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.warning_amber_rounded,
-                                color: Color(0xFFFF6B00), size: 18),
+                                color: Color(0xFF53A835), size: 18),
                             const SizedBox(width: 10),
                             Text(
                               'Panel de Control — Acciones con trazabilidad total',

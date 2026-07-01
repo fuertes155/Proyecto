@@ -81,6 +81,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/login', builder: (context, state) => const AdminLoginPage()),
       GoRoute(path: '/admin/dashboard', builder: (context, state) => const AdminDashboardPage()),
       GoRoute(path: '/admin/emergency-lock', builder: (context, state) => const EmergencyLockPage()),
+      GoRoute(path: '/admin/maintenance', builder: (context, state) => const MaintenancePage()),
       GoRoute(path: '/admin/limits', builder: (context, state) => const OperationLimitsPage()),
       GoRoute(path: '/admin/audit-log', builder: (context, state) => const AuditLogPage()),
       GoRoute(
