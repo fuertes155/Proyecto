@@ -10,40 +10,38 @@ class FeesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final feesState = ref.watch(feeScheduleProvider);
-    const primaryColor = Color(0xFF53A835);
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        title: const Row(children: [
+        title: Row(children: [
           Icon(Icons.percent_rounded, color: primaryColor, size: 24),
-          SizedBox(width: 10),
-          Expanded(child: Text('Tarifas y Comisiones',
+          const SizedBox(width: 10),
+          const Expanded(child: Text('Tarifas y Comisiones',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_rounded, color: Colors.white),
+            icon: Icon(Icons.add_rounded, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () => _showCreateDialog(context, ref, primaryColor),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
             onPressed: () => ref.read(feeScheduleProvider.notifier).load(),
           ),
         ],
       ),
       body: feesState.when(
         loading: () =>
-            const Center(child: CircularProgressIndicator(color: primaryColor)),
+            Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
-            child: Text('Error: $e', style: const TextStyle(color: Colors.white70))),
+            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
         data: (fees) {
           if (fees.isEmpty) {
-            return const Center(
+            return Center(
                 child: Text('No hay tarifas configuradas',
-                    style: TextStyle(color: Colors.white54)));
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -65,23 +63,23 @@ class FeesPage extends ConsumerWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: Theme.of(context).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Nueva Tarifa',
-              style: TextStyle(color: Colors.white, fontSize: 16)),
+          title: Text('Nueva Tarifa',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _dialogField('Tipo (ej. TRANSFERENCIA)', tipoCtrl),
+                _dialogField('Tipo (ej. TRANSFERENCIA)', tipoCtrl, context),
                 const SizedBox(height: 10),
-                _dialogField('Descripción (opcional)', descCtrl),
+                _dialogField('Descripción (opcional)', descCtrl, context),
                 const SizedBox(height: 10),
-                _dialogField('Valor numérico', valCtrl, isNumber: true),
+                _dialogField('Valor numérico', valCtrl, context, isNumber: true),
                 const SizedBox(height: 10),
                 SwitchListTile(
-                  title: const Text('¿Es porcentaje?',
-                      style: TextStyle(color: Colors.white)),
+                  title: Text('¿Es porcentaje?',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                   activeColor: color,
                   value: isPercent,
                   onChanged: (v) => setState(() => isPercent = v),
@@ -92,10 +90,13 @@ class FeesPage extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.white60)),
+              child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: color),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 try {
                   await ref.read(feeScheduleProvider.notifier).createFee({
@@ -106,21 +107,21 @@ class FeesPage extends ConsumerWidget {
                   });
                   if (ctx.mounted) {
                     Navigator.of(ctx).pop();
-                    ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-                      content: Text('Tarifa creada'),
-                      backgroundColor: Color(0xFF00A86B),
+                    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: const Text('Tarifa creada'),
+                      backgroundColor: color,
                     ));
                   }
                 } catch (e) {
                   if (ctx.mounted) {
                     ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
                       content: Text('Error: $e'),
-                      backgroundColor: const Color(0xFFCF3232),
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ));
                   }
                 }
               },
-              child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+              child: const Text('Guardar'),
             ),
           ],
         ),
@@ -128,17 +129,19 @@ class FeesPage extends ConsumerWidget {
     );
   }
 
-  Widget _dialogField(String label, TextEditingController ctrl,
+  Widget _dialogField(String label, TextEditingController ctrl, BuildContext context,
       {bool isNumber = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return TextField(
       controller: ctrl,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
+        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 13),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.06),
+        fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.06 : 0.03),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
@@ -153,11 +156,13 @@ class _FeeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
@@ -178,14 +183,14 @@ class _FeeCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(fee.tipoTarifa,
-                        style: const TextStyle(
-                            color: Colors.white,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
                             fontSize: 16)),
                     if (fee.descripcion != null)
                       Text(fee.descripcion!,
                           style: TextStyle(
-                              color: Colors.white.withOpacity(0.6), fontSize: 12)),
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12)),
                   ],
                 ),
               ),
@@ -201,19 +206,19 @@ class _FeeCard extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.calendar_today_rounded,
-                  color: Colors.white.withOpacity(0.3), size: 14),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3), size: 14),
               const SizedBox(width: 6),
               Text('Desde: ${fee.vigentDesde.substring(0, 10)}',
                   style: TextStyle(
-                      color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
               if (fee.vigentaHasta != null) ...[
                 const SizedBox(width: 12),
                 Icon(Icons.event_busy_rounded,
-                    color: Colors.white.withOpacity(0.3), size: 14),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3), size: 14),
                 const SizedBox(width: 6),
                 Text('Hasta: ${fee.vigentaHasta!.substring(0, 10)}',
                     style: TextStyle(
-                        color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
               ]
             ],
           )

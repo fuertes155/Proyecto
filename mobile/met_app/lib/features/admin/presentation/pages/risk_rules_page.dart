@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,36 +11,34 @@ class RiskRulesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rulesState = ref.watch(riskRulesProvider);
-    const primaryColor = Color(0xFF53A835); // Verde oscuro
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        title: const Row(children: [
+        title: Row(children: [
           Icon(Icons.policy_rounded, color: primaryColor, size: 24),
-          SizedBox(width: 10),
-          Expanded(child: Text('Reglas de Riesgo',
+          const SizedBox(width: 10),
+          const Expanded(child: Text('Reglas de Riesgo',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
             onPressed: () => ref.read(riskRulesProvider.notifier).load(),
           ),
         ],
       ),
       body: rulesState.when(
         loading: () =>
-            const Center(child: CircularProgressIndicator(color: primaryColor)),
+            Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
-            child: Text('Error: $e', style: const TextStyle(color: Colors.white70))),
+            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
         data: (rules) {
           if (rules.isEmpty) {
-            return const Center(
+            return Center(
                 child: Text('No hay reglas configuradas',
-                    style: TextStyle(color: Colors.white54)));
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -60,14 +59,16 @@ class _RiskRuleCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-            color: rule.activo ? color.withOpacity(0.5) : Colors.white12),
+            color: rule.activo ? color.withOpacity(0.5) : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,9 +81,9 @@ class _RiskRuleCard extends ConsumerWidget {
                     shape: BoxShape.circle,
                     color: rule.activo
                         ? color.withOpacity(0.2)
-                        : Colors.white.withOpacity(0.05)),
+                        : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03)),
                 child: Icon(Icons.security_rounded,
-                    color: rule.activo ? color : Colors.white38, size: 22),
+                    color: rule.activo ? color : Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -90,14 +91,14 @@ class _RiskRuleCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(rule.nombre,
-                        style: const TextStyle(
-                            color: Colors.white,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
                             fontSize: 16)),
                     if (rule.descripcion != null)
                       Text(rule.descripcion!,
                           style: TextStyle(
-                              color: Colors.white.withOpacity(0.6), fontSize: 12)),
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12)),
                   ],
                 ),
               ),
@@ -120,7 +121,7 @@ class _RiskRuleCard extends ConsumerWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('Error: $e'),
-                        backgroundColor: const Color(0xFFCF3232),
+                        backgroundColor: Theme.of(context).colorScheme.error,
                         behavior: SnackBarBehavior.floating,
                       ));
                     }
@@ -144,18 +145,42 @@ class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
 
+  String _formatValue(String val) {
+    try {
+      final map = jsonDecode(val) as Map<String, dynamic>;
+      final field = map['field'];
+      final value = map['value'];
+      final operator = map['operator'];
+      
+      String opText = operator == 'gt' ? 'mayor a' : operator == 'lt' ? 'menor a' : operator == 'eq' ? 'igual a' : operator.toString();
+      String fieldText = field == 'amount' ? 'Monto' : field == 'failed_attempts' ? 'Intentos fallidos' : field.toString();
+      String extra = map.containsKey('window_minutes') ? ' en ${map['window_minutes']} minutos' : '';
+      
+      if (field == 'amount') {
+        return '$fieldText $opText \$${value.toString().replaceAll(RegExp(r'\B(?=(\d{3})+(?!\d))'), ".")}$extra';
+      }
+      return '$fieldText $opText $value$extra';
+    } catch (_) {
+      // If it's not JSON, return as is
+      return val == 'REVIEW' ? 'Revisión Manual' : val == 'BLOCK' ? 'Bloqueo Automático' : val;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.code_rounded, color: Colors.white38, size: 16),
+        Icon(Icons.code_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 16),
         const SizedBox(width: 8),
         Text(label,
-            style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
-        const Spacer(),
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 13)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(_formatValue(value),
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500, fontSize: 13)),
+        ),
       ],
     );
   }

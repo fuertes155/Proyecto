@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/admin_provider.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class AdminDashboardPage extends ConsumerWidget {
   const AdminDashboardPage({super.key});
@@ -12,76 +13,71 @@ class AdminDashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final adminState = ref.watch(adminAuthProvider);
     final admin = adminState.valueOrNull;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeMode = ref.watch(themeModeProvider);
 
     final modules = [
       _AdminModule(
         icon: Icons.emergency_rounded,
         label: 'Bloqueo\nEmergencia',
-        color: const Color(0xFF53A835),
         route: '/admin/emergency-lock',
       ),
       _AdminModule(
         icon: Icons.policy_rounded,
         label: 'Reglas de\nRiesgo',
-        color: const Color(0xFF53A835),
         route: '/admin/risk-rules',
       ),
       _AdminModule(
         icon: Icons.attach_money_rounded,
         label: 'Límites de\nOperación',
-        color: const Color(0xFF00A86B),
         route: '/admin/limits',
       ),
       _AdminModule(
         icon: Icons.percent_rounded,
         label: 'Tarifas y\nComisiones',
-        color: const Color(0xFF0B5FFF),
         route: '/admin/fees',
       ),
       _AdminModule(
         icon: Icons.build_circle_rounded,
         label: 'Mantenimiento',
-        color: const Color(0xFF9C27B0),
         route: '/admin/maintenance',
       ),
       _AdminModule(
         icon: Icons.undo_rounded,
         label: 'Reversión\nTransacción',
-        color: const Color(0xFFE91E63),
         route: '/admin/transaction-reversal',
       ),
       _AdminModule(
         icon: Icons.lock_reset_rounded,
         label: 'Reseteo\nCredenciales',
-        color: const Color(0xFF00BCD4),
         route: '/admin/reset-credentials',
       ),
       _AdminModule(
         icon: Icons.assessment_rounded,
         label: 'Reportes\nRegulatorios',
-        color: const Color(0xFF4CAF50),
         route: '/admin/reports',
       ),
       _AdminModule(
         icon: Icons.history_rounded,
         label: 'Auditoría\nLog',
-        color: const Color(0xFFFF9800),
         route: '/admin/audit-log',
       ),
     ];
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF0D0D0D), Color(0xFF1A0808), Color(0xFF0D0D0D)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+          if (isDark)
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0D0D0D), Color(0xFF1A0808), Color(0xFF0D0D0D)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
             ),
-          ),
           Positioned(
             top: -100, right: -80,
             child: Container(
@@ -89,7 +85,7 @@ class AdminDashboardPage extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  const Color(0xFF53A835).withOpacity(0.2),
+                  Theme.of(context).colorScheme.primary.withOpacity(0.2),
                   Colors.transparent,
                 ]),
               ),
@@ -107,11 +103,11 @@ class AdminDashboardPage extends ConsumerWidget {
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                              colors: [Color(0xFF53A835), Color(0xFF53A835)]),
+                          gradient: LinearGradient(
+                              colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary]),
                           boxShadow: [
                             BoxShadow(
-                                color: const Color(0xFF53A835).withOpacity(0.4),
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                                 blurRadius: 16)
                           ],
                         ),
@@ -125,15 +121,15 @@ class AdminDashboardPage extends ConsumerWidget {
                           children: [
                             Text(
                               admin?.fullName ?? 'Administrador',
-                              style: const TextStyle(
-                                  color: Colors.white,
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold),
                             ),
                             Text(
                               admin?.role ?? 'ADMIN',
                               style: TextStyle(
-                                  color: const Color(0xFF53A835).withOpacity(0.9),
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.9),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 1.2),
@@ -142,11 +138,22 @@ class AdminDashboardPage extends ConsumerWidget {
                         ),
                       ),
                       IconButton(
+                        onPressed: () {
+                          ref.read(themeModeProvider.notifier).state = 
+                            isDark ? ThemeMode.light : ThemeMode.dark;
+                        },
+                        icon: Icon(
+                          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                        tooltip: 'Cambiar Tema',
+                      ),
+                      IconButton(
                         onPressed: () async {
                           await ref.read(adminAuthProvider.notifier).logout();
                           if (context.mounted) context.go('/login');
                         },
-                        icon: const Icon(Icons.logout_rounded, color: Colors.white70),
+                        icon: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                         tooltip: 'Cerrar sesión',
                       ),
                     ],
@@ -162,21 +169,21 @@ class AdminDashboardPage extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF53A835).withOpacity(0.15),
+                          color: Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.15 : 0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: const Color(0xFF53A835).withOpacity(0.3)),
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning_amber_rounded,
-                                color: Color(0xFF53A835), size: 18),
+                            Icon(Icons.warning_amber_rounded,
+                                color: Theme.of(context).colorScheme.primary, size: 18),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 'Panel de Control — Acciones con trazabilidad total',
                                 style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500),
                               ),
@@ -188,37 +195,33 @@ class AdminDashboardPage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Módulos de Gestión',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3),
+                          letterSpacing: 0.5),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 // Grid de módulos
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.82,
-                      ),
-                      itemCount: modules.length,
-                      itemBuilder: (context, index) {
-                        return _ModuleCard(module: modules[index]);
-                      },
+                  child: GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.85,
                     ),
+                    itemCount: modules.length,
+                    itemBuilder: (context, i) => _ModuleCard(module: modules[i]),
                   ),
                 ),
               ],
@@ -231,15 +234,13 @@ class AdminDashboardPage extends ConsumerWidget {
 }
 
 class _AdminModule {
-  const _AdminModule({
+  _AdminModule({
     required this.icon,
     required this.label,
-    required this.color,
     required this.route,
   });
   final IconData icon;
   final String label;
-  final Color color;
   final String route;
 }
 
@@ -256,6 +257,9 @@ class _ModuleCardState extends State<_ModuleCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -272,10 +276,10 @@ class _ModuleCardState extends State<_ModuleCard> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
+                color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.03),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                    color: const Color(0xFF53A835).withOpacity(0.35), width: 1.5),
+                    color: primary.withOpacity(isDark ? 0.35 : 0.2), width: 1.5),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -284,19 +288,19 @@ class _ModuleCardState extends State<_ModuleCard> {
                     width: 52, height: 52,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFF53A835).withOpacity(0.2),
+                      color: primary.withOpacity(isDark ? 0.2 : 0.1),
                       border: Border.all(
-                          color: const Color(0xFF53A835).withOpacity(0.5), width: 1.0),
+                          color: primary.withOpacity(isDark ? 0.5 : 0.3), width: 1.0),
                     ),
                     child: Icon(widget.module.icon,
-                        color: const Color(0xFF53A835), size: 26),
+                        color: primary, size: 26),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     widget.module.label,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         height: 1.3),

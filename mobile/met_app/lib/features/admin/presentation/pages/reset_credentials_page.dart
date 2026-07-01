@@ -18,9 +18,9 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
 
   Future<void> _submitReset() async {
     if (_userIdCtrl.text.isEmpty || _reasonCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Por favor, completa todos los campos'),
-        backgroundColor: Color(0xFFCF3232),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Por favor, completa todos los campos'),
+        backgroundColor: Theme.of(context).colorScheme.error,
       ));
       return;
     }
@@ -33,9 +33,9 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
           );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Credenciales reseteadas exitosamente'),
-          backgroundColor: Color(0xFF53A835),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Credenciales reseteadas exitosamente'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ));
         _userIdCtrl.clear();
         _reasonCtrl.clear();
@@ -44,7 +44,7 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Error al resetear credenciales: $e'),
-          backgroundColor: const Color(0xFFCF3232),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ));
       }
     } finally {
@@ -54,17 +54,15 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF53A835);
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        title: const Row(children: [
+        title: Row(children: [
           Icon(Icons.lock_reset_rounded, color: primaryColor, size: 24),
-          SizedBox(width: 10),
-          Expanded(child: Text('Reseteo de Credenciales',
+          const SizedBox(width: 10),
+          const Expanded(child: Text('Reseteo de Credenciales',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
       ),
@@ -80,16 +78,16 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: primaryColor.withOpacity(0.3)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.info_outline_rounded, color: primaryColor),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Esta acción invalidará las credenciales actuales del usuario '
                       'y le enviará un correo con un enlace seguro para establecer '
                       'una nueva contraseña y PIN biométrico.',
-                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 13),
                     ),
                   ),
                 ],
@@ -154,34 +152,36 @@ class _InputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                color: Colors.white70,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 fontSize: 14,
                 fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.white38),
+            prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.05),
+            fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.02),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.white12),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.05)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF53A835)),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
             ),
           ),
         ),

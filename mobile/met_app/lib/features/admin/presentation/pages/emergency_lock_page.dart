@@ -38,27 +38,30 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A0A0A),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(children: [
-          Icon(Icons.warning_amber_rounded, color: Color(0xFF53A835), size: 28),
-          SizedBox(width: 10),
+        title: Row(children: [
+          Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.primary, size: 28),
+          const SizedBox(width: 10),
           Text('¿Confirmar bloqueo?',
-              style: TextStyle(color: Colors.white, fontSize: 18)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18)),
         ]),
         content: Text(
           'Esta acción suspenderá el acceso del usuario indicado de forma inmediata.\n\nMotivo: ${_reasonCtrl.text}\nAlcance: $_scope',
-          style: TextStyle(color: Colors.white.withOpacity(0.8)),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white60)),
+            child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF53A835)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('SÍ, BLOQUEAR', style: TextStyle(color: Colors.white)),
+            child: const Text('SÍ, BLOQUEAR'),
           ),
         ],
       ),
@@ -84,24 +87,24 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
   }
 
   void _showSuccess(String msg) => ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: const Color(0xFF00A86B),
+      SnackBar(content: Text(msg), backgroundColor: Theme.of(context).colorScheme.primary,
           behavior: SnackBarBehavior.floating));
 
   void _showError(String msg) => ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: const Color(0xFFCF3232),
+      SnackBar(content: Text(msg), backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating));
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        title: const Row(children: [
-          Icon(Icons.emergency_rounded, color: Color(0xFF53A835), size: 24),
-          SizedBox(width: 10),
-          Expanded(child: Text('Bloqueo de Emergencia',
+        title: Row(children: [
+          Icon(Icons.emergency_rounded, color: primaryColor, size: 24),
+          const SizedBox(width: 10),
+          const Expanded(child: Text('Bloqueo de Emergencia',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
       ),
@@ -113,22 +116,22 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Advertencia
-              _WarningBanner(
+              const _WarningBanner(
                   'Esta acción es inmediata, irreversible sin autorización, y queda registrada en el log de auditoría.'),
               const SizedBox(height: 24),
               // ID objetivo
-              _buildLabel('ID del objetivo (UUID del usuario)'),
+              _buildLabel('ID del objetivo (UUID del usuario)', context),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _targetIdCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: _inputDeco('Ej: 123e4567-e89b-12d3-a456-426614174000',
-                    Icons.fingerprint_rounded),
+                    Icons.fingerprint_rounded, context),
                 validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
               ),
               const SizedBox(height: 20),
               // Alcance
-              _buildLabel('Alcance del bloqueo'),
+              _buildLabel('Alcance del bloqueo', context),
               const SizedBox(height: 10),
               ..._scopes.map((s) => _ScopeOption(
                     label: s.$1,
@@ -139,14 +142,14 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
                   )),
               const SizedBox(height: 20),
               // Motivo
-              _buildLabel('Motivo del bloqueo *'),
+              _buildLabel('Motivo del bloqueo *', context),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _reasonCtrl,
                 maxLines: 3,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: _inputDeco('Describe el motivo detalladamente...',
-                    Icons.description_outlined),
+                    Icons.description_outlined, context),
                 validator: (v) =>
                     v == null || v.length < 10 ? 'Mínimo 10 caracteres' : null,
               ),
@@ -157,12 +160,12 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _execute,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF53A835),
+                    backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                     elevation: 8,
-                    shadowColor: const Color(0xFF53A835).withOpacity(0.5),
+                    shadowColor: primaryColor.withOpacity(0.5),
                   ),
                   icon: _isLoading
                       ? const SizedBox(width: 20, height: 20,
@@ -180,23 +183,26 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
     );
   }
 
-  Widget _buildLabel(String text) => Text(text,
-      style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600));
+  Widget _buildLabel(String text, BuildContext context) => Text(text,
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w600));
 
-  InputDecoration _inputDeco(String hint, IconData icon) => InputDecoration(
+  InputDecoration _inputDeco(String hint, IconData icon, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-        prefixIcon: Icon(icon, color: Colors.white38),
+        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
+        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.02),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1))),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.1 : 0.05))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF53A835), width: 1.5)),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5)),
       );
+  }
 }
 
 class _WarningBanner extends StatelessWidget {
@@ -205,12 +211,15 @@ class _WarningBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF53A835).withOpacity(0.15),
+        color: primaryColor.withOpacity(isDark ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF53A835).withOpacity(0.4)),
+        border: Border.all(color: primaryColor.withOpacity(0.4)),
       ),
       child: Row(
         children: [
@@ -218,7 +227,7 @@ class _WarningBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(text,
-                style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12, height: 1.4)),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.85), fontSize: 12, height: 1.4)),
           ),
         ],
       ),
@@ -242,6 +251,9 @@ class _ScopeOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -250,18 +262,18 @@ class _ScopeOption extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFF53A835).withOpacity(0.2)
-              : Colors.white.withOpacity(0.04),
+              ? primaryColor.withOpacity(0.2)
+              : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.04 : 0.02),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
               color: selected
-                  ? const Color(0xFF53A835).withOpacity(0.7)
-                  : Colors.white.withOpacity(0.1)),
+                  ? primaryColor.withOpacity(0.7)
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.1 : 0.05)),
         ),
         child: Row(
           children: [
             Icon(icon,
-                color: selected ? const Color(0xFF53A835) : Colors.white38, size: 24),
+                color: selected ? primaryColor : Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 24),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -269,16 +281,16 @@ class _ScopeOption extends StatelessWidget {
                 children: [
                   Text(label,
                       style: TextStyle(
-                          color: selected ? Colors.white : Colors.white70,
+                          color: selected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   Text(subtitle,
-                      style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11)),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), fontSize: 11)),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle_rounded, color: Color(0xFF53A835), size: 22),
+              Icon(Icons.check_circle_rounded, color: primaryColor, size: 22),
           ],
         ),
       ),
