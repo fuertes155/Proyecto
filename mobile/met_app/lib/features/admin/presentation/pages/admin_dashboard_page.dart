@@ -172,12 +172,14 @@ class AdminDashboardPage extends ConsumerWidget {
                             const Icon(Icons.warning_amber_rounded,
                                 color: Color(0xFF53A835), size: 18),
                             const SizedBox(width: 10),
-                            Text(
-                              'Panel de Control — Acciones con trazabilidad total',
-                              style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500),
+                            Expanded(
+                              child: Text(
+                                'Panel de Control — Acciones con trazabilidad total',
+                                style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500),
+                              ),
                             ),
                           ],
                         ),
@@ -210,7 +212,7 @@ class AdminDashboardPage extends ConsumerWidget {
                         crossAxisCount: 3,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 0.9,
+                        childAspectRatio: 0.82,
                       ),
                       itemCount: modules.length,
                       itemBuilder: (context, index) {

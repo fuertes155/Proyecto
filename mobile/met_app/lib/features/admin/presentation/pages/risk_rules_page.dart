@@ -20,8 +20,8 @@ class RiskRulesPage extends ConsumerWidget {
         title: const Row(children: [
           Icon(Icons.policy_rounded, color: primaryColor, size: 24),
           SizedBox(width: 10),
-          Text('Reglas de Riesgo',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(child: Text('Reglas de Riesgo',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
         actions: [
           IconButton(

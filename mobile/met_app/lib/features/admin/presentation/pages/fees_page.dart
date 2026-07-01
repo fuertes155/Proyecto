@@ -20,8 +20,8 @@ class FeesPage extends ConsumerWidget {
         title: const Row(children: [
           Icon(Icons.percent_rounded, color: primaryColor, size: 24),
           SizedBox(width: 10),
-          Text('Tarifas y Comisiones',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(child: Text('Tarifas y Comisiones',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
         actions: [
           IconButton(

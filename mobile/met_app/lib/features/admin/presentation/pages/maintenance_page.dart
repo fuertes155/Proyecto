@@ -20,8 +20,8 @@ class MaintenancePage extends ConsumerWidget {
         title: const Row(children: [
           Icon(Icons.build_circle_rounded, color: primaryColor, size: 24),
           SizedBox(width: 10),
-          Text('Mantenimiento',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(child: Text('Modo Mantenimiento',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
         actions: [
           IconButton(

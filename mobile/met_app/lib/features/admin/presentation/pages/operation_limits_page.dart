@@ -19,8 +19,8 @@ class OperationLimitsPage extends ConsumerWidget {
         title: const Row(children: [
           Icon(Icons.attach_money_rounded, color: Color(0xFF53A835), size: 24),
           SizedBox(width: 10),
-          Text('Límites de Operación',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(child: Text('Límites de Operación',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
         actions: [
           IconButton(

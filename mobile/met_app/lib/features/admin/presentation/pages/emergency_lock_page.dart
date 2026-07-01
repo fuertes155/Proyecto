@@ -101,8 +101,8 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
         title: const Row(children: [
           Icon(Icons.emergency_rounded, color: Color(0xFF53A835), size: 24),
           SizedBox(width: 10),
-          Text('Bloqueo de Emergencia',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(child: Text('Bloqueo de Emergencia',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
       ),
       body: SingleChildScrollView(

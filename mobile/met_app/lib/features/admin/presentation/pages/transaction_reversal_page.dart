@@ -70,8 +70,8 @@ class _TransactionReversalPageState
         title: const Row(children: [
           Icon(Icons.undo_rounded, color: primaryColor, size: 24),
           SizedBox(width: 10),
-          Text('Reversión de Transacción',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(child: Text('Reversión de Transacción',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
       ),
       body: SingleChildScrollView(

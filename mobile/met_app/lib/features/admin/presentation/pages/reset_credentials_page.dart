@@ -64,8 +64,8 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
         title: const Row(children: [
           Icon(Icons.lock_reset_rounded, color: primaryColor, size: 24),
           SizedBox(width: 10),
-          Text('Reseteo de Credenciales',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(child: Text('Reseteo de Credenciales',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ]),
       ),
       body: SingleChildScrollView(
