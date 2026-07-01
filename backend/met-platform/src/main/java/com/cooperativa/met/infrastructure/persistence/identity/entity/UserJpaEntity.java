@@ -57,6 +57,12 @@ public class UserJpaEntity {
     @Column(name = "kyc_status", nullable = false, length = 30)
     private KycStatus kycStatus;
 
+    @Column(name = "terms_accepted", nullable = false)
+    private boolean termsAccepted;
+
+    @Column(name = "terms_accepted_at")
+    private Instant termsAcceptedAt;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

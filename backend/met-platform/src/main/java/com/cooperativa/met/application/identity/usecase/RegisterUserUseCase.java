@@ -44,6 +44,8 @@ public class RegisterUserUseCase {
                 .pinHash(encryptionPort.hashPin(request.pin()))
                 .status(UserStatus.ACTIVE)
                 .kycStatus(KycStatus.APPROVED)
+                .termsAccepted(request.termsAccepted())
+                .termsAcceptedAt(Instant.now())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();

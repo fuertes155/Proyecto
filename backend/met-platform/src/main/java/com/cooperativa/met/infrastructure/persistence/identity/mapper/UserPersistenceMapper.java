@@ -20,6 +20,8 @@ public class UserPersistenceMapper {
                 .biometricHash(entity.getBiometricHash())
                 .status(entity.getStatus())
                 .kycStatus(entity.getKycStatus())
+                .termsAccepted(entity.isTermsAccepted())
+                .termsAcceptedAt(entity.getTermsAcceptedAt())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -38,6 +40,8 @@ public class UserPersistenceMapper {
         entity.setBiometricHash(user.getBiometricHash());
         entity.setStatus(user.getStatus());
         entity.setKycStatus(user.getKycStatus());
+        entity.setTermsAccepted(user.isTermsAccepted());
+        entity.setTermsAcceptedAt(user.getTermsAcceptedAt());
         entity.setCreatedAt(user.getCreatedAt());
         entity.setUpdatedAt(user.getUpdatedAt());
         return entity;

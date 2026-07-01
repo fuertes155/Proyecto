@@ -7,6 +7,7 @@ class RegisterRequest {
     required this.firstName,
     required this.lastName,
     required this.pin,
+    required this.termsAccepted,
   });
 
   final String documentType;
@@ -16,6 +17,7 @@ class RegisterRequest {
   final String firstName;
   final String lastName;
   final String pin;
+  final bool termsAccepted;
 
   Map<String, dynamic> toJson() => {
         'documentType': documentType,
@@ -25,6 +27,7 @@ class RegisterRequest {
         'firstName': firstName,
         'lastName': lastName,
         'pin': pin,
+        'termsAccepted': termsAccepted,
       };
 }
 

@@ -24,6 +24,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _pinController = TextEditingController();
   String _documentType = 'CC';
   bool _isLoading = false;
+  bool _termsAccepted = false;
 
   @override
   void dispose() {
@@ -38,6 +39,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!_termsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debes aceptar los Términos y Condiciones')),
+      );
+      return;
+    }
     setState(() => _isLoading = true);
 
     try {
@@ -50,6 +57,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         pin: _pinController.text,
+        termsAccepted: _termsAccepted,
       ));
 
       if (!mounted) return;
@@ -129,6 +137,39 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   validator: (v) => v == null || v.length != 4 ? 'PIN inválido' : null,
+                ),
+                const SizedBox(height: 16),
+                CheckboxListTile(
+                  title: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Políticas y Términos'),
+                          content: const Text('Aquí va el texto legal de las políticas de privacidad y términos y condiciones.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text('Cerrar'),
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Acepto las políticas de privacidad y términos y condiciones',
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                  value: _termsAccepted,
+                  onChanged: (val) {
+                    setState(() => _termsAccepted = val ?? false);
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
                 ),
                 const SizedBox(height: 24),
                 AccessibleButton(

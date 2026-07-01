@@ -24,7 +24,7 @@ public class AiChatService {
     private String geminiApiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=";
 
     public String generateReply(String userMessage) {
         if (geminiApiKey == null || geminiApiKey.trim().isEmpty() || geminiApiKey.contains("tu_api_key")) {

@@ -21,6 +21,8 @@ public class User {
     private final String biometricHash;
     private final UserStatus status;
     private final KycStatus kycStatus;
+    private final boolean termsAccepted;
+    private final Instant termsAcceptedAt;
     private final Instant createdAt;
     private final Instant updatedAt;
 

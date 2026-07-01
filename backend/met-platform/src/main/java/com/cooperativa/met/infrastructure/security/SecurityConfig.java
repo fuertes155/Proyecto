@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/biometric").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/loans/simulate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/support/chat").permitAll()
                         // Login público del admin
                         .requestMatchers(HttpMethod.POST, "/v1/admin/auth/login").permitAll()
                         // Rutas admin — requieren rol ADMIN o SUPER_ADMIN

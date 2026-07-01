@@ -14,6 +14,7 @@ public record RegisterUserRequest(
         @Pattern(regexp = "^3\\d{9}$", message = "Teléfono colombiano inválido") String phone,
         @NotBlank @Size(max = 100) String firstName,
         @NotBlank @Size(max = 100) String lastName,
-        @NotBlank @Pattern(regexp = "^\\d{4}$", message = "PIN debe ser de 4 dígitos") String pin
+        @NotBlank @Pattern(regexp = "^\\d{4}$", message = "PIN debe ser de 4 dígitos") String pin,
+        @jakarta.validation.constraints.AssertTrue(message = "Debe aceptar los términos y condiciones") boolean termsAccepted
 ) {
 }
