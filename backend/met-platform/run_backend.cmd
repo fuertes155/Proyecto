@@ -11,5 +11,5 @@ set "AES_KEY=met-dev-aes-key-32-chars-long!!!"
 set "SPRING_PROFILES_ACTIVE=dev"
 set "REDIS_PASSWORD=RedisDev2026Secure"
 set "CORS_ORIGINS=*"
-set "GEMINI_API_KEY=AQ.Ab8RN6L5kvMn6USF-bba_4Uc9Tvfk1f1QX65Kxlac_HgLmDZ9g"
+set "GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE"
 "C:\Users\Samuel\.m2\wrapper\dists\apache-maven-3.9.15\0226a00282e400185496f3b60ec5a3f029cbdc6893912937d4876d57695224e1\bin\mvn.cmd" spring-boot:run
