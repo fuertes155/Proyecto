@@ -129,7 +129,7 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
               Text(
                 'Saldo Total',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -138,7 +138,7 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
                 onTap: widget.onToggleObscure,
                 child: Icon(
                   widget.obscureBalance ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
                   size: 20,
                 ),
               ),
@@ -147,8 +147,8 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
           const SizedBox(height: 8),
           Text(
             widget.obscureBalance ? '••••••••' : '\$12,450,000',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 36,
               fontWeight: FontWeight.bold,
               letterSpacing: -1,
@@ -161,13 +161,13 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
               Text(
                 'Cuenta Met •••• 4092',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                   fontSize: 14,
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.account_balance_wallet,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onSurface,
                 size: 24,
               ),
             ],
@@ -203,7 +203,7 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
           Container(
             height: 45,
             width: double.infinity,
-            color: Colors.black87,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.87),
           ),
           const SizedBox(height: 20),
           Padding(
@@ -214,12 +214,12 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
+                  child: Text(
                     'CVV  123',
-                    style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.87), fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -231,7 +231,7 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
             child: Text(
               'Tarjeta MET Débito',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
                 fontWeight: FontWeight.w600,
               ),
             ),

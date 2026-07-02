@@ -1,8 +1,8 @@
 @echo off
 setlocal DisableDelayedExpansion
 set "JAVA_HOME=C:\Users\Samuel\.vscode\extensions\redhat.java-1.54.0-win32-x64\jre\21.0.10-win32-x86_64"
-set "DB_HOST=localhost"
-set "DB_PORT=5432"
+set "DB_HOST=127.0.0.1"
+set "DB_PORT=5433"
 set "DB_NAME=met"
 set "DB_USER=met"
 set "DB_PASSWORD=MetDev2026Secure"

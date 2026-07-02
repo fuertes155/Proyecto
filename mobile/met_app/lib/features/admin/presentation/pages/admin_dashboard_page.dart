@@ -111,8 +111,8 @@ class AdminDashboardPage extends ConsumerWidget {
                                 blurRadius: 16)
                           ],
                         ),
-                        child: const Icon(Icons.admin_panel_settings_rounded,
-                            color: Colors.white, size: 28),
+                        child: Icon(Icons.admin_panel_settings_rounded,
+                            color: Theme.of(context).colorScheme.onSurface, size: 28),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -276,7 +276,7 @@ class _ModuleCardState extends State<_ModuleCard> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.03),
+                color: isDark ? Theme.of(context).colorScheme.onSurface.withOpacity(0.06) : Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                     color: primary.withOpacity(isDark ? 0.35 : 0.2), width: 1.5),

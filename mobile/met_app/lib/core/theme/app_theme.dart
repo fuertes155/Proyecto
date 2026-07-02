@@ -23,6 +23,11 @@ class AppTheme {
         secondary: secondaryColor,
         error: errorColor,
         brightness: Brightness.light,
+        surface: Colors.white,
+        surfaceContainer: const Color(0xFFF0F2F5),
+        surfaceContainerHigh: const Color(0xFFE2E8F0),
+        onSurface: Colors.black87,
+        outline: Colors.black12,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -63,6 +68,11 @@ class AppTheme {
         secondary: secondaryColor,
         error: errorColor,
         brightness: Brightness.dark,
+        surface: const Color(0xFF121212),
+        surfaceContainer: const Color(0xFF1E1E1E),
+        surfaceContainerHigh: const Color(0xFF1E291E),
+        onSurface: Colors.white,
+        outline: Colors.white24,
       ),
       textTheme: GoogleFonts.outfitTextTheme(
         const TextTheme(

@@ -31,14 +31,20 @@ public class LoginUseCase {
 
     @Transactional(readOnly = true)
     public AuthResponse execute(LoginRequest request) {
+        System.out.println("Login attempt for doc: '" + request.documentNumber() + "' of type: '" + request.documentType() + "'");
         User user = userRepository.findByDocument(request.documentType(), request.documentNumber())
-                .orElseThrow(() -> new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas"));
+                .orElseThrow(() -> {
+                    System.out.println("User not found: '" + request.documentType() + "' '" + request.documentNumber() + "'");
+                    return new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
+                });
 
         if (user.getStatus() != UserStatus.ACTIVE) {
+            System.out.println("User not active: " + user.getStatus());
             throw new BusinessRuleException("USER_NOT_ACTIVE", "La cuenta no está activa");
         }
 
         boolean authenticated = authenticate(request, user);
+        System.out.println("Authenticated: " + authenticated + " for user " + user.getDocumentNumber());
         if (!authenticated) {
             throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
         }

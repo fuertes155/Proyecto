@@ -104,7 +104,7 @@ class _RiskRuleCard extends ConsumerWidget {
               ),
               Switch(
                 value: rule.activo,
-                activeColor: color,
+                activeThumbColor: color,
                 onChanged: (val) async {
                   try {
                     await ref

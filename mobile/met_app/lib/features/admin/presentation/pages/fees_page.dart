@@ -80,7 +80,7 @@ class FeesPage extends ConsumerWidget {
                 SwitchListTile(
                   title: Text('¿Es porcentaje?',
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                  activeColor: color,
+                  activeThumbColor: color,
                   value: isPercent,
                   onChanged: (v) => setState(() => isPercent = v),
                 )
@@ -95,7 +95,7 @@ class FeesPage extends ConsumerWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: color,
-                foregroundColor: Colors.white,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
               ),
               onPressed: () async {
                 try {

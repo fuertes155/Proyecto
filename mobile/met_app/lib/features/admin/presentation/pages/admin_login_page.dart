@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/admin_provider.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class AdminLoginPage extends ConsumerStatefulWidget {
   const AdminLoginPage({super.key});
@@ -68,7 +69,11 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // Admin login SIEMPRE muestra el tema oscuro
+    return Theme(
+      data: AppTheme.darkTheme,
+      child: Builder(
+        builder: (context) => Scaffold(
       body: Stack(
         children: [
           // Background oscuro con gradiente rojo/naranja para admin
@@ -141,15 +146,15 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                               )
                             ],
                           ),
-                          child: const Icon(Icons.admin_panel_settings_rounded,
-                              color: Colors.white, size: 52),
+                          child: Icon(Icons.admin_panel_settings_rounded,
+                              color: Theme.of(context).colorScheme.onSurface, size: 52),
                         ),
                       ),
                       const SizedBox(height: 28),
-                      const Text(
+                      Text(
                         'Panel Administrativo',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.5,
@@ -160,7 +165,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                         'Acceso restringido — Solo personal autorizado',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.55),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55),
                           fontSize: 13,
                         ),
                       ),
@@ -173,7 +178,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                           child: Container(
                             padding: const EdgeInsets.all(28),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.08),
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
                                   color: const Color(0xFF53A835).withOpacity(0.4)),
@@ -183,7 +188,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                                 // Username
                                 TextFormField(
                                   controller: _usernameCtrl,
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                   decoration: _inputDeco(
                                     'Usuario administrador',
                                     Icons.person_outline_rounded,
@@ -196,7 +201,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                                 TextFormField(
                                   controller: _passwordCtrl,
                                   obscureText: _obscurePassword,
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                   decoration: _inputDeco(
                                     'Contraseña',
                                     Icons.lock_outline_rounded,
@@ -206,7 +211,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                                         _obscurePassword
                                             ? Icons.visibility_off_outlined
                                             : Icons.visibility_outlined,
-                                        color: Colors.white54,
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54),
                                       ),
                                       onPressed: () => setState(
                                           () => _obscurePassword = !_obscurePassword),
@@ -230,17 +235,17 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                           onPressed: _isLoading ? null : _login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF53A835),
-                            foregroundColor: Colors.white,
+                            foregroundColor: Theme.of(context).colorScheme.onSurface,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16)),
                             shadowColor: const Color(0xFF53A835).withOpacity(0.5),
                             elevation: 8,
                           ),
                           child: _isLoading
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 24, height: 24,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white))
+                                      strokeWidth: 2, color: Theme.of(context).colorScheme.onSurface))
                               : const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -257,11 +262,11 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
                       const SizedBox(height: 20),
                       TextButton.icon(
                         onPressed: () => context.go('/login'),
-                        icon: const Icon(Icons.arrow_back_rounded,
-                            color: Colors.white54, size: 18),
+                        icon: Icon(Icons.arrow_back_rounded,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), size: 18),
                         label: Text('Volver al inicio',
                             style:
-                                TextStyle(color: Colors.white.withOpacity(0.5))),
+                                TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))),
                       ),
                     ],
                   ),
@@ -271,23 +276,25 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage>
           ),
         ],
       ),
+      ),
+      ),
     );
   }
 
   InputDecoration _inputDeco(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-      prefixIcon: Icon(icon, color: Colors.white54),
+      labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+      prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
       filled: true,
-      fillColor: Colors.white.withOpacity(0.06),
+      fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.06),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.12)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.12)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),

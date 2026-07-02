@@ -9,9 +9,9 @@ class ExpenseChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,7 +22,7 @@ class ExpenseChart extends StatelessWidget {
               Text(
                 'Evolución del saldo',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -33,7 +33,7 @@ class ExpenseChart extends StatelessWidget {
                   color: const Color(0xFF53A835).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
+                child: Text(
                   '+12%',
                   style: TextStyle(
                     color: Color(0xFF53A835),
@@ -91,8 +91,8 @@ class ExpenseChart extends StatelessWidget {
                       return touchedSpots.map((LineBarSpot touchedSpot) {
                         return LineTooltipItem(
                           '\$${(touchedSpot.y * 1000000).toInt()}',
-                          const TextStyle(
-                            color: Colors.white,
+                          TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
                           ),
                         );

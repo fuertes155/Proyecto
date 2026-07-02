@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '_more_actions_sheet.dart';
 
 class QuickActions extends StatelessWidget {
   const QuickActions({super.key, required this.onTapMore});
@@ -60,16 +59,16 @@ class _QuickAction extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+              border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
             ),
-            child: Icon(icon, color: Colors.white, size: 24),
+            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 24),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style:
-                TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8), fontSize: 13),
           ),
         ],
       ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/admin_provider.dart';
 import '../../data/repositories/admin_repository.dart';
 
 class TransactionReversalPage extends ConsumerStatefulWidget {
@@ -131,11 +130,11 @@ class _TransactionReversalPageState
                 ),
                 onPressed: _isLoading ? null : _submitReversal,
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
+                    ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface)
+                    : Text(
                         'EJECUTAR REVERSIÓN',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1),

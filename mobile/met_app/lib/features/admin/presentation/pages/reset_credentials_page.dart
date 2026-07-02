@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/admin_provider.dart';
 import '../../data/repositories/admin_repository.dart';
 
 class ResetCredentialsPage extends ConsumerStatefulWidget {
@@ -119,11 +118,11 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
                 ),
                 onPressed: _isLoading ? null : _submitReset,
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
+                    ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface)
+                    : Text(
                         'FORZAR RESETEO',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1),

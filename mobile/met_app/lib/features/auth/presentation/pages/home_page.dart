@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/accessible_button.dart';
+import '../../../../core/widgets/theme_toggle_button.dart';
 import 'home_widgets/quick_actions.dart';
 import 'home_widgets/_more_actions_sheet.dart';
 import '../providers/auth_provider.dart';
@@ -29,7 +30,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final user = authState.value;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Background Glows
@@ -104,7 +105,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           'Servicios',
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     fontWeight: FontWeight.bold,
                                   ),
                         ).animate(delay: 600.ms).fade(),
@@ -170,8 +171,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                  child: const Icon(Icons.person, color: Colors.white70),
+                  backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                  child: Icon(Icons.person, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                 ),
                 const SizedBox(width: 16),
                 Column(
@@ -180,14 +181,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                     Text(
                       'Hola,',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         fontSize: 14,
                       ),
                     ),
                     Text(
                       fullName?.split(' ').first ?? 'Asociado',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -198,13 +199,16 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
             Row(
               children: [
+                const ThemeToggleButton(),
+                const SizedBox(width: 4),
                 IconButton(
-                  icon:
-                      const Icon(Icons.notifications_none, color: Colors.white),
+                  icon: Icon(Icons.notifications_none,
+                      color: Theme.of(context).colorScheme.onSurface),
                   onPressed: () {},
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout, color: Colors.white),
+                  icon: Icon(Icons.logout,
+                      color: Theme.of(context).colorScheme.onSurface),
                   onPressed: () async {
                     await ref.read(authStateProvider.notifier).logout();
                     if (context.mounted) context.go('/login');
@@ -227,8 +231,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1))),
       ),
       child: SafeArea(
         child: Padding(
@@ -298,16 +302,16 @@ class _QuickAction extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+              border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
             ),
-            child: Icon(icon, color: Colors.white, size: 24),
+            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 24),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style:
-                TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8), fontSize: 13),
           ),
         ],
       ),
@@ -335,19 +339,19 @@ class _FeatureCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF9800).withOpacity(0.2),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: const Color(0xFFFF9800), size: 24),
+              child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -356,8 +360,8 @@ class _FeatureCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -366,14 +370,14 @@ class _FeatureCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       fontSize: 13,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.white54),
+            Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
           ],
         ),
       ),
@@ -396,26 +400,41 @@ class _BottomNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeColor = Theme.of(context).colorScheme.primary;
+    final inactiveColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.45);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
+        decoration: BoxDecoration(
+          color: isActive
+              ? activeColor.withOpacity(0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isActive ? const Color(0xFFFF9800) : Colors.white54,
-              size: 28,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                icon,
+                key: ValueKey(isActive),
+                color: isActive ? activeColor : inactiveColor,
+                size: 26,
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
-                color: isActive ? const Color(0xFFFF9800) : Colors.white54,
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                color: isActive ? activeColor : inactiveColor,
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
+                letterSpacing: isActive ? 0.2 : 0,
               ),
             ),
           ],

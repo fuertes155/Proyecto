@@ -52,11 +52,11 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
             
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1A2E1A), const Color(0xFF121212)],
+                    colors: [const Color(0xFF1A2E1A), Theme.of(context).scaffoldBackgroundColor],
                   ),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 80, 20, 16),
@@ -71,7 +71,7 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
                             color: AppTheme.primaryColor.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.trending_up,
+                          child: Icon(Icons.trending_up,
                               color: AppTheme.primaryColor, size: 28),
                         ),
                         const SizedBox(width: 12),
@@ -80,11 +80,11 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
                           children: [
                             Text('Mis Inversiones',
                                 style: theme.textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     fontWeight: FontWeight.bold)),
                             Text('Haz crecer tu dinero',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white54)),
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54))),
                           ],
                         ),
                       ],
@@ -96,7 +96,7 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
             bottom: TabBar(
               controller: _tabController,
               labelColor: AppTheme.primaryColor,
-              unselectedLabelColor: Colors.white38,
+              unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
               indicatorColor: AppTheme.primaryColor,
               tabs: const [
                 Tab(text: 'Instrumentos'),
@@ -122,9 +122,9 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/investments/create'),
         backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_circle_outline),
-        label: const Text('Invertir',
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        icon: Icon(Icons.add_circle_outline),
+        label: Text('Invertir',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       ),
     );
@@ -146,12 +146,12 @@ class _InstrumentsTab extends ConsumerWidget {
           child: CircularProgressIndicator(color: AppTheme.primaryColor)),
       error: (e, _) => Center(
           child: Text('Error cargando instrumentos',
-              style: TextStyle(color: Colors.white54))),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))),
       data: (instruments) {
         if (instruments.isEmpty) {
-          return const Center(
+          return Center(
             child: Text('No hay instrumentos disponibles',
-                style: TextStyle(color: Colors.white54)),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54))),
           );
         }
         return ListView.builder(
@@ -177,10 +177,10 @@ class _InstrumentCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [const Color(0xFF1E291E), const Color(0xFF1E1E1E)],
+          colors: [const Color(0xFF1E291E), Theme.of(context).colorScheme.surfaceContainer],
         ),
         border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
       ),
@@ -194,8 +194,8 @@ class _InstrumentCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(instrument.nombre,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 17,
                           fontWeight: FontWeight.bold)),
                 ),
@@ -210,7 +210,7 @@ class _InstrumentCard extends StatelessWidget {
                         color: AppTheme.primaryColor.withOpacity(0.5)),
                   ),
                   child: Text(instrument.tasaLabel,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 15)),
@@ -221,7 +221,7 @@ class _InstrumentCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(instrument.descripcion!,
                   style:
-                      const TextStyle(color: Colors.white54, fontSize: 13)),
+                      TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 13)),
             ],
             const SizedBox(height: 12),
             Row(
@@ -251,10 +251,10 @@ class _InfoChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Colors.white38),
+        Icon(icon, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38)),
         const SizedBox(width: 4),
         Text(label,
-            style: const TextStyle(color: Colors.white38, fontSize: 13)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38), fontSize: 13)),
       ],
     );
   }
@@ -277,15 +277,15 @@ class _PortfoliosTab extends ConsumerWidget {
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, color: Colors.white38, size: 48),
+          Icon(Icons.error_outline, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38), size: 48),
           const SizedBox(height: 12),
           Text('Error al cargar portfolios',
-              style: const TextStyle(color: Colors.white54)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54))),
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: () =>
                 ref.read(investmentPortfoliosProvider.notifier).load(),
-            child: const Text('Reintentar'),
+            child: Text('Reintentar'),
           ),
         ],
       )),
@@ -296,13 +296,13 @@ class _PortfoliosTab extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.account_balance_wallet_outlined,
-                    size: 64, color: Colors.white24),
+                    size: 64, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24)),
                 const SizedBox(height: 16),
-                const Text('Aún no has invertido',
-                    style: TextStyle(color: Colors.white54, fontSize: 18)),
+                Text('Aún no has invertido',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 18)),
                 const SizedBox(height: 8),
-                const Text('Toca el botón "Invertir" para comenzar',
-                    style: TextStyle(color: Colors.white38, fontSize: 14)),
+                Text('Toca el botón "Invertir" para comenzar',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38), fontSize: 14)),
               ],
             ),
           );
@@ -328,7 +328,7 @@ class _PortfolioCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive = portfolio.estado == 'ACTIVE';
     final accentColor =
-        isActive ? AppTheme.primaryColor : Colors.white24;
+        isActive ? AppTheme.primaryColor : Theme.of(context).colorScheme.onSurface.withOpacity(0.24);
 
     return GestureDetector(
       onTap: () =>
@@ -341,7 +341,7 @@ class _PortfolioCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isActive
-                ? [const Color(0xFF1E291E), const Color(0xFF1E1E1E)]
+                ? [const Color(0xFF1E291E), Theme.of(context).colorScheme.surfaceContainer]
                 : [const Color(0xFF1A1A1A), const Color(0xFF1A1A1A)],
           ),
           border: Border.all(color: accentColor.withOpacity(0.3)),
@@ -356,8 +356,8 @@ class _PortfolioCard extends StatelessWidget {
                 children: [
                   Text(
                     currencyFormat.format(portfolio.montoTotal),
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 22,
                         fontWeight: FontWeight.bold),
                   ),
@@ -379,12 +379,12 @@ class _PortfolioCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.show_chart,
+                  Icon(Icons.show_chart,
                       size: 16, color: AppTheme.primaryColor),
                   const SizedBox(width: 4),
                   Text(
                     'Rendimiento proyectado: ${currencyFormat.format(portfolio.rendimientoTotalProyectado)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppTheme.primaryColor, fontSize: 14),
                   ),
                 ],
@@ -392,7 +392,7 @@ class _PortfolioCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '${portfolio.posiciones.length} posiciones · Estrategia: ${portfolio.estrategiaLabel}',
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38), fontSize: 12),
               ),
             ],
           ),

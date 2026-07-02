@@ -11,6 +11,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../data/models/auth_models.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/theme/app_theme.dart';
 
 // MEJORA 7 — Código reusable
 class _AnimatedEntrance extends StatelessWidget {
@@ -70,9 +71,9 @@ class _GlassCard extends StatelessWidget {
         child: Container(
           padding: padding ?? const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
             borderRadius: BorderRadius.circular(borderRadius),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
           ),
           child: child,
         ),
@@ -96,7 +97,7 @@ class _PinIndicator extends StatelessWidget {
     if (isError) {
       color = Colors.redAccent;
     } else if (isFilled) {
-      color = const Color(0xFF53A835);
+      color = Theme.of(context).colorScheme.primary;
     } else {
       color = Colors.transparent;
     }
@@ -111,7 +112,7 @@ class _PinIndicator extends StatelessWidget {
         border: Border.all(
           color: isError
               ? Colors.redAccent
-              : (isFilled ? const Color(0xFF53A835) : Colors.white.withOpacity(0.5)),
+              : (isFilled ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
           width: 2,
         ),
       ),
@@ -182,8 +183,8 @@ class _NumericKeyState extends State<_NumericKey> with SingleTickerProviderState
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.1),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -196,11 +197,11 @@ class _NumericKeyState extends State<_NumericKey> with SingleTickerProviderState
             aspectRatio: 1,
             child: Center(
               child: widget.icon != null
-                  ? Icon(widget.icon, color: Colors.white, size: 28)
+                  ? Icon(widget.icon, color: Theme.of(context).colorScheme.onSurface, size: 28)
                   : Text(
                       widget.text,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 32,
                         fontWeight: FontWeight.w400,
                       ),
@@ -240,25 +241,25 @@ class _BiometricButtonState extends State<_BiometricButton> {
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(_isHovered ? 0.2 : 0.1),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(_isHovered ? 0.1 : 0.05),
             border: Border.all(
-              color: Colors.white.withOpacity(0.4),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF53A835).withOpacity(_isHovered ? 0.5 : 0.2),
+                color: Theme.of(context).colorScheme.primary.withOpacity(_isHovered ? 0.5 : 0.2),
                 blurRadius: _isHovered ? 20 : 10,
                 spreadRadius: _isHovered ? 5 : 2,
               )
             ],
           ),
-          child: const AspectRatio(
+          child: AspectRatio(
             aspectRatio: 1,
             child: Center(
               child: Icon(
                 Icons.fingerprint,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onSurface,
                 size: 36,
               ),
             ),
@@ -406,7 +407,9 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
         lowerError.contains('usuario')) {
       friendlyMessage = 'No encontramos un usuario con este documento.';
     } else if (lowerError.contains('401') ||
-        lowerError.contains('unauthorized')) {
+        lowerError.contains('unauthorized') ||
+        lowerError.contains('422') ||
+        lowerError.contains('unprocessable')) {
       friendlyMessage =
           'No autorizado. Verifica tus credenciales e inténtalo de nuevo.';
       _triggerError();
@@ -605,10 +608,14 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // El login SIEMPRE muestra el tema oscuro, sin importar el modo seleccionado
+    return Theme(
+      data: AppTheme.darkTheme,
+      child: Builder(
+        builder: (context) => Scaffold(
       body: Stack(
         children: [
-          // MEJORA 6 — Background Cinemático
+          // MEJORA 6 — Background Cinemático (siempre oscuro)
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -628,7 +635,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFE65100).withOpacity(0.4),
+                    Colors.orange.withOpacity(0.4),
                     Colors.transparent,
                   ],
                 ),
@@ -645,7 +652,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF53A835).withOpacity(0.3),
+                    Theme.of(context).colorScheme.primary.withOpacity(0.3),
                     Colors.transparent,
                   ],
                 ),
@@ -691,12 +698,12 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                 height: 130,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    const Text(
+                                    Text(
                                   'E',
                                   style: TextStyle(
                                     fontSize: 120,
                                     fontWeight: FontWeight.w900,
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     letterSpacing: -4,
                                   ),
                                 ),
@@ -705,34 +712,34 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       // Título
                       _AnimatedEntrance(
                         delayMs: 100,
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               'Bienvenido',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               'Ingresa a tu cuenta para continuar',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32),
                       // Formulario
                       _AnimatedEntrance(
                         delayMs: 200,
@@ -744,9 +751,9 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.05),
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                                  border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
                                 ),
                                 child: Row(
                                   children: [
@@ -757,7 +764,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                           duration: const Duration(milliseconds: 200),
                                           padding: const EdgeInsets.symmetric(vertical: 12),
                                           decoration: BoxDecoration(
-                                            color: _documentType == 'CC' ? const Color(0xFF53A835) : Colors.transparent,
+                                            color: _documentType == 'CC' ? Theme.of(context).colorScheme.primary : Colors.transparent,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           alignment: Alignment.center,
@@ -772,7 +779,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                           duration: const Duration(milliseconds: 200),
                                           padding: const EdgeInsets.symmetric(vertical: 12),
                                           decoration: BoxDecoration(
-                                            color: _documentType == 'CE' ? const Color(0xFF53A835) : Colors.transparent,
+                                            color: _documentType == 'CE' ? Theme.of(context).colorScheme.primary : Colors.transparent,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           alignment: Alignment.center,
@@ -783,14 +790,14 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               TextFormField(
                                 controller: _documentController,
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                 decoration: InputDecoration(
                                   labelText: 'Número de documento',
                                   labelStyle: TextStyle(
-                                      color: Colors.white.withOpacity(0.8)),
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8)),
                                   filled: true,
                                   fillColor: Colors.white.withOpacity(0.05),
                                   border: OutlineInputBorder(
@@ -801,7 +808,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                     borderRadius: BorderRadius.circular(16),
                                     borderSide: const BorderSide(color: Color(0xFF53A835), width: 1.5),
                                   ),
-                                  prefixIcon: const Icon(Icons.badge_outlined, color: Colors.white70),
+                                  prefixIcon: Icon(Icons.badge_outlined, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                                 ),
                                 keyboardType: TextInputType.number,
                                 validator: (value) =>
@@ -810,15 +817,15 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                         : null,
                                 onChanged: (val) => _rawSavedDocument = null,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('Recordarme',
-                                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  Text('Recordarme',
+                                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16)),
                                   Switch(
                                     value: _rememberMe,
-                                    activeColor: const Color(0xFF53A835),
+                                    activeColor: Theme.of(context).colorScheme.primary,
                                     inactiveTrackColor: Colors.white.withOpacity(0.1),
                                     onChanged: (value) => setState(
                                         () => _rememberMe = value),
@@ -829,7 +836,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       // PIN y Teclado
                       _AnimatedEntrance(
                         delayMs: 300,
@@ -838,12 +845,12 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                             Text(
                               'PIN de acceso',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             _buildPinInput(),
                             const SizedBox(height: 8),
                             Align(
@@ -865,7 +872,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                   tapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '¿Olvidaste tu PIN?',
                                   style: TextStyle(
                                       decoration: TextDecoration.underline,
@@ -880,7 +887,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                             // Botón Ingresar
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF53A835),
+                                backgroundColor: Theme.of(context).colorScheme.primary,
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
@@ -889,17 +896,17 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                 ),
                                 elevation: 5,
                                 shadowColor:
-                                    const Color(0xFF53A835).withOpacity(0.5),
+                                    Theme.of(context).colorScheme.primary.withOpacity(0.5),
                               ),
                               onPressed: _isLoading ? null : _loginWithPin,
                               child: _isLoading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 24,
                                       height: 24,
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2, color: Colors.white),
+                                          strokeWidth: 2, color: Theme.of(context).colorScheme.onSurface),
                                     )
-                                  : const Text(
+                                  : Text(
                                       'Ingresar',
                                       style: TextStyle(
                                           fontSize: 18,
@@ -912,15 +919,15 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               style: TextButton.styleFrom(
                                   foregroundColor: Colors.white),
                               child:
-                                  const Text('¿No tienes cuenta? Regístrate'),
+                                  Text('¿No tienes cuenta? Regístrate'),
                             ),
                             // Acceso Admin (discreto)
                             const SizedBox(height: 8),
                             TextButton.icon(
                               onPressed: () => context.push('/admin/login'),
-                              icon: const Icon(Icons.admin_panel_settings_rounded,
+                              icon: Icon(Icons.admin_panel_settings_rounded,
                                   size: 14, color: Color(0xFFCF3232)),
-                              label: const Text(
+                              label: Text(
                                 'Acceso Administrador',
                                 style: TextStyle(
                                     fontSize: 12,
@@ -938,6 +945,8 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
             ),
           ),
         ],
+      ),
+      ),
       ),
     );
   }

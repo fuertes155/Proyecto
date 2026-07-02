@@ -71,7 +71,7 @@ class OperationLimitsPage extends ConsumerWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -136,13 +136,13 @@ class _LimitCard extends StatelessWidget {
   final OperationLimit limit;
   final VoidCallback onEdit;
 
-  static const _typeColors = {
-    'TRANSFER': Color(0xFF0B5FFF),
-    'WITHDRAWAL': Color(0xFFFF6B00),
-    'PURCHASE': Color(0xFF9C27B0),
+  static final _typeColors = {
+    'TRANSFER': const Color(0xFF0B5FFF),
+    'WITHDRAWAL': const Color(0xFFFF6B00),
+    'PURCHASE': const Color(0xFF9C27B0),
   };
 
-  static const _typeIcons = {
+  static final _typeIcons = {
     'TRANSFER': Icons.swap_horiz_rounded,
     'WITHDRAWAL': Icons.money_off_rounded,
     'PURCHASE': Icons.shopping_cart_rounded,

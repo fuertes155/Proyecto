@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,7 +57,7 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('SÍ, BLOQUEAR'),
@@ -161,15 +160,15 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
                   onPressed: _isLoading ? null : _execute,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                     elevation: 8,
                     shadowColor: primaryColor.withOpacity(0.5),
                   ),
                   icon: _isLoading
-                      ? const SizedBox(width: 20, height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? SizedBox(width: 20, height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onSurface))
                       : const Icon(Icons.block_rounded),
                   label: const Text('EJECUTAR BLOQUEO',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,

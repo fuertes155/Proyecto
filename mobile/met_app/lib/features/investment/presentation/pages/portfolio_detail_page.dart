@@ -26,8 +26,8 @@ class PortfolioDetailPage extends ConsumerWidget {
       
       appBar: AppBar(
         
-        foregroundColor: Colors.white,
-        title: const Text('Detalle del Portfolio',
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        title: Text('Detalle del Portfolio',
             style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
@@ -36,7 +36,7 @@ class PortfolioDetailPage extends ConsumerWidget {
             child: CircularProgressIndicator(color: AppTheme.primaryColor)),
         error: (e, _) => Center(
             child: Text('Error al cargar el portfolio',
-                style: const TextStyle(color: Colors.white54))),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))),
         data: (portfolio) => _PortfolioDetailContent(
           portfolio: portfolio,
           currencyFormat: _currencyFormat,
@@ -73,10 +73,10 @@ class _PortfolioDetailContent extends ConsumerWidget {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [const Color(0xFF1E291E), const Color(0xFF1E1E1E)],
+                    colors: [const Color(0xFF1E291E), Theme.of(context).colorScheme.surfaceContainer],
                   ),
                   border: Border.all(
                       color: AppTheme.primaryColor.withOpacity(0.3)),
@@ -87,16 +87,16 @@ class _PortfolioDetailContent extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Invertido',
+                        Text('Total Invertido',
                             style: TextStyle(
-                                color: Colors.white54, fontSize: 13)),
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 13)),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: (isActive
                                     ? AppTheme.primaryColor
-                                    : Colors.white24)
+                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.24))
                                 .withOpacity(0.15),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -104,7 +104,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
                               style: TextStyle(
                                   color: isActive
                                       ? AppTheme.primaryColor
-                                      : Colors.white38,
+                                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold)),
                         ),
@@ -113,13 +113,13 @@ class _PortfolioDetailContent extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       currencyFormat.format(portfolio.montoTotal),
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 30,
                           fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
-                    const Divider(color: Colors.white12),
+                    Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.12)),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -133,13 +133,13 @@ class _PortfolioDetailContent extends ConsumerWidget {
                           ),
                         ),
                         Container(
-                            width: 1, height: 48, color: Colors.white12),
+                            width: 1, height: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.12)),
                         Expanded(
                           child: _SummaryMetric(
                             label: 'Total al vencer',
                             value: currencyFormat
                                 .format(portfolio.totalAlVencer),
-                            valueColor: Colors.white,
+                            valueColor: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -147,13 +147,13 @@ class _PortfolioDetailContent extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Icon(Icons.auto_graph,
-                            size: 14, color: Colors.white38),
+                        Icon(Icons.auto_graph,
+                            size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38)),
                         const SizedBox(width: 6),
                         Text(
                           'Estrategia: ${portfolio.estrategiaLabel} · ${portfolio.posiciones.length} posiciones',
-                          style: const TextStyle(
-                              color: Colors.white38, fontSize: 12),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38), fontSize: 12),
                         ),
                       ],
                     ),
@@ -168,9 +168,9 @@ class _PortfolioDetailContent extends ConsumerWidget {
                   child: OutlinedButton.icon(
                     onPressed: () =>
                         _confirmCancel(context, ref, portfolio.id),
-                    icon: const Icon(Icons.cancel_outlined,
+                    icon: Icon(Icons.cancel_outlined,
                         color: Colors.redAccent),
-                    label: const Text('Cancelar Portfolio',
+                    label: Text('Cancelar Portfolio',
                         style: TextStyle(color: Colors.redAccent)),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
@@ -191,9 +191,9 @@ class _PortfolioDetailContent extends ConsumerWidget {
                     const Icon(Icons.pie_chart_outline,
                         color: AppTheme.primaryColor, size: 18),
                     const SizedBox(width: 8),
-                    const Text('Posiciones',
+                    Text('Posiciones',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 17,
                             fontWeight: FontWeight.bold)),
                   ],
@@ -224,22 +224,22 @@ class _PortfolioDetailContent extends ConsumerWidget {
       context: context,
       builder: (_) => AlertDialog(
         
-        title: const Text('¿Cancelar portfolio?',
-            style: TextStyle(color: Colors.white)),
-        content: const Text(
+        title: Text('¿Cancelar portfolio?',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+        content: Text(
           'Solo se devolverá el capital invertido, sin los rendimientos proyectados.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('No',
-                  style: TextStyle(color: Colors.white54))),
+              child: Text('No',
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent),
-            child: const Text('Sí, cancelar'),
+            child: Text('Sí, cancelar'),
           ),
         ],
       ),
@@ -288,7 +288,7 @@ class _SummaryMetric extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 12)),
           const SizedBox(height: 2),
           Text(value,
               style: TextStyle(
@@ -319,8 +319,8 @@ class _PositionCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        color: const Color(0xFF121212),
-        border: Border.all(color: Colors.white.withOpacity(0.07)),
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.07)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,14 +330,14 @@ class _PositionCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(position.instrumentNombre,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.bold,
                         fontSize: 14)),
               ),
               Text(
                 currencyFormat.format(position.montoInvertido),
-                style: const TextStyle(
+                style: TextStyle(
                     color: AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 15),
@@ -357,7 +357,7 @@ class _PositionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '+ ${currencyFormat.format(position.rendimientoProyectado)} en rendimiento',
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 12),
           ),
         ],
       ),
@@ -374,11 +374,11 @@ class _MiniChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.06),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(label,
-          style: const TextStyle(color: Colors.white38, fontSize: 11)),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38), fontSize: 11)),
     );
   }
 }

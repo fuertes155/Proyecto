@@ -97,7 +97,7 @@ class _MaintenanceCard extends ConsumerWidget {
               ),
               Switch(
                 value: window.activo,
-                activeColor: color,
+                activeThumbColor: color,
                 onChanged: (val) async {
                   try {
                     await ref

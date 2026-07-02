@@ -33,10 +33,10 @@ class MoreAction extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF9800).withOpacity(0.18),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: const Color(0xFFFF9800), size: 20),
+              child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
             ),
             const SizedBox(height: 10),
             Text(

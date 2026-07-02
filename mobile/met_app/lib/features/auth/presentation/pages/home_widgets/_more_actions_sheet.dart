@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:met/features/auth/presentation/pages/home_widgets/_sheet_action_tile.dart';
 
-import 'sheet_action_tile.dart';
 
 class MoreActionsSheet {
   static void show(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       showDragHandle: true,
       builder: (context) {
         return SafeArea(

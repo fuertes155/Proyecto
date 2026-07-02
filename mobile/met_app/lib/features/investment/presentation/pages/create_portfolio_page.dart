@@ -25,7 +25,7 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
   final _currencyFormat =
       NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
 
-  static const _strategies = [
+  static final _strategies = [
     (value: 'EQUAL', label: 'Igualitaria', desc: 'Divide el monto en partes iguales', icon: Icons.balance),
     (value: 'WEIGHTED', label: 'Ponderada', desc: 'Mayor dinero a los mejores rendimientos', icon: Icons.trending_up),
     (value: 'RISK_BASED', label: 'Por Riesgo', desc: 'Más dinero en instrumentos conservadores', icon: Icons.shield_outlined),
@@ -84,8 +84,8 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
       
       appBar: AppBar(
         
-        foregroundColor: Colors.white,
-        title: const Text('Crear Portfolio',
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        title: Text('Crear Portfolio',
             style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
@@ -107,14 +107,14 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline,
+                    Icon(Icons.info_outline,
                         color: AppTheme.primaryColor, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'El sistema distribuirá tu dinero entre los instrumentos disponibles según la estrategia que elijas.',
                         style: TextStyle(
-                            color: Colors.white70, fontSize: 13, height: 1.4),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 13, height: 1.4),
                       ),
                     ),
                   ],
@@ -123,27 +123,27 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
               const SizedBox(height: 28),
 
               // ── Monto ─────────────────────────────────────────────────
-              const Text('¿Cuánto quieres invertir?',
+              Text('¿Cuánto quieres invertir?',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 24, fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
                   prefixText: '\$ ',
-                  prefixStyle: const TextStyle(
+                  prefixStyle: TextStyle(
                       color: AppTheme.primaryColor,
                       fontSize: 24,
                       fontWeight: FontWeight.bold),
                   hintText: '100,000',
-                  hintStyle: const TextStyle(color: Colors.white24),
+                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24)),
                   filled: true,
-                  fillColor: const Color(0xFF1E1E1E),
+                  fillColor: Theme.of(context).colorScheme.surfaceContainer,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
@@ -166,9 +166,9 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
               const SizedBox(height: 32),
 
               // ── Estrategia ────────────────────────────────────────────
-              const Text('Estrategia de distribución',
+              Text('Estrategia de distribución',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
@@ -196,8 +196,8 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                     children: [
                       Text(
                         'Se distribuirá entre ${instruments.length} instrumento(s)',
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 13),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 13),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
@@ -207,11 +207,11 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                             .map((i) => Chip(
                                   label: Text(
                                     '${i.nombre} · ${i.tasaLabel}',
-                                    style: const TextStyle(
-                                        fontSize: 11, color: Colors.white70),
+                                    style: TextStyle(
+                                        fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                                   ),
                                   backgroundColor:
-                                      const Color(0xFF1E1E1E),
+                                      Theme.of(context).colorScheme.surfaceContainer,
                                   side: BorderSide.none,
                                 ))
                             .toList(),
@@ -230,17 +230,17 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
                   onPressed: _isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                     elevation: 4,
                   ),
                   child: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2.5))
+                              color: Theme.of(context).colorScheme.onSurface, strokeWidth: 2.5))
                       : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -292,11 +292,11 @@ class _StrategyTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           color: isSelected
               ? AppTheme.primaryColor.withOpacity(0.15)
-              : const Color(0xFF1E1E1E),
+              : Theme.of(context).colorScheme.surfaceContainer,
           border: Border.all(
             color: isSelected
                 ? AppTheme.primaryColor
-                : Colors.white.withOpacity(0.08),
+                : Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -307,14 +307,14 @@ class _StrategyTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: (isSelected
                         ? AppTheme.primaryColor
-                        : Colors.white24)
+                        : Theme.of(context).colorScheme.onSurface.withOpacity(0.24))
                     .withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon,
                   color: isSelected
                       ? AppTheme.primaryColor
-                      : Colors.white38,
+                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                   size: 22),
             ),
             const SizedBox(width: 14),
@@ -326,12 +326,12 @@ class _StrategyTile extends StatelessWidget {
                       style: TextStyle(
                           color: isSelected
                               ? AppTheme.primaryColor
-                              : Colors.white,
+                              : Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 15)),
                   Text(description,
-                      style: const TextStyle(
-                          color: Colors.white54, fontSize: 12)),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 12)),
                 ],
               ),
             ),
