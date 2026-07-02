@@ -28,7 +28,7 @@ public class AdminLoginUseCase {
 
     public AdminAuthResponse execute(AdminLoginRequest request, String ipOrigen) {
         Admin admin = adminRepository.findByUsername(request.username())
-                .orElseThrow(() -> new ResourceNotFoundException("Credenciales inválidas"));
+                .orElseThrow(() -> new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas"));
 
         if (!admin.isActive()) {
             throw new BusinessRuleException("ADMIN_SUSPENDED", "La cuenta de administrador está suspendida");

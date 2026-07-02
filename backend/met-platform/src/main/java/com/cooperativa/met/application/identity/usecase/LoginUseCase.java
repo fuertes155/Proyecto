@@ -32,7 +32,7 @@ public class LoginUseCase {
     @Transactional(readOnly = true)
     public AuthResponse execute(LoginRequest request) {
         User user = userRepository.findByDocument(request.documentType(), request.documentNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Credenciales inválidas"));
+                .orElseThrow(() -> new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas"));
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new BusinessRuleException("USER_NOT_ACTIVE", "La cuenta no está activa");
