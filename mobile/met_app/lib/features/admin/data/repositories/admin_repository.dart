@@ -82,6 +82,16 @@ class AdminRepository {
     return FeeSchedule.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<FeeSchedule> updateFee(String id, Map<String, dynamic> data) async {
+    final response = await _adminDio().put('/v1/admin/fees/$id', data: data);
+    return FeeSchedule.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<void> deleteFee(String id) async {
+    await _adminDio().delete('/v1/admin/fees/$id');
+  }
+
+
   // ── Maintenance ────────────────────────────────────────────────────────────
   Future<List<MaintenanceWindow>> getMaintenanceWindows() async {
     final response = await _adminDio().get('/v1/admin/maintenance');

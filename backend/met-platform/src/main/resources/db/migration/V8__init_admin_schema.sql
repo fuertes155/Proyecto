@@ -107,8 +107,8 @@ CREATE INDEX idx_risk_activo ON risk_rules (activo);
 INSERT INTO risk_rules (nombre, descripcion, condicion, accion)
 VALUES
     ('Monto alto transferencia',
-     'Transferencias superiores a $10.000.000 requieren revisión',
-     '{"field": "amount", "operator": "gt", "value": 10000000}',
+     'Transferencias superiores a $5.000.000 requieren revisión',
+     '{"field": "amount", "operator": "gt", "value": 5000000}',
      'REVIEW'),
     ('Múltiples intentos fallidos',
      'Más de 5 intentos fallidos de PIN en 10 minutos',

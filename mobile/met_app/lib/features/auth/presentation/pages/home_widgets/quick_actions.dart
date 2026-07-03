@@ -6,7 +6,7 @@ class QuickActions extends StatelessWidget {
 
   final VoidCallback onTapMore;
 
-  void _showActionSheet(BuildContext context, String title, IconData icon, List<Widget> children) {
+  void _showActionSheet(BuildContext context, String title, IconData icon, Widget content) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -14,6 +14,9 @@ class QuickActions extends StatelessWidget {
       builder: (context) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -55,12 +58,13 @@ class QuickActions extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(children: children),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(left: 24, right: 24, bottom: 32),
+                  child: content,
+                ),
               ),
-              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -69,33 +73,177 @@ class QuickActions extends StatelessWidget {
   }
 
   void _showTransferSheet(BuildContext context) {
-    _showActionSheet(context, 'Transferir Dinero', Icons.swap_horiz, [
-      _buildTextField(context, 'Número de cuenta o celular', Icons.account_balance_wallet_outlined),
-      const SizedBox(height: 16),
-      _buildTextField(context, 'Monto a transferir (\$)', Icons.attach_money, isNumeric: true),
-      const SizedBox(height: 24),
-      _buildPrimaryButton(context, 'Continuar', () => Navigator.pop(context)),
-    ]);
+    _showActionSheet(context, 'Transferir Dinero', Icons.swap_horiz, Column(
+      children: [
+        _buildTextField(context, 'Número de cuenta o celular', Icons.account_balance_wallet_outlined),
+        const SizedBox(height: 16),
+        _buildTextField(context, 'Monto a transferir (\$)', Icons.attach_money, isNumeric: true),
+        const SizedBox(height: 24),
+        _buildPrimaryButton(context, 'Continuar', () => Navigator.pop(context)),
+      ]
+    ));
   }
 
   void _showPaySheet(BuildContext context) {
-    _showActionSheet(context, 'Pagar Servicios', Icons.payment, [
-      _buildTextField(context, 'Referencia de pago', Icons.receipt_long_outlined),
-      const SizedBox(height: 16),
-      _buildTextField(context, 'Valor a pagar (\$)', Icons.attach_money, isNumeric: true),
-      const SizedBox(height: 24),
-      _buildPrimaryButton(context, 'Buscar Factura', () => Navigator.pop(context)),
-    ]);
+    _showActionSheet(context, 'Pagar Servicios', Icons.payment, Column(
+      children: [
+        _buildTextField(context, 'Referencia de pago', Icons.receipt_long_outlined),
+        const SizedBox(height: 16),
+        _buildTextField(context, 'Valor a pagar (\$)', Icons.attach_money, isNumeric: true),
+        const SizedBox(height: 24),
+        _buildPrimaryButton(context, 'Buscar Factura', () => Navigator.pop(context)),
+      ]
+    ));
   }
 
-  void _showTopUpSheet(BuildContext context) {
-    _showActionSheet(context, 'Recargar Celular', Icons.add_circle_outline, [
-      _buildTextField(context, 'Número de celular', Icons.phone_android),
-      const SizedBox(height: 16),
-      _buildTextField(context, 'Monto de recarga (\$)', Icons.attach_money, isNumeric: true),
-      const SizedBox(height: 24),
-      _buildPrimaryButton(context, 'Recargar ahora', () => Navigator.pop(context)),
-    ]);
+  void _showDepositSheet(BuildContext context) {
+    _showActionSheet(context, 'Depósito', Icons.account_balance_wallet, Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDepositMethodTile(
+          context,
+          'Nequi',
+          'Normalmente en 5 minutos | Depósito más rápido',
+          Text('Nequi', style: TextStyle(color: Color(0xFFE10098), fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.5)),
+        ),
+        
+        _buildSectionHeader(context, 'BANCO Y TARJETAS'),
+        _buildDepositMethodTile(
+          context,
+          'Bre-B',
+          'Instantáneo',
+          Text('Bre-B', style: TextStyle(color: Color(0xFF00C853), fontWeight: FontWeight.bold, fontSize: 16)),
+        ),
+        _buildDepositMethodTile(
+          context,
+          'PSE',
+          'Normalmente en 10 minutos',
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Color(0xFF003057), borderRadius: BorderRadius.circular(20)),
+            child: Text('PSE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+          ),
+        ),
+        _buildDepositMethodTile(
+          context,
+          'Tarjeta de Crédito/Débito',
+          'Instantáneo',
+          Icon(Icons.credit_card, color: Colors.deepOrange, size: 28),
+        ),
+        
+        _buildSectionHeader(context, 'WALLETS'),
+        _buildDepositMethodTile(
+          context,
+          'Daviplata',
+          'Normalmente en 10 minutos',
+          Text('DaviPlata', style: TextStyle(color: Color(0xFFED1C24), fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
+        ),
+
+        _buildSectionHeader(context, 'EFECTIVO'),
+        _buildDepositMethodTile(
+          context,
+          'Efecty',
+          'Hasta 5 minutos',
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Color(0xFFFFCC00), borderRadius: BorderRadius.circular(4)),
+            child: Text('efecty', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+        ),
+        _buildDepositMethodTile(
+          context,
+          'Puntored',
+          'Hasta 5 minutos',
+          Text('puntored', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.5)),
+        ),
+      ]
+    ));
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, bottom: 8, left: 4),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDepositMethodTile(BuildContext context, String title, String subtitle, Widget leadingLogo) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? Theme.of(context).colorScheme.onSurface.withOpacity(0.05)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? Theme.of(context).colorScheme.onSurface.withOpacity(0.1)
+              : Colors.grey.withOpacity(0.2)
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.pop(context),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white.withOpacity(0.9)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: leadingLogo,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildTextField(BuildContext context, String label, IconData icon, {bool isNumeric = false}) {
@@ -159,9 +307,9 @@ class QuickActions extends StatelessWidget {
           onTap: () => _showPaySheet(context),
         ),
         _QuickAction(
-          icon: Icons.add_circle_outline,
-          label: 'Recargar',
-          onTap: () => _showTopUpSheet(context),
+          icon: Icons.account_balance_wallet,
+          label: 'Depósito',
+          onTap: () => _showDepositSheet(context),
         ),
         _QuickAction(
           icon: Icons.grid_view,

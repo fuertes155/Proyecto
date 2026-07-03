@@ -39,4 +39,22 @@ public class FeesController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(manageFeesUseCase.create(adminId, request, http.getRemoteAddr()));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FeeSchedule> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody FeeScheduleRequest request,
+            Authentication auth, HttpServletRequest http) {
+        UUID adminId = (UUID) auth.getPrincipal();
+        return ResponseEntity.ok(manageFeesUseCase.update(adminId, id, request, http.getRemoteAddr()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID id,
+            Authentication auth, HttpServletRequest http) {
+        UUID adminId = (UUID) auth.getPrincipal();
+        manageFeesUseCase.delete(adminId, id, http.getRemoteAddr());
+        return ResponseEntity.noContent().build();
+    }
 }

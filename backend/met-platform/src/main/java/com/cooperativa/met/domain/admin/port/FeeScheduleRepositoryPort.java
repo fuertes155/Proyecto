@@ -13,4 +13,6 @@ public interface FeeScheduleRepositoryPort {
     FeeSchedule save(FeeSchedule fee);
     /** Cierra la vigencia de la tarifa anterior del mismo tipo */
     void cerrarVigencia(String tipoTarifa);
+    /** Elimina permanentemente una tarifa por id */
+    void deleteById(UUID id);
 }

@@ -46,6 +46,13 @@ public class FeeScheduleAdapter implements FeeScheduleRepositoryPort {
         jpaRepository.cerrarVigencia(tipoTarifa, Instant.now());
     }
 
+    @Override
+    @Transactional
+    public void deleteById(UUID id) {
+        jpaRepository.deleteById(id);
+    }
+
+
     private FeeSchedule toDomain(FeeScheduleJpaEntity e) {
         return FeeSchedule.builder()
                 .id(e.getId())

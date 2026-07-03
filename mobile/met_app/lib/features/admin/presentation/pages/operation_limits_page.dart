@@ -31,14 +31,22 @@ class OperationLimitsPage extends ConsumerWidget {
       body: limitsState.when(
         loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
-        data: (limits) => ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: limits.length,
-          itemBuilder: (context, i) => _LimitCard(
-            limit: limits[i],
-            onEdit: () => _showEditDialog(context, ref, limits[i]),
-          ),
-        ),
+        data: (limits) {
+          // Excluir PURCHASE y deduplicar por tipoOperacion
+          final seen = <String>{};
+          final filtered = limits
+              .where((l) => l.tipoOperacion != 'PURCHASE')
+              .where((l) => seen.add(l.tipoOperacion))
+              .toList();
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: filtered.length,
+            itemBuilder: (context, i) => _LimitCard(
+              limit: filtered[i],
+              onEdit: () => _showEditDialog(context, ref, filtered[i]),
+            ),
+          );
+        },
       ),
     );
   }
@@ -139,13 +147,16 @@ class _LimitCard extends StatelessWidget {
   static final _typeColors = {
     'TRANSFER': const Color(0xFF0B5FFF),
     'WITHDRAWAL': const Color(0xFFFF6B00),
-    'PURCHASE': const Color(0xFF9C27B0),
   };
 
   static final _typeIcons = {
     'TRANSFER': Icons.swap_horiz_rounded,
-    'WITHDRAWAL': Icons.money_off_rounded,
-    'PURCHASE': Icons.shopping_cart_rounded,
+    'WITHDRAWAL': Icons.account_balance_wallet_rounded,
+  };
+
+  static final _typeNames = {
+    'TRANSFER': 'Transferencia',
+    'WITHDRAWAL': 'Retiro de Efectivo',
   };
 
   String _formatCOP(int amount) {
@@ -184,10 +195,27 @@ class _LimitCard extends StatelessWidget {
                 child: Icon(icon, color: color, size: 22),
               ),
               const SizedBox(width: 12),
-              Text(limit.tipoOperacion,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16)),
-              const Spacer(),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _typeNames[limit.tipoOperacion] ?? limit.tipoOperacion,
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                    ),
+                    Text(
+                      limit.tipoOperacion,
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                          fontSize: 11,
+                          letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
+              ),
               IconButton(
                 icon: Icon(Icons.edit_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), size: 20),
                 onPressed: onEdit,

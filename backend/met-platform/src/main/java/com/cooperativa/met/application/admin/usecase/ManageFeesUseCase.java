@@ -65,4 +65,71 @@ public class ManageFeesUseCase {
 
         return saved;
     }
+
+    /**
+     * Actualiza una tarifa existente: cierra la actual y crea una nueva versión.
+     * Estrategia de versionado: se elimina la antigua y se crea la nueva con los
+     * datos actualizados, manteniendo el mismo tipoTarifa.
+     */
+    @Transactional
+    public FeeSchedule update(UUID actorAdminId, UUID feeId, FeeScheduleRequest request, String ip) {
+        FeeSchedule existing = feeRepository.findById(feeId)
+                .orElseThrow(() -> new IllegalArgumentException("Tarifa no encontrada: " + feeId));
+
+        // Eliminar la versión anterior
+        feeRepository.deleteById(feeId);
+
+        // Crear nueva versión con los datos actualizados
+        FeeSchedule updated = FeeSchedule.builder()
+                .tipoTarifa(existing.getTipoTarifa())
+                .descripcion(request.descripcion() != null ? request.descripcion() : existing.getDescripcion())
+                .valor(request.valor())
+                .esPorcentaje(request.esPorcentaje())
+                .vigentDesde(request.vigentDesde())
+                .vigentaHasta(null)
+                .creadoPor(actorAdminId)
+                .createdAt(Instant.now())
+                .build();
+
+        FeeSchedule saved = feeRepository.save(updated);
+
+        auditLog.log(AdminAuditEntry.builder()
+                .actorAdminId(actorAdminId)
+                .accion("FEE_SCHEDULE_UPDATED")
+                .entidadAfectada("FEE_SCHEDULE")
+                .idEntidad(feeId.toString())
+                .valoresAnteriores(String.format(
+                        "{\"valor\":%s,\"esPorcentaje\":%b}", existing.getValor(), existing.isEsPorcentaje()))
+                .valoresNuevos(String.format(
+                        "{\"valor\":%s,\"esPorcentaje\":%b}", request.valor(), request.esPorcentaje()))
+                .motivo("Tarifa actualizada")
+                .ipOrigen(ip)
+                .timestamp(Instant.now())
+                .build());
+
+        return saved;
+    }
+
+    /**
+     * Elimina una tarifa permanentemente del sistema.
+     */
+    @Transactional
+    public void delete(UUID actorAdminId, UUID feeId, String ip) {
+        FeeSchedule existing = feeRepository.findById(feeId)
+                .orElseThrow(() -> new IllegalArgumentException("Tarifa no encontrada: " + feeId));
+
+        feeRepository.deleteById(feeId);
+
+        auditLog.log(AdminAuditEntry.builder()
+                .actorAdminId(actorAdminId)
+                .accion("FEE_SCHEDULE_DELETED")
+                .entidadAfectada("FEE_SCHEDULE")
+                .idEntidad(feeId.toString())
+                .valoresAnteriores(String.format(
+                        "{\"tipoTarifa\":\"%s\",\"valor\":%s}", existing.getTipoTarifa(), existing.getValor()))
+                .motivo("Tarifa eliminada por administrador")
+                .ipOrigen(ip)
+                .timestamp(Instant.now())
+                .build());
+    }
 }
