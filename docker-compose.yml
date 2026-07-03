@@ -55,6 +55,8 @@ services:
       CORS_ORIGINS: "*"
       COMPLIANCE_ENTITY_CODE: ${COMPLIANCE_ENTITY_CODE:-COOP001}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      MAIL_USERNAME: ${MAIL_USERNAME:-your-email@gmail.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-your-app-password}
     ports:
       - "8080:8080"
     healthcheck:

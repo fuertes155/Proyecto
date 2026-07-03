@@ -3,6 +3,7 @@ package com.cooperativa.met.application.identity.usecase;
 import com.cooperativa.met.application.identity.dto.PinRecoveryRequest;
 import com.cooperativa.met.application.identity.service.OtpService;
 import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
+import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,11 @@ public class RequestPinRecoveryUseCase {
 
     @Transactional(readOnly = true)
     public void execute(PinRecoveryRequest request) {
-        boolean exists = userRepository.existsByDocument(request.getDocumentType(), request.getDocumentNumber());
-        if (!exists) {
-            // For security, don't throw an error indicating the user doesn't exist,
-            // just silently return, or throw a generic error depending on business rules.
-            // But since the user wants error messages, we can throw not found.
-            throw new ResourceNotFoundException("Usuario no encontrado con este documento");
-        }
+        // Find user to get the email
+        User user = userRepository.findByDocument(request.getDocumentType(), request.getDocumentNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con este documento"));
 
-        // Generate and send OTP
-        otpService.generateAndSendOtp(request.getDocumentNumber());
+        // Generate and send OTP via email
+        otpService.generateAndSendOtp(request.getDocumentNumber(), user.getEmail());
     }
 }
