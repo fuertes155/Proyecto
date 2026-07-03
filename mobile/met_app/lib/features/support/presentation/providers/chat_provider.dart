@@ -17,60 +17,15 @@ class ChatState {
 
 // ── Respuestas predefinidas por opción rápida ─────────────────────────────────
 const _quickReplies = {
-  'saldo': '''💰 **Consulta de Saldo**
+  'saldo': 'Tu saldo está en la tarjeta principal de Inicio. Para ahorros o créditos, revisa cada sección desde el menú.',
 
-Para consultar tu saldo:
-• Ve a la sección **Inicio** de la app
-• Tu saldo disponible aparece en la tarjeta virtual principal
+  'creditos': 'Ve a Créditos en el menú para ver saldo pendiente, cuotas y fechas de pago. Para un crédito nuevo, visita una oficina o llama al 01 8000 XXX XXX.',
 
-Para el saldo de ahorros o créditos, dirígete a las secciones **Ahorros** o **Créditos** respectivamente.
+  'transferencias': 'Ve a Inicio → Transferir, ingresa cuenta destino y monto, confirma con tu PIN. Máximo según tus límites de operación.',
 
-¿Necesitas ayuda con algo más?''',
+  'contacto': '📞 01 8000 XXX XXX (lun–sáb, 7am–7pm)\n💬 WhatsApp: +57 300 XXX XXXX\n✉️ atencion@met.coop',
 
-  'creditos': '''📋 **Mis Créditos**
-
-Para revisar tus créditos activos:
-• Dirígete a la sección **Créditos** en el menú principal
-• Allí verás el saldo pendiente, cuotas y próximas fechas de pago
-
-Para solicitar un crédito nuevo, contacta a un asesor de la cooperativa o visita la oficina más cercana.
-
-¿Tienes alguna otra pregunta?''',
-
-  'transferencias': '''🔄 **Transferencias**
-
-Para realizar una transferencia:
-1. Ve a **Inicio** → botón de transferencia
-2. Ingresa el número de cuenta destino
-3. Digita el monto (máximo según tus límites de operación)
-4. Confirma con tu PIN
-
-**Límites actuales:** consulta la sección de información o llama a la línea de atención.
-
-¿Hay algo más en lo que pueda ayudarte?''',
-
-  'contacto': '''📞 **Contáctanos**
-
-Estamos aquí para ayudarte:
-
-• **Línea de atención:** 01 8000 XXX XXX (lunes a sábado 7am – 7pm)
-• **WhatsApp:** +57 300 XXX XXXX
-• **Correo:** atencion@met.coop
-• **Oficinas:** [Ver sucursales]
-
-Para emergencias fuera de horario, usa la opción de **Bloqueo de cuenta** en la app.''',
-
-  'faq': '''❓ **Preguntas Frecuentes**
-
-Selecciona el tema que necesitas:
-
-🔐 **Olvidé mi PIN** → Ve a Ajustes → Cambiar PIN
-💳 **Bloqueé mi cuenta** → Llama al 01 8000 XXX XXX
-📄 **Extracto de cuenta** → Sección Movimientos → Descargar
-🏦 **Abrir otro producto** → Visita una de nuestras oficinas
-📱 **Actualizar datos** → Perfil → Mis Datos
-
-¿Necesitas más información sobre algún tema?''',
+  'faq': '🔐 Olvidé PIN → Ajustes → Cambiar PIN\n💳 Cuenta bloqueada → Llama al 01 8000 XXX XXX\n📄 Extracto → Movimientos → Descargar\n📱 Actualizar datos → Perfil → Mis Datos',
 };
 
 // ── Opciones rápidas disponibles ─────────────────────────────────────────────
@@ -88,9 +43,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   ChatNotifier(this.dio)
       : super(ChatState([
           ChatMessage(
-            '¡Hola! Soy tu asistente 24/7 de la Cooperativa MET 👋\n\n'
-            'Puedo ayudarte con información sobre tus productos, transferencias, créditos y más.\n\n'
-            'Selecciona una opción o escríbeme directamente:',
+            '¡Hola! 👋 Soy el asistente de la Cooperativa MET. ¿En qué te ayudo hoy?',
             false,
           )
         ], false, showQuickOptions: true));
@@ -157,7 +110,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     if (lower.contains('contacto') || lower.contains('teléfono') || lower.contains('llamar')) {
       return _quickReplies['contacto']!;
     }
-    return 'Entendí tu mensaje. Para darte la mejor atención, por favor llama a nuestra línea **01 8000 XXX XXX** (lunes a sábado, 7am–7pm) o escríbenos al WhatsApp. Un asesor estará contigo en minutos. 😊';
+    return 'Para más ayuda llama al 01 8000 XXX XXX (lun–sáb 7am–7pm) o escríbenos al WhatsApp. 😊';
   }
 }
 

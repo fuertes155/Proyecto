@@ -302,11 +302,6 @@ class QuickActions extends StatelessWidget {
           onTap: () => _showTransferSheet(context),
         ),
         _QuickAction(
-          icon: Icons.payment,
-          label: 'Pagar',
-          onTap: () => _showPaySheet(context),
-        ),
-        _QuickAction(
           icon: Icons.account_balance_wallet,
           label: 'Depósito',
           onTap: () => _showDepositSheet(context),
