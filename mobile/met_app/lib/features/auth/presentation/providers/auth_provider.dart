@@ -84,4 +84,32 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
       throw error;
     }
   }
+
+  Future<void> requestPinRecovery({required String documentType, required String documentNumber}) async {
+    try {
+      final request = PinRecoveryRequest(documentType: documentType, documentNumber: documentNumber);
+      await _repository.requestPinRecovery(request);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  Future<void> resetPinWithOtp({
+    required String documentType,
+    required String documentNumber,
+    required String otpCode,
+    required String newPin,
+  }) async {
+    try {
+      final request = PinRecoveryResetRequest(
+        documentType: documentType,
+        documentNumber: documentNumber,
+        otpCode: otpCode,
+        newPin: newPin,
+      );
+      await _repository.resetPinWithOtp(request);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

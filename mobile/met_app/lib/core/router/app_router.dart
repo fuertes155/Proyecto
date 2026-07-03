@@ -9,6 +9,8 @@ import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/personal_data_page.dart';
 import '../../features/auth/presentation/pages/security_settings_page.dart';
 import '../../features/auth/presentation/pages/notifications_settings_page.dart';
+import '../../features/auth/presentation/pages/pin_recovery_request_page.dart';
+import '../../features/auth/presentation/pages/pin_recovery_verify_page.dart';
 import '../../features/savings/presentation/pages/create_scheduled_savings_page.dart';
 import '../../features/savings/presentation/pages/scheduled_savings_detail_page.dart';
 import '../../features/savings/presentation/pages/scheduled_savings_list_page.dart';
@@ -49,6 +51,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile/personal-data', builder: (context, state) => const PersonalDataPage()),
       GoRoute(path: '/profile/security', builder: (context, state) => const SecuritySettingsPage()),
       GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationsSettingsPage()),
+      GoRoute(path: '/auth/recover-pin', builder: (context, state) => const PinRecoveryRequestPage()),
+      GoRoute(
+        path: '/auth/recover-pin/verify',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return PinRecoveryVerifyPage(
+            documentType: extra['documentType'] as String,
+            documentNumber: extra['documentNumber'] as String,
+          );
+        },
+      ),
       GoRoute(
         path: '/savings/scheduled',
         builder: (context, state) => const ScheduledSavingsListPage(),

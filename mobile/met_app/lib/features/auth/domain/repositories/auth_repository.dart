@@ -18,4 +18,8 @@ abstract class AuthRepository {
   Future<void> updatePin({required String currentPin, required String newPin});
   
   Future<UserResponse> updateNotifications({required bool emailEnabled, required bool pushEnabled});
+
+  Future<void> requestPinRecovery(PinRecoveryRequest request);
+
+  Future<void> resetPinWithOtp(PinRecoveryResetRequest request);
 }

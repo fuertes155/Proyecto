@@ -83,4 +83,14 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserResponse> updateNotifications({required bool emailEnabled, required bool pushEnabled}) {
     return _remote.updateNotifications(emailEnabled: emailEnabled, pushEnabled: pushEnabled);
   }
+
+  @override
+  Future<void> requestPinRecovery(PinRecoveryRequest request) {
+    return _remote.requestPinRecovery(request);
+  }
+
+  @override
+  Future<void> resetPinWithOtp(PinRecoveryResetRequest request) {
+    return _remote.resetPinWithOtp(request);
+  }
 }

@@ -51,4 +51,12 @@ class AuthRemoteDataSource {
     });
     return UserResponse.fromJson(response.data as Map<String, dynamic>);
   }
+
+  Future<void> requestPinRecovery(PinRecoveryRequest request) async {
+    await _dio.post('/v1/auth/pin-recovery/request', data: request.toJson());
+  }
+
+  Future<void> resetPinWithOtp(PinRecoveryResetRequest request) async {
+    await _dio.post('/v1/auth/pin-recovery/reset', data: request.toJson());
+  }
 }

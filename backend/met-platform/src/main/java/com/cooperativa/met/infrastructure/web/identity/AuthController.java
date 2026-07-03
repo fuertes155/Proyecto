@@ -26,9 +26,13 @@ import com.cooperativa.met.application.identity.usecase.RegisterUserUseCase;
 import com.cooperativa.met.application.identity.usecase.UpdateProfileUseCase;
 import com.cooperativa.met.application.identity.usecase.UpdatePinUseCase;
 import com.cooperativa.met.application.identity.usecase.UpdateNotificationsUseCase;
+import com.cooperativa.met.application.identity.usecase.RequestPinRecoveryUseCase;
+import com.cooperativa.met.application.identity.usecase.ResetPinWithOtpUseCase;
 import com.cooperativa.met.application.identity.dto.UpdateProfileRequest;
 import com.cooperativa.met.application.identity.dto.UpdatePinRequest;
 import com.cooperativa.met.application.identity.dto.UpdateNotificationsRequest;
+import com.cooperativa.met.application.identity.dto.PinRecoveryRequest;
+import com.cooperativa.met.application.identity.dto.PinRecoveryResetRequest;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import jakarta.validation.Valid;
@@ -47,6 +51,8 @@ public class AuthController {
     private final UpdateProfileUseCase updateProfileUseCase;
     private final UpdatePinUseCase updatePinUseCase;
     private final UpdateNotificationsUseCase updateNotificationsUseCase;
+    private final RequestPinRecoveryUseCase requestPinRecoveryUseCase;
+    private final ResetPinWithOtpUseCase resetPinWithOtpUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
@@ -109,5 +115,17 @@ public class AuthController {
             @Valid @RequestBody UpdateNotificationsRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
         return ResponseEntity.ok(updateNotificationsUseCase.execute(userId, request));
+    }
+
+    @PostMapping("/pin-recovery/request")
+    public ResponseEntity<Void> requestPinRecovery(@Valid @RequestBody PinRecoveryRequest request) {
+        requestPinRecoveryUseCase.execute(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/pin-recovery/reset")
+    public ResponseEntity<Void> resetPinWithOtp(@Valid @RequestBody PinRecoveryResetRequest request) {
+        resetPinWithOtpUseCase.execute(request);
+        return ResponseEntity.ok().build();
     }
 }

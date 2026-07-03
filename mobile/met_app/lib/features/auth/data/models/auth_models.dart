@@ -111,3 +111,39 @@ class UserResponse {
 
   String get fullName => '$firstName $lastName';
 }
+
+class PinRecoveryRequest {
+  PinRecoveryRequest({
+    required this.documentType,
+    required this.documentNumber,
+  });
+
+  final String documentType;
+  final String documentNumber;
+
+  Map<String, dynamic> toJson() => {
+        'documentType': documentType,
+        'documentNumber': documentNumber,
+      };
+}
+
+class PinRecoveryResetRequest {
+  PinRecoveryResetRequest({
+    required this.documentType,
+    required this.documentNumber,
+    required this.otpCode,
+    required this.newPin,
+  });
+
+  final String documentType;
+  final String documentNumber;
+  final String otpCode;
+  final String newPin;
+
+  Map<String, dynamic> toJson() => {
+        'documentType': documentType,
+        'documentNumber': documentNumber,
+        'otpCode': otpCode,
+        'newPin': newPin,
+      };
+}

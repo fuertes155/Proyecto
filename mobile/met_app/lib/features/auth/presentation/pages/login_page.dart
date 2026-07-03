@@ -857,13 +857,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               alignment: Alignment.centerRight,
                               child: TextButton(
                                 onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Flujo de recuperación de PIN en construcción'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
+                                  context.push('/auth/recover-pin');
                                 },
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.white.withOpacity(0.9),
