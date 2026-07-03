@@ -23,6 +23,8 @@ public class User {
     private final KycStatus kycStatus;
     private final boolean termsAccepted;
     private final Instant termsAcceptedAt;
+    private final boolean emailNotificationsEnabled;
+    private final boolean pushNotificationsEnabled;
     private final Instant createdAt;
     private final Instant updatedAt;
 
@@ -40,5 +42,13 @@ public class User {
 
     public User withKycStatus(KycStatus newKycStatus) {
         return this.toBuilder().kycStatus(newKycStatus).updatedAt(Instant.now()).build();
+    }
+    
+    public User withProfile(String newEmail, String newPhone) {
+        return this.toBuilder().email(newEmail).phone(newPhone).updatedAt(Instant.now()).build();
+    }
+    
+    public User withNotifications(boolean email, boolean push) {
+        return this.toBuilder().emailNotificationsEnabled(email).pushNotificationsEnabled(push).updatedAt(Instant.now()).build();
     }
 }

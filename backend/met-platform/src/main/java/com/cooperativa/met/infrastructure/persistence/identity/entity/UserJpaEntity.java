@@ -60,6 +60,12 @@ public class UserJpaEntity {
     @Column(name = "terms_accepted", nullable = false)
     private boolean termsAccepted;
 
+    @Column(name = "email_notifications_enabled", nullable = false)
+    private boolean emailNotificationsEnabled = true;
+
+    @Column(name = "push_notifications_enabled", nullable = false)
+    private boolean pushNotificationsEnabled = true;
+
     @Column(name = "terms_accepted_at")
     private Instant termsAcceptedAt;
 

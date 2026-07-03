@@ -41,7 +41,7 @@ public class AiChatService {
             String requestBody = """
                 {
                     "contents": [{
-                        "parts":[{"text": "Actúa como un asesor financiero amigable de una cooperativa llamada MET Platform. El usuario te dice: %s"}]
+                        "parts":[{"text": "Actúa como un asesor financiero amigable de una cooperativa llamada MET Platform. REGLA CRÍTICA: Responde SIEMPRE de forma MUY corta y concisa (máximo 2 oraciones). NO uses ningún formato markdown (NADA de asteriscos, negritas ni viñetas). El usuario te dice: %s"}]
                     }]
                 }
                 """.formatted(userMessage.replace("\"", "\\\""));

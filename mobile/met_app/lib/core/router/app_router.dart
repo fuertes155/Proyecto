@@ -5,6 +5,10 @@ import '../../features/auth/presentation/pages/home_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
+import '../../features/auth/presentation/pages/profile_page.dart';
+import '../../features/auth/presentation/pages/personal_data_page.dart';
+import '../../features/auth/presentation/pages/security_settings_page.dart';
+import '../../features/auth/presentation/pages/notifications_settings_page.dart';
 import '../../features/savings/presentation/pages/create_scheduled_savings_page.dart';
 import '../../features/savings/presentation/pages/scheduled_savings_detail_page.dart';
 import '../../features/savings/presentation/pages/scheduled_savings_list_page.dart';
@@ -41,6 +45,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
       GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+      GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
+      GoRoute(path: '/profile/personal-data', builder: (context, state) => const PersonalDataPage()),
+      GoRoute(path: '/profile/security', builder: (context, state) => const SecuritySettingsPage()),
+      GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationsSettingsPage()),
       GoRoute(
         path: '/savings/scheduled',
         builder: (context, state) => const ScheduledSavingsListPage(),

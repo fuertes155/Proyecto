@@ -68,4 +68,19 @@ class AuthRepositoryImpl implements AuthRepository {
     final token = await _storage.readAccessToken();
     return token != null && token.isNotEmpty;
   }
+
+  @override
+  Future<UserResponse> updateProfile({required String email, required String phone}) {
+    return _remote.updateProfile(email: email, phone: phone);
+  }
+
+  @override
+  Future<void> updatePin({required String currentPin, required String newPin}) {
+    return _remote.updatePin(currentPin: currentPin, newPin: newPin);
+  }
+
+  @override
+  Future<UserResponse> updateNotifications({required bool emailEnabled, required bool pushEnabled}) {
+    return _remote.updateNotifications(emailEnabled: emailEnabled, pushEnabled: pushEnabled);
+  }
 }

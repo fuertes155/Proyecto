@@ -58,4 +58,30 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
     await _repository.logout();
     state = const AsyncValue.data(null);
   }
+
+  Future<void> updateProfile({required String email, required String phone}) async {
+    try {
+      final updatedUser = await _repository.updateProfile(email: email, phone: phone);
+      state = AsyncValue.data(updatedUser);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  Future<void> updatePin({required String currentPin, required String newPin}) async {
+    try {
+      await _repository.updatePin(currentPin: currentPin, newPin: newPin);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  Future<void> updateNotifications({required bool emailEnabled, required bool pushEnabled}) async {
+    try {
+      final updatedUser = await _repository.updateNotifications(emailEnabled: emailEnabled, pushEnabled: pushEnabled);
+      state = AsyncValue.data(updatedUser);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

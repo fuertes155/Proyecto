@@ -23,6 +23,13 @@ import com.cooperativa.met.application.identity.usecase.LoginUseCase;
 import com.cooperativa.met.application.identity.usecase.RefreshTokenUseCase;
 import com.cooperativa.met.application.identity.usecase.RegisterBiometricUseCase;
 import com.cooperativa.met.application.identity.usecase.RegisterUserUseCase;
+import com.cooperativa.met.application.identity.usecase.UpdateProfileUseCase;
+import com.cooperativa.met.application.identity.usecase.UpdatePinUseCase;
+import com.cooperativa.met.application.identity.usecase.UpdateNotificationsUseCase;
+import com.cooperativa.met.application.identity.dto.UpdateProfileRequest;
+import com.cooperativa.met.application.identity.dto.UpdatePinRequest;
+import com.cooperativa.met.application.identity.dto.UpdateNotificationsRequest;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +44,9 @@ public class AuthController {
     private final LoginUseCase loginUseCase;
     private final GetUserProfileUseCase getUserProfileUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
+    private final UpdateProfileUseCase updateProfileUseCase;
+    private final UpdatePinUseCase updatePinUseCase;
+    private final UpdateNotificationsUseCase updateNotificationsUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
@@ -74,5 +84,30 @@ public class AuthController {
     public ResponseEntity<UserResponse> me(Authentication authentication) {
         UUID userId = (UUID) authentication.getPrincipal();
         return ResponseEntity.ok(getUserProfileUseCase.execute(userId));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(updateProfileUseCase.execute(userId, request));
+    }
+
+    @PutMapping("/pin")
+    public ResponseEntity<Void> updatePin(
+            Authentication authentication,
+            @Valid @RequestBody UpdatePinRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        updatePinUseCase.execute(userId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/notifications")
+    public ResponseEntity<UserResponse> updateNotifications(
+            Authentication authentication,
+            @Valid @RequestBody UpdateNotificationsRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(updateNotificationsUseCase.execute(userId, request));
     }
 }

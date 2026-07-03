@@ -22,6 +22,8 @@ public class UserPersistenceMapper {
                 .kycStatus(entity.getKycStatus())
                 .termsAccepted(entity.isTermsAccepted())
                 .termsAcceptedAt(entity.getTermsAcceptedAt())
+                .emailNotificationsEnabled(entity.isEmailNotificationsEnabled())
+                .pushNotificationsEnabled(entity.isPushNotificationsEnabled())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -42,6 +44,8 @@ public class UserPersistenceMapper {
         entity.setKycStatus(user.getKycStatus());
         entity.setTermsAccepted(user.isTermsAccepted());
         entity.setTermsAcceptedAt(user.getTermsAcceptedAt());
+        entity.setEmailNotificationsEnabled(user.isEmailNotificationsEnabled());
+        entity.setPushNotificationsEnabled(user.isPushNotificationsEnabled());
         entity.setCreatedAt(user.getCreatedAt());
         entity.setUpdatedAt(user.getUpdatedAt());
         return entity;

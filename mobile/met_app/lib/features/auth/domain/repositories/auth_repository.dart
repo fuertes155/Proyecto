@@ -12,4 +12,10 @@ abstract class AuthRepository {
   Future<void> logout();
 
   Future<bool> hasSession();
+  
+  Future<UserResponse> updateProfile({required String email, required String phone});
+  
+  Future<void> updatePin({required String currentPin, required String newPin});
+  
+  Future<UserResponse> updateNotifications({required bool emailEnabled, required bool pushEnabled});
 }

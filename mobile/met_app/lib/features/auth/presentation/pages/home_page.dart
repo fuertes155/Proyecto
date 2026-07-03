@@ -262,7 +262,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 icon: Icons.person_outline,
                 label: 'Perfil',
                 isActive: activeIndex == 3,
-                onTap: () => context.push('/login'),
+                onTap: () => context.push('/profile'),
               ),
             ],
           ),

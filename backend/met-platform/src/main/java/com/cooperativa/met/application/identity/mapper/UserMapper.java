@@ -18,6 +18,8 @@ public class UserMapper {
                 user.getLastName(),
                 user.getStatus(),
                 user.getKycStatus(),
+                user.isEmailNotificationsEnabled(),
+                user.isPushNotificationsEnabled(),
                 user.getCreatedAt()
         );
     }
