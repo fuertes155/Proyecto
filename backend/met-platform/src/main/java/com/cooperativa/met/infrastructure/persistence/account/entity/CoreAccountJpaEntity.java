@@ -1,0 +1,66 @@
+package com.cooperativa.met.infrastructure.persistence.account.entity;
+
+import com.cooperativa.met.domain.account.model.AccountStatus;
+import com.cooperativa.met.domain.account.model.CoreAccount;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "core_accounts")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CoreAccountJpaEntity {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    @Column(name = "account_number", nullable = false, unique = true)
+    private String accountNumber;
+
+    @Column(name = "balance", nullable = false)
+    private BigDecimal balance;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private AccountStatus status;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    public CoreAccount toDomain() {
+        return CoreAccount.builder()
+                .id(id)
+                .userId(userId)
+                .accountNumber(accountNumber)
+                .balance(balance)
+                .status(status)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
+    }
+
+    public static CoreAccountJpaEntity fromDomain(CoreAccount domain) {
+        return CoreAccountJpaEntity.builder()
+                .id(domain.getId())
+                .userId(domain.getUserId())
+                .accountNumber(domain.getAccountNumber())
+                .balance(domain.getBalance())
+                .status(domain.getStatus())
+                .createdAt(domain.getCreatedAt())
+                .updatedAt(domain.getUpdatedAt())
+                .build();
+    }
+}

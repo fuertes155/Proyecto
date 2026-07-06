@@ -16,6 +16,8 @@ public interface UserRepositoryPort {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByPhone(String phone);
+
     boolean existsByDocument(DocumentType documentType, String documentNumber);
 
     boolean existsByEmail(String email);

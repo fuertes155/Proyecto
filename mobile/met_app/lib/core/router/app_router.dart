@@ -9,8 +9,7 @@ import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/personal_data_page.dart';
 import '../../features/auth/presentation/pages/security_settings_page.dart';
 import '../../features/auth/presentation/pages/notifications_settings_page.dart';
-import '../../features/auth/presentation/pages/pin_recovery_request_page.dart';
-import '../../features/auth/presentation/pages/pin_recovery_verify_page.dart';
+import '../../features/auth/presentation/pages/pin_recovery_page.dart';
 import '../../features/savings/presentation/pages/create_scheduled_savings_page.dart';
 import '../../features/savings/presentation/pages/scheduled_savings_detail_page.dart';
 import '../../features/savings/presentation/pages/scheduled_savings_list_page.dart';
@@ -39,6 +38,7 @@ import '../../features/admin/presentation/pages/transaction_reversal_page.dart';
 import '../../features/admin/presentation/pages/reset_credentials_page.dart';
 import 'package:met/features/support/presentation/pages/chat_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../features/transfers/presentation/pages/transfer_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -52,18 +52,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile/personal-data', builder: (context, state) => const PersonalDataPage()),
       GoRoute(path: '/profile/security', builder: (context, state) => const SecuritySettingsPage()),
       GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationsSettingsPage()),
-      GoRoute(path: '/notifications', builder: (context, state) => const NotificationsPage()),
-      GoRoute(path: '/auth/recover-pin', builder: (context, state) => const PinRecoveryRequestPage()),
       GoRoute(
-        path: '/auth/recover-pin/verify',
-        builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          return PinRecoveryVerifyPage(
-            documentType: extra['documentType'] as String,
-            documentNumber: extra['documentNumber'] as String,
-          );
-        },
+        path: '/notifications',
+        builder: (context, state) => const NotificationsPage(),
       ),
+      GoRoute(
+        path: '/transfer',
+        builder: (context, state) => const TransferPage(),
+      ),
+      GoRoute(path: '/auth/recover-pin', builder: (context, state) => const PinRecoveryPage()),
       GoRoute(
         path: '/savings/scheduled',
         builder: (context, state) => const ScheduledSavingsListPage(),

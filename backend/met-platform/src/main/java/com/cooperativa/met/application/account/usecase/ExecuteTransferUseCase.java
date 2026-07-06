@@ -1,0 +1,83 @@
+package com.cooperativa.met.application.account.usecase;
+
+import com.cooperativa.met.application.account.dto.TransferRequest;
+import com.cooperativa.met.domain.account.model.AccountStatus;
+import com.cooperativa.met.domain.account.model.CoreAccount;
+import com.cooperativa.met.domain.account.model.CoreTransaction;
+import com.cooperativa.met.domain.account.model.TransactionStatus;
+import com.cooperativa.met.domain.account.model.TransactionType;
+import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
+import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
+import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
+import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class ExecuteTransferUseCase {
+
+    private final CoreAccountRepositoryPort accountRepository;
+    private final CoreTransactionRepositoryPort transactionRepository;
+    private final UserRepositoryPort userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public void execute(UUID userId, TransferRequest request) {
+        // 1. Verify User PIN
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        if (!passwordEncoder.matches(request.pin(), user.getPinHash())) {
+            throw new BusinessRuleException("INVALID_PIN", "El PIN ingresado es incorrecto");
+        }
+
+        // 2. Fetch Accounts
+        CoreAccount sourceAccount = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("No tienes una cuenta activa"));
+                
+        if (sourceAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new BusinessRuleException("INACTIVE_ACCOUNT", "Tu cuenta no está activa para transferir");
+        }
+
+        CoreAccount destAccount = accountRepository.findById(request.destinationAccountId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta destino no encontrada"));
+                
+        if (destAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new BusinessRuleException("INACTIVE_DEST_ACCOUNT", "La cuenta destino no está activa");
+        }
+        
+        if (sourceAccount.getId().equals(destAccount.getId())) {
+            throw new BusinessRuleException("SAME_ACCOUNT", "No puedes transferir a la misma cuenta");
+        }
+
+        // 3. Process Transfer (Debit & Credit)
+        CoreAccount updatedSource = sourceAccount.debit(request.amount());
+        CoreAccount updatedDest = destAccount.credit(request.amount());
+
+        // 4. Save Accounts
+        accountRepository.save(updatedSource);
+        accountRepository.save(updatedDest);
+
+        // 5. Create Transaction Record
+        CoreTransaction transaction = CoreTransaction.builder()
+                .id(UUID.randomUUID())
+                .sourceAccountId(updatedSource.getId())
+                .destinationAccountId(updatedDest.getId())
+                .amount(request.amount())
+                .concept(request.concept())
+                .type(TransactionType.TRANSFER)
+                .status(TransactionStatus.COMPLETED)
+                .createdAt(Instant.now())
+                .build();
+                
+        transactionRepository.save(transaction);
+    }
+}

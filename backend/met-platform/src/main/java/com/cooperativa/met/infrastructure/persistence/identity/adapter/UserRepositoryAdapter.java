@@ -40,6 +40,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public Optional<User> findByPhone(String phone) {
+        return repository.findByPhone(phone).map(mapper::toDomain);
+    }
+
+    @Override
     public boolean existsByDocument(DocumentType documentType, String documentNumber) {
         return repository.existsByDocumentTypeAndDocumentNumber(documentType, documentNumber);
     }

@@ -1,17 +1,20 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../transfers/presentation/providers/transfers_provider.dart';
 
-class AnimatedVirtualCard extends StatefulWidget {
+class AnimatedVirtualCard extends ConsumerStatefulWidget {
   const AnimatedVirtualCard({super.key, required this.obscureBalance, required this.onToggleObscure});
 
   final bool obscureBalance;
   final VoidCallback onToggleObscure;
 
   @override
-  State<AnimatedVirtualCard> createState() => _AnimatedVirtualCardState();
+  ConsumerState<AnimatedVirtualCard> createState() => _AnimatedVirtualCardState();
 }
 
-class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTickerProviderStateMixin {
+class _AnimatedVirtualCardState extends ConsumerState<AnimatedVirtualCard> with SingleTickerProviderStateMixin {
   double _dragOffset = 0;
   bool _isReversed = false;
   late AnimationController _springController;
@@ -145,14 +148,26 @@ class _AnimatedVirtualCardState extends State<AnimatedVirtualCard> with SingleTi
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            widget.obscureBalance ? '••••••••' : '\$12,450,000',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -1,
-            ),
+          Consumer(
+            builder: (context, ref, child) {
+              final accountState = ref.watch(myAccountProvider);
+              return accountState.when(
+                data: (account) {
+                  final formattedBalance = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(account.balance);
+                  return Text(
+                    widget.obscureBalance ? '••••••••' : formattedBalance,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -1,
+                    ),
+                  );
+                },
+                loading: () => const CircularProgressIndicator(color: Colors.white),
+                error: (err, stack) => const Text('Error', style: TextStyle(color: Colors.white)),
+              );
+            },
           ),
           const Spacer(),
           Row(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
 class QuickActions extends StatelessWidget {
@@ -73,15 +74,7 @@ class QuickActions extends StatelessWidget {
   }
 
   void _showTransferSheet(BuildContext context) {
-    _showActionSheet(context, 'Transferir Dinero', Icons.swap_horiz, Column(
-      children: [
-        _buildTextField(context, 'Número de cuenta o celular', Icons.account_balance_wallet_outlined),
-        const SizedBox(height: 16),
-        _buildTextField(context, 'Monto a transferir (\$)', Icons.attach_money, isNumeric: true),
-        const SizedBox(height: 24),
-        _buildPrimaryButton(context, 'Continuar', () => Navigator.pop(context)),
-      ]
-    ));
+    context.push('/transfer');
   }
 
   void _showPaySheet(BuildContext context) {

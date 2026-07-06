@@ -1,0 +1,32 @@
+package com.cooperativa.met.infrastructure.persistence.account.adapter;
+
+import com.cooperativa.met.domain.account.model.CoreTransaction;
+import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
+import com.cooperativa.met.infrastructure.persistence.account.entity.CoreTransactionJpaEntity;
+import com.cooperativa.met.infrastructure.persistence.account.repository.CoreTransactionJpaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Component
+@RequiredArgsConstructor
+public class CoreTransactionRepositoryAdapter implements CoreTransactionRepositoryPort {
+
+    private final CoreTransactionJpaRepository repository;
+
+    @Override
+    public CoreTransaction save(CoreTransaction transaction) {
+        CoreTransactionJpaEntity entity = CoreTransactionJpaEntity.fromDomain(transaction);
+        return repository.save(entity).toDomain();
+    }
+
+    @Override
+    public List<CoreTransaction> findByAccountId(UUID accountId) {
+        return repository.findByAccountId(accountId).stream()
+                .map(CoreTransactionJpaEntity::toDomain)
+                .collect(Collectors.toList());
+    }
+}

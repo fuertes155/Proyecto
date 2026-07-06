@@ -41,6 +41,9 @@ public class OtpService {
             log.info("OTP Email sent successfully to {}", email);
         } catch (Exception e) {
             log.error("Failed to send OTP Email to {}", email, e);
+            log.warn("=================================================");
+            log.warn("MOCK DEV MODE - Tu código OTP es: {}", otpCode);
+            log.warn("=================================================");
         }
 
         return otpCode;

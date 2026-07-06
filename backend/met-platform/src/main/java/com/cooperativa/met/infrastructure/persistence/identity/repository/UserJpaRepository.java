@@ -12,6 +12,7 @@ public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {
     Optional<UserJpaEntity> findByDocumentTypeAndDocumentNumber(DocumentType documentType, String documentNumber);
 
     Optional<UserJpaEntity> findByEmail(String email);
+    Optional<UserJpaEntity> findByPhone(String phone);
 
     boolean existsByDocumentTypeAndDocumentNumber(DocumentType documentType, String documentNumber);
 
