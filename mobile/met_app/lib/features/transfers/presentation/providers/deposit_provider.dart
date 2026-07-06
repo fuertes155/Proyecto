@@ -7,6 +7,7 @@ class DepositState {
   DepositState({
     this.amount = 0.0,
     this.method = '',
+    this.phoneNumber = '',
     this.isLoading = false,
     this.error,
     this.isSuccess = false,
@@ -14,6 +15,7 @@ class DepositState {
 
   final double amount;
   final String method;
+  final String phoneNumber;
   final bool isLoading;
   final String? error;
   final bool isSuccess;
@@ -21,6 +23,7 @@ class DepositState {
   DepositState copyWith({
     double? amount,
     String? method,
+    String? phoneNumber,
     bool? isLoading,
     String? error,
     bool? isSuccess,
@@ -28,6 +31,7 @@ class DepositState {
     return DepositState(
       amount: amount ?? this.amount,
       method: method ?? this.method,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       isSuccess: isSuccess ?? this.isSuccess,
@@ -48,7 +52,16 @@ class DepositNotifier extends StateNotifier<DepositState> {
     state = state.copyWith(amount: amount, error: null);
   }
 
-  Future<void> submitDeposit() async {
+  void setPhoneNumber(String phone) {
+    state = state.copyWith(phoneNumber: phone, error: null);
+  }
+
+  Future<void> simulateWaitingNequi() async {
+    // We will just set loading state, UI will show waiting screen.
+    state = state.copyWith(isLoading: true, error: null);
+  }
+
+  Future<void> submitDeposit(String phone) async {
     if (state.amount <= 0) {
       state = state.copyWith(error: 'El monto debe ser mayor a 0');
       return;
@@ -72,9 +85,6 @@ class DepositNotifier extends StateNotifier<DepositState> {
       // Refresh account balance
       ref.invalidate(myAccountProvider);
       
-      // Artificial delay to simulate payment processing
-      await Future.delayed(const Duration(seconds: 2));
-
       state = state.copyWith(isLoading: false, isSuccess: true);
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';

@@ -15,6 +15,7 @@ import '../../features/savings/presentation/pages/scheduled_savings_detail_page.
 import '../../features/savings/presentation/pages/scheduled_savings_list_page.dart';
 import '../../features/transfers/presentation/pages/transfer_page.dart';
 import '../../features/transfers/presentation/pages/deposit_page.dart';
+import '../../features/transfers/presentation/pages/deposit_waiting_page.dart';
 import '../../features/solidarity/presentation/pages/create_solidarity_group_page.dart';
 import '../../features/solidarity/presentation/pages/join_solidarity_group_page.dart';
 import '../../features/solidarity/presentation/pages/solidarity_group_detail_page.dart';
@@ -67,6 +68,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return DepositPage(method: extra?['method'] as String? ?? 'Nequi');
+        },
+      ),
+      GoRoute(
+        path: '/deposit/waiting',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return DepositWaitingPage(
+            method: extra?['method'] as String? ?? 'Nequi',
+            amount: extra?['amount'] as double? ?? 0.0,
+          );
         },
       ),
       GoRoute(path: '/auth/recover-pin', builder: (context, state) => const PinRecoveryPage()),
