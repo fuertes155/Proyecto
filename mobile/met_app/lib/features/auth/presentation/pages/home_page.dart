@@ -12,7 +12,6 @@ import '../providers/auth_provider.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../home/presentation/widgets/expense_chart.dart';
 import '../../../home/presentation/widgets/animated_virtual_card.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -90,12 +89,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                           },
                         ).animate().fade(duration: 500.ms).slideY(begin: 0.1, end: 0),
                         
-                        const SizedBox(height: 32),
-                        const ExpenseChart()
-                            .animate(delay: 200.ms)
-                            .fade(duration: 500.ms)
-                            .slideY(begin: 0.1, end: 0),
-                            
                         const SizedBox(height: 32),
                         QuickActions(
                           onTapMore: () => MoreActionsSheet.show(context),
