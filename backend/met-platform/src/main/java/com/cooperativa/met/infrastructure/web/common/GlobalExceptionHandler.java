@@ -59,6 +59,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
+        ex.printStackTrace();
         ApiErrorResponse body = new ApiErrorResponse(
                 "INTERNAL_ERROR",
                 "Error interno del servidor",

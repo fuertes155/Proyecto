@@ -9,6 +9,7 @@ import '../../../../core/widgets/theme_toggle_button.dart';
 import 'home_widgets/quick_actions.dart';
 import 'home_widgets/_more_actions_sheet.dart';
 import '../providers/auth_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../home/presentation/widgets/expense_chart.dart';
@@ -201,10 +202,43 @@ class _HomePageState extends ConsumerState<HomePage> {
               children: [
                 const ThemeToggleButton(),
                 const SizedBox(width: 4),
-                IconButton(
-                  icon: Icon(Icons.notifications_none,
-                      color: Theme.of(context).colorScheme.onSurface),
-                  onPressed: () {},
+                Consumer(
+                  builder: (context, ref, child) {
+                    final unreadCountAsync = ref.watch(unreadNotificationsCountProvider);
+                    final unreadCount = unreadCountAsync.valueOrNull ?? 0;
+
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.notifications_none,
+                              color: Theme.of(context).colorScheme.onSurface),
+                          onPressed: () {
+                            context.push('/notifications');
+                          },
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
                 IconButton(
                   icon: Icon(Icons.logout,

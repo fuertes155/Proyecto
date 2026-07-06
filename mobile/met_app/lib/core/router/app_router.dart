@@ -38,6 +38,7 @@ import '../../features/admin/presentation/pages/risk_rules_page.dart';
 import '../../features/admin/presentation/pages/transaction_reversal_page.dart';
 import '../../features/admin/presentation/pages/reset_credentials_page.dart';
 import 'package:met/features/support/presentation/pages/chat_page.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -51,6 +52,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile/personal-data', builder: (context, state) => const PersonalDataPage()),
       GoRoute(path: '/profile/security', builder: (context, state) => const SecuritySettingsPage()),
       GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationsSettingsPage()),
+      GoRoute(path: '/notifications', builder: (context, state) => const NotificationsPage()),
       GoRoute(path: '/auth/recover-pin', builder: (context, state) => const PinRecoveryRequestPage()),
       GoRoute(
         path: '/auth/recover-pin/verify',
