@@ -185,7 +185,10 @@ class QuickActions extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            Navigator.pop(context);
+            context.push('/deposit', extra: {'method': title});
+          },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16.0),

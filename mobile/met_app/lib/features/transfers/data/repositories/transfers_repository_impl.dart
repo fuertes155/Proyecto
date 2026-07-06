@@ -2,6 +2,7 @@ import '../../domain/repositories/transfers_repository.dart';
 import '../datasources/transfers_remote_datasource.dart';
 import '../models/core_account_model.dart';
 import '../models/transfer_request_model.dart';
+import '../models/deposit_request_model.dart';
 import '../models/verify_recipient_model.dart';
 
 class TransfersRepositoryImpl implements TransfersRepository {
@@ -20,7 +21,12 @@ class TransfersRepositoryImpl implements TransfersRepository {
   }
 
   @override
-  Future<void> executeTransfer(TransferRequestModel request) {
+  Future<void> executeTransfer(TransferRequestModel request) async {
     return _remoteDataSource.executeTransfer(request);
+  }
+
+  @override
+  Future<void> deposit(DepositRequestModel request) async {
+    return _remoteDataSource.deposit(request);
   }
 }

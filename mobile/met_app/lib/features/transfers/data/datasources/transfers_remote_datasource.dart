@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/core_account_model.dart';
 import '../models/transfer_request_model.dart';
+import '../models/deposit_request_model.dart';
 import '../models/verify_recipient_model.dart';
 
 class TransfersRemoteDataSource {
@@ -22,5 +23,9 @@ class TransfersRemoteDataSource {
 
   Future<void> executeTransfer(TransferRequestModel request) async {
     await _dio.post('/v1/accounts/transactions/transfer', data: request.toJson());
+  }
+
+  Future<void> deposit(DepositRequestModel request) async {
+    await _dio.post('/v1/accounts/deposit', data: request.toJson());
   }
 }

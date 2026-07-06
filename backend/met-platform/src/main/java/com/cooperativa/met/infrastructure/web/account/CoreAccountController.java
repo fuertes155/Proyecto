@@ -3,9 +3,11 @@ package com.cooperativa.met.infrastructure.web.account;
 import com.cooperativa.met.application.account.dto.CoreAccountResponse;
 import com.cooperativa.met.application.account.dto.TransferRequest;
 import com.cooperativa.met.application.account.dto.VerifyRecipientResponse;
+import com.cooperativa.met.application.account.dto.DepositRequest;
 import com.cooperativa.met.application.account.usecase.ExecuteTransferUseCase;
 import com.cooperativa.met.application.account.usecase.GetMyAccountUseCase;
 import com.cooperativa.met.application.account.usecase.VerifyRecipientUseCase;
+import com.cooperativa.met.application.account.usecase.DepositUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ public class CoreAccountController {
     private final GetMyAccountUseCase getMyAccountUseCase;
     private final VerifyRecipientUseCase verifyRecipientUseCase;
     private final ExecuteTransferUseCase executeTransferUseCase;
+    private final DepositUseCase depositUseCase;
 
     private UUID getAuthenticatedUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -48,5 +51,11 @@ public class CoreAccountController {
     public ResponseEntity<Map<String, String>> transfer(@Valid @RequestBody TransferRequest request) {
         executeTransferUseCase.execute(getAuthenticatedUserId(), request);
         return ResponseEntity.ok(Map.of("message", "Transferencia realizada con éxito"));
+    }
+
+    @PostMapping("/deposit")
+    public ResponseEntity<Void> deposit(@Valid @RequestBody DepositRequest request) {
+        depositUseCase.execute(getAuthenticatedUserId(), request);
+        return ResponseEntity.ok().build();
     }
 }
