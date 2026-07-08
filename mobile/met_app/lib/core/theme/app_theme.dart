@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 class AppTheme {
   // Dark mode primary green

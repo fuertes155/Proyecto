@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/accessible_button.dart';
-import '../../../../core/widgets/theme_toggle_button.dart';
 import 'home_widgets/quick_actions.dart';
 import 'home_widgets/_more_actions_sheet.dart';
 import '../providers/auth_provider.dart';
@@ -187,7 +186,6 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
             Row(
               children: [
-                const ThemeToggleButton(),
                 const SizedBox(width: 4),
                 Consumer(
                   builder: (context, ref, child) {

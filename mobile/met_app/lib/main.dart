@@ -5,7 +5,7 @@ import 'core/config/app_config.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 
@@ -13,10 +13,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   bool jailbroken = false;
-  try {
-    jailbroken = await FlutterJailbreakDetection.jailbroken;
-  } on PlatformException {
-    jailbroken = true;
+  if (!kIsWeb) {
+    try {
+      jailbroken = await FlutterJailbreakDetection.jailbroken;
+    } on PlatformException {
+      jailbroken = true;
+    }
   }
 
   if (jailbroken) {
@@ -56,7 +58,7 @@ class SecurityAlertApp extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: () => exit(0),
+                  onPressed: () => SystemNavigator.pop(),
                   child: const Text('Cerrar Aplicación'),
                 )
               ],
@@ -74,14 +76,12 @@ class MetApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
-    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
+      themeMode: ThemeMode.light,
       routerConfig: router,
     );
   }

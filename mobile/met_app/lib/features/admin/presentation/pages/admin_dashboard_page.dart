@@ -14,7 +14,6 @@ class AdminDashboardPage extends ConsumerWidget {
     final adminState = ref.watch(adminAuthProvider);
     final admin = adminState.valueOrNull;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final themeMode = ref.watch(themeModeProvider);
 
     final modules = [
       _AdminModule(
@@ -137,17 +136,7 @@ class AdminDashboardPage extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () {
-                          ref.read(themeModeProvider.notifier).state = 
-                            isDark ? ThemeMode.light : ThemeMode.dark;
-                        },
-                        icon: Icon(
-                          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                        ),
-                        tooltip: 'Cambiar Tema',
-                      ),
+
                       IconButton(
                         onPressed: () async {
                           await ref.read(adminAuthProvider.notifier).logout();
