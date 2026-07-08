@@ -1,0 +1,48 @@
+.about {}
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+
+.content {}
+.text { font-size: 16px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px; }
+.mission { display: flex; flex-direction: column; gap: 20px; margin-top: 32px; }
+.missionItem {
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--primary);
+}
+.missionItem h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.missionItem p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+.visual { position: relative; }
+.valuesGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; position: relative; z-index: 1; }
+.valueCard {
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+}
+.valueCard:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.valueIcon {
+  width: 44px; height: 44px;
+  background: var(--primary-glow); border: 1px solid rgba(0,192,111,0.2);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+.valueLabel { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+.valueDesc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+.bgDecor {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(0,192,111,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+@media (max-width: 960px) {
+  .grid { grid-template-columns: 1fr; gap: 48px; }
+}
