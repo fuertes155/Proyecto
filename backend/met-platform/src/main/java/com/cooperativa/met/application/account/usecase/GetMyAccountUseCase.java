@@ -24,7 +24,8 @@ public class GetMyAccountUseCase {
         return new CoreAccountResponse(
                 account.getId(),
                 account.getAccountNumber(),
-                account.getBalance(),
+                account.getPrincipalBalance(),
+                account.getInterestBalance(),
                 account.getStatus().name()
         );
     }

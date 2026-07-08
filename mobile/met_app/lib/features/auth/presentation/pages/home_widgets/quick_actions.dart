@@ -100,7 +100,7 @@ class QuickActions extends StatelessWidget {
           Text('Nequi', style: TextStyle(color: Color(0xFFE10098), fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.5)),
         ),
         
-        _buildSectionHeader(context, 'BANCO Y TARJETAS'),
+        _buildSectionHeader(context, 'BANCO Y AHORROS'),
         _buildDepositMethodTile(
           context,
           'Bre-B',
@@ -119,7 +119,7 @@ class QuickActions extends StatelessWidget {
         ),
         _buildDepositMethodTile(
           context,
-          'Tarjeta de Crédito/Débito',
+          'Ahorro de Crédito/Débito',
           'Instantáneo',
           Icon(Icons.credit_card, color: Colors.deepOrange, size: 28),
         ),

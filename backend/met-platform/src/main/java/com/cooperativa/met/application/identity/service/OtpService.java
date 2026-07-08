@@ -33,6 +33,7 @@ public class OtpService {
         // Send Email
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("no-reply@met.com");
             message.setTo(email);
             message.setSubject("Tu código de recuperación de PIN");
             message.setText("Hola,\n\nHas solicitado recuperar tu PIN. Tu código de verificación es: " + otpCode + 
@@ -55,6 +56,38 @@ public class OtpService {
 
         if (storedOtp != null && storedOtp.equals(inputOtp)) {
             // OTP is valid, remove it so it can't be used again
+            redisTemplate.delete(key);
+            return true;
+        }
+        return false;
+    }
+
+    public String generateAndSendEmailVerificationOtp(String documentNumber, String email) {
+        int otpNum = 100000 + secureRandom.nextInt(900000);
+        String otpCode = String.valueOf(otpNum);
+        String key = "email-verification-otp:" + documentNumber;
+        redisTemplate.opsForValue().set(key, otpCode, OTP_EXPIRY);
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("no-reply@met.com");
+            message.setTo(email);
+            message.setSubject("Verificación de Correo Electrónico");
+            message.setText("Hola,\n\nTu código de verificación de correo es: " + otpCode + 
+                            "\n\nEste código expirará en 5 minutos.\n\nSaludos,\nEquipo MET");
+            mailSender.send(message);
+            log.info("Email Verification OTP sent successfully to {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send Email Verification OTP to {}", email, e);
+            log.warn("MOCK DEV MODE - Tu código OTP de verificación es: {}", otpCode);
+        }
+        return otpCode;
+    }
+
+    public boolean validateEmailVerificationOtp(String documentNumber, String inputOtp) {
+        String key = "email-verification-otp:" + documentNumber;
+        String storedOtp = redisTemplate.opsForValue().get(key);
+        if (storedOtp != null && storedOtp.equals(inputOtp)) {
             redisTemplate.delete(key);
             return true;
         }

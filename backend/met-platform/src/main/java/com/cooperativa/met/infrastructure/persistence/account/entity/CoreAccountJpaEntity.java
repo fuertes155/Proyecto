@@ -27,8 +27,11 @@ public class CoreAccountJpaEntity {
     @Column(name = "account_number", nullable = false, unique = true)
     private String accountNumber;
 
-    @Column(name = "balance", nullable = false)
-    private BigDecimal balance;
+    @Column(name = "principal_balance", nullable = false)
+    private BigDecimal principalBalance;
+
+    @Column(name = "interest_balance", nullable = false)
+    private BigDecimal interestBalance;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -45,7 +48,8 @@ public class CoreAccountJpaEntity {
                 .id(id)
                 .userId(userId)
                 .accountNumber(accountNumber)
-                .balance(balance)
+                .principalBalance(principalBalance)
+                .interestBalance(interestBalance)
                 .status(status)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
@@ -57,7 +61,8 @@ public class CoreAccountJpaEntity {
                 .id(domain.getId())
                 .userId(domain.getUserId())
                 .accountNumber(domain.getAccountNumber())
-                .balance(domain.getBalance())
+                .principalBalance(domain.getPrincipalBalance())
+                .interestBalance(domain.getInterestBalance())
                 .status(domain.getStatus())
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())

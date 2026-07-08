@@ -153,15 +153,26 @@ class _AnimatedVirtualCardState extends ConsumerState<AnimatedVirtualCard> with 
               final accountState = ref.watch(myAccountProvider);
               return accountState.when(
                 data: (account) {
-                  final formattedBalance = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(account.balance);
-                  return Text(
-                    widget.obscureBalance ? '••••••••' : formattedBalance,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -1,
-                    ),
+                  final formattedPrincipal = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(account.principalBalance);
+                  final formattedInterest = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(account.interestBalance);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Capital (Bloqueado): ${widget.obscureBalance ? '••••••••' : formattedPrincipal}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Intereses (Disponible): ${widget.obscureBalance ? '••••••••' : formattedInterest}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
                   );
                 },
                 loading: () => const CircularProgressIndicator(color: Colors.white),
@@ -244,7 +255,7 @@ class _AnimatedVirtualCardState extends ConsumerState<AnimatedVirtualCard> with 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Text(
-              'Tarjeta MET Débito',
+              'Ahorro MET Débito',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
                 fontWeight: FontWeight.w600,

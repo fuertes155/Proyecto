@@ -11,6 +11,8 @@ import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
 import com.cooperativa.met.domain.identity.port.TokenPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.identity.model.RefreshToken;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class LoginUseCase {
     private final TokenPort tokenPort;
     private final RefreshTokenRepositoryPort refreshTokenRepository;
     private final MetSecurityProperties securityProperties;
+    private final JavaMailSender mailSender;
 
     @Transactional(readOnly = true)
     public AuthResponse execute(LoginRequest request) {
@@ -38,6 +41,9 @@ public class LoginUseCase {
                     return new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
                 });
 
+        if (user.getStatus() == UserStatus.BLOCKED) {
+            throw new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta está bloqueada temporalmente");
+        }
         if (user.getStatus() != UserStatus.ACTIVE) {
             System.out.println("User not active: " + user.getStatus());
             throw new BusinessRuleException("USER_NOT_ACTIVE", "La cuenta no está activa");
@@ -46,7 +52,20 @@ public class LoginUseCase {
         boolean authenticated = authenticate(request, user);
         System.out.println("Authenticated: " + authenticated + " for user " + user.getDocumentNumber());
         if (!authenticated) {
-            throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
+            int newAttempts = user.getFailedLoginAttempts() + 1;
+            User updatedUser = user.withFailedLoginAttempts(newAttempts);
+            if (newAttempts >= 3) {
+                updatedUser = updatedUser.withStatus(UserStatus.BLOCKED);
+                userRepository.save(updatedUser);
+                sendAccountLockedEmail(updatedUser.getEmail());
+                throw new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos");
+            }
+            userRepository.save(updatedUser);
+            throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas. Intento " + newAttempts + " de 3");
+        }
+
+        if (user.getFailedLoginAttempts() > 0) {
+            userRepository.save(user.withFailedLoginAttempts(0));
         }
 
         String accessToken = tokenPort.generateAccessToken(user.getId(), user.getEmail());
@@ -85,5 +104,18 @@ public class LoginUseCase {
             return encryptionPort.verifyPin(request.pin(), user.getPinHash());
         }
         return false;
+    }
+
+    private void sendAccountLockedEmail(String email) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("no-reply@met.com");
+            message.setTo(email);
+            message.setSubject("Cuenta Bloqueada");
+            message.setText("Hola,\n\nTu cuenta ha sido bloqueada tras 3 intentos fallidos de inicio de sesión.\n\nPor favor, contacta a soporte para desbloquearla.\n\nSaludos,\nEquipo MET");
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Failed to send account locked email to " + email + ": " + e.getMessage());
+        }
     }
 }

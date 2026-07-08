@@ -19,6 +19,7 @@ public class User {
     private final String lastName;
     private final String pinHash;
     private final String biometricHash;
+    private final int failedLoginAttempts;
     private final UserStatus status;
     private final KycStatus kycStatus;
     private final boolean termsAccepted;
@@ -50,5 +51,9 @@ public class User {
     
     public User withNotifications(boolean email, boolean push) {
         return this.toBuilder().emailNotificationsEnabled(email).pushNotificationsEnabled(push).updatedAt(Instant.now()).build();
+    }
+
+    public User withFailedLoginAttempts(int attempts) {
+        return this.toBuilder().failedLoginAttempts(attempts).updatedAt(Instant.now()).build();
     }
 }

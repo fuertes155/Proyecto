@@ -8,7 +8,7 @@ import '../providers/deposit_provider.dart';
 class DepositWaitingPage extends ConsumerStatefulWidget {
   final String method;
   final double amount;
-  const DepositPageWaiting({super.key, required this.method, required this.amount}) : _method = method, _amount = amount;
+  const DepositWaitingPage({super.key, required this.method, required this.amount}) : _method = method, _amount = amount;
   final String _method;
   final double _amount;
 
@@ -57,7 +57,7 @@ class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
   String get _formattedTime {
     final minutes = _secondsRemaining ~/ 60;
     final seconds = _secondsRemaining % 60;
-    return '\${minutes.toString().padLeft(2, '0')}:\${seconds.toString().padLeft(2, '0')}';
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -114,7 +114,7 @@ class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
               const Divider(color: Colors.black12, thickness: 1),
               const SizedBox(height: 24),
               Text(
-                'Finaliza el pago en tu \${widget._method}',
+                'Finaliza el pago en tu ${widget._method}',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
@@ -185,7 +185,7 @@ class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
               const SizedBox(height: 24),
               Center(
                 child: Text(
-                  'Si no ves la notificación, búscala en tu app \${widget._method}',
+                  'Si no ves la notificación, búscala en tu app ${widget._method}',
                   style: const TextStyle(
                     color: Colors.black45,
                     fontSize: 13,

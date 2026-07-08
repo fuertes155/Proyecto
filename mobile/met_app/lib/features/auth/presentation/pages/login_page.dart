@@ -399,7 +399,22 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
         lowerError.contains('too many requests')) {
       friendlyMessage =
           'Demasiados intentos. Espera unos segundos e inténtalo de nuevo.';
-    } else if (lowerError.contains('pin') || lowerError.contains('incorrect')) {
+    } else if (lowerError.contains('pending_verification') || lowerError.contains('verificar')) {
+      friendlyMessage = 'Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.';
+      final docType = _documentType;
+      final docNumber = _documentController.text.trim();
+      if (docNumber.isNotEmpty) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) context.push('/verify-email', extra: {'documentType': docType, 'documentNumber': docNumber});
+        });
+      }
+    } else if (lowerError.contains('locked') || lowerError.contains('bloqueada')) {
+      friendlyMessage = 'Tu cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos. Revisa tu correo.';
+    } else if (lowerError.contains('intento')) {
+      // Extract exactly what the backend sent regarding the attempt count
+      friendlyMessage = errorMsg.contains('"message":"') ? errorMsg.split('"message":"')[1].split('"')[0] : 'Credenciales inválidas. Demasiados intentos fallidos.';
+      _triggerError();
+    } else if (lowerError.contains('pin') || lowerError.contains('incorrect') || lowerError.contains('credenciales')) {
       friendlyMessage =
           'El PIN es incorrecto. Por favor, verifica e intenta de nuevo.';
       _triggerError(); // MEJORA 3: Trigger shake and error color

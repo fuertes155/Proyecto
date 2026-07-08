@@ -13,30 +13,41 @@ public class CoreAccount {
     private final UUID id;
     private final UUID userId;
     private final String accountNumber;
-    private final BigDecimal balance;
+    private final BigDecimal principalBalance;
+    private final BigDecimal interestBalance;
     private final AccountStatus status;
     private final Instant createdAt;
     private final Instant updatedAt;
 
-    public CoreAccount credit(BigDecimal amount) {
+    public CoreAccount creditPrincipal(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
         return this.toBuilder()
-                .balance(this.balance.add(amount))
+                .principalBalance(this.principalBalance.add(amount))
                 .updatedAt(Instant.now())
                 .build();
     }
 
-    public CoreAccount debit(BigDecimal amount) {
+    public CoreAccount creditInterest(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
-        if (this.balance.compareTo(amount) < 0) {
-            throw new IllegalStateException("Insufficient funds");
+        return this.toBuilder()
+                .interestBalance(this.interestBalance.add(amount))
+                .updatedAt(Instant.now())
+                .build();
+    }
+
+    public CoreAccount debitInterest(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+        if (this.interestBalance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient interest funds");
         }
         return this.toBuilder()
-                .balance(this.balance.subtract(amount))
+                .interestBalance(this.interestBalance.subtract(amount))
                 .updatedAt(Instant.now())
                 .build();
     }

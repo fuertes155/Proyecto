@@ -9,6 +9,7 @@ import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.EncryptionPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
+import com.cooperativa.met.application.identity.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class RegisterUserUseCase {
     private final UserRepositoryPort userRepository;
     private final EncryptionPort encryptionPort;
     private final UserMapper userMapper;
+    private final OtpService otpService;
 
     @Transactional
     public UserResponse execute(RegisterUserRequest request) {
@@ -42,7 +44,7 @@ public class RegisterUserUseCase {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .pinHash(encryptionPort.hashPin(request.pin()))
-                .status(UserStatus.ACTIVE)
+                .status(UserStatus.PENDING_VERIFICATION)
                 .kycStatus(KycStatus.APPROVED)
                 .termsAccepted(request.termsAccepted())
                 .termsAcceptedAt(Instant.now())
@@ -50,6 +52,8 @@ public class RegisterUserUseCase {
                 .updatedAt(Instant.now())
                 .build();
 
-        return userMapper.toResponse(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        otpService.generateAndSendEmailVerificationOtp(savedUser.getDocumentNumber(), savedUser.getEmail());
+        return userMapper.toResponse(savedUser);
     }
 }

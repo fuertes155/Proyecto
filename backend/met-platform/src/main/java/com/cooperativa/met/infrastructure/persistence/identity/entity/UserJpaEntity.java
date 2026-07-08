@@ -49,6 +49,9 @@ public class UserJpaEntity {
     @Column(name = "biometric_hash")
     private String biometricHash;
 
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private UserStatus status;

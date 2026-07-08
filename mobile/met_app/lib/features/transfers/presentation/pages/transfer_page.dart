@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/transfer_ui_provider.dart';
+import '../providers/transfers_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class TransferPage extends ConsumerStatefulWidget {
@@ -163,6 +164,9 @@ class _TransferPageState extends ConsumerState<TransferPage> {
   }
 
   Widget _buildAmountStep(TransferState state, TransferNotifier notifier) {
+    final accountOpt = ref.watch(myAccountProvider).value;
+    final maxAmount = accountOpt?.interestBalance ?? 0.0;
+
     return Column(
       key: const ValueKey('step_1'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,6 +210,14 @@ class _TransferPageState extends ConsumerState<TransferPage> {
           ),
           onChanged: (val) => notifier.updateAmount(double.tryParse(val) ?? 0),
         ),
+        if (state.amount > maxAmount)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              'El monto supera tus intereses disponibles (\$${maxAmount.toStringAsFixed(2)})',
+              style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+            ),
+          ),
         const SizedBox(height: 16),
         TextField(
           controller: _conceptController,
@@ -219,7 +231,7 @@ class _TransferPageState extends ConsumerState<TransferPage> {
         SizedBox(
           width: double.infinity,
           child: FilledButton(
-            onPressed: state.amount <= 0 ? null : () => notifier.nextStep(),
+            onPressed: (state.amount <= 0 || state.amount > maxAmount) ? null : () => notifier.nextStep(),
             child: const Text('Continuar'),
           ),
         ),

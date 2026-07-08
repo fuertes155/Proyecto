@@ -89,21 +89,33 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 16,
+                        runSpacing: 8,
                         children: [
-                          const Icon(Icons.access_time, size: 16, color: Colors.black54),
-                          const SizedBox(width: 4),
-                          const Text(
-                            'Normalmente en 5 minutos',
-                            style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.access_time, size: 16, color: Colors.black54),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Normalmente en 5 minutos',
+                                style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          const Icon(Icons.swap_vert, size: 16, color: Colors.black54),
-                          const SizedBox(width: 4),
-                          const Text(
-                            '\$10.000 - \$10.000.000',
-                            style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.swap_vert, size: 16, color: Colors.black54),
+                              const SizedBox(width: 4),
+                              const Text(
+                                '\$10.000 - \$10.000.000',
+                                style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                            ],
                           ),
                         ],
                       )

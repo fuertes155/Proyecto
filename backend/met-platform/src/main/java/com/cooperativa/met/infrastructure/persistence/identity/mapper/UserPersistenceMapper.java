@@ -18,6 +18,7 @@ public class UserPersistenceMapper {
                 .lastName(entity.getLastName())
                 .pinHash(entity.getPinHash())
                 .biometricHash(entity.getBiometricHash())
+                .failedLoginAttempts(entity.getFailedLoginAttempts())
                 .status(entity.getStatus())
                 .kycStatus(entity.getKycStatus())
                 .termsAccepted(entity.isTermsAccepted())
@@ -40,6 +41,7 @@ public class UserPersistenceMapper {
         entity.setLastName(user.getLastName());
         entity.setPinHash(user.getPinHash());
         entity.setBiometricHash(user.getBiometricHash());
+        entity.setFailedLoginAttempts(user.getFailedLoginAttempts());
         entity.setStatus(user.getStatus());
         entity.setKycStatus(user.getKycStatus());
         entity.setTermsAccepted(user.isTermsAccepted());

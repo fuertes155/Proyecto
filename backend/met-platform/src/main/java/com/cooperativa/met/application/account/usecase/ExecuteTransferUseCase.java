@@ -59,8 +59,8 @@ public class ExecuteTransferUseCase {
         }
 
         // 3. Process Transfer (Debit & Credit)
-        CoreAccount updatedSource = sourceAccount.debit(request.amount());
-        CoreAccount updatedDest = destAccount.credit(request.amount());
+        CoreAccount updatedSource = sourceAccount.debitInterest(request.amount());
+        CoreAccount updatedDest = destAccount.creditPrincipal(request.amount());
 
         // 4. Save Accounts
         accountRepository.save(updatedSource);

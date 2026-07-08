@@ -62,9 +62,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registro exitoso. Completa tu verificación biométrica.')),
+        const SnackBar(content: Text('Registro exitoso. Por favor, verifica tu correo.')),
       );
-      context.go('/login');
+      context.push('/verify-email', extra: {
+        'documentType': _documentType,
+        'documentNumber': _documentController.text.trim(),
+      });
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

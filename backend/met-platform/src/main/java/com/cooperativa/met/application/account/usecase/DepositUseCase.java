@@ -37,7 +37,7 @@ public class DepositUseCase {
         }
 
         // 2. Sumar el monto al balance
-        CoreAccount updatedAccount = account.credit(request.getAmount());
+        CoreAccount updatedAccount = account.creditPrincipal(request.getAmount());
         accountRepository.save(updatedAccount);
 
         // 3. Crear el registro de la transacción

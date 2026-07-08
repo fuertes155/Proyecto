@@ -5,6 +5,7 @@ import '../../features/auth/presentation/pages/home_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
+import '../../features/auth/presentation/pages/email_verification_page.dart';
 import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/personal_data_page.dart';
 import '../../features/auth/presentation/pages/security_settings_page.dart';
@@ -50,6 +51,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (context, state) => const SplashPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
+      GoRoute(
+        path: '/verify-email',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return EmailVerificationPage(
+            documentType: extra?['documentType'] as String? ?? 'DNI',
+            documentNumber: extra?['documentNumber'] as String? ?? '',
+          );
+        },
+      ),
       GoRoute(path: '/home', builder: (context, state) => const HomePage()),
       GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
       GoRoute(path: '/profile/personal-data', builder: (context, state) => const PersonalDataPage()),

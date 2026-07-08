@@ -6,7 +6,8 @@ import java.util.UUID;
 public record CoreAccountResponse(
         UUID id,
         String accountNumber,
-        BigDecimal balance,
+        BigDecimal principalBalance,
+        BigDecimal interestBalance,
         String status
 ) {
 }

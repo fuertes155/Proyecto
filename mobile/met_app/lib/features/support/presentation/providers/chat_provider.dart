@@ -17,7 +17,7 @@ class ChatState {
 
 // ── Respuestas predefinidas por opción rápida ─────────────────────────────────
 const _quickReplies = {
-  'saldo': 'Tu saldo está en la tarjeta principal de Inicio. Para ahorros o créditos, revisa cada sección desde el menú.',
+  'saldo': 'Tu saldo está en el ahorro principal de Inicio. Para ahorros o créditos, revisa cada sección desde el menú.',
 
   'creditos': 'Ve a Créditos en el menú para ver saldo pendiente, cuotas y fechas de pago. Para un crédito nuevo, visita una oficina o llama al 01 8000 XXX XXX.',
 
@@ -43,7 +43,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   ChatNotifier(this.dio)
       : super(ChatState([
           ChatMessage(
-            '¡Hola! 👋 Soy el asistente de la Cooperativa MET. ¿En qué te ayudo hoy?',
+            'Soy el asistente virtual de MET.',
             false,
           )
         ], false, showQuickOptions: true));

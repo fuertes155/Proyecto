@@ -281,7 +281,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               _BottomNavItem(
                 icon: Icons.credit_card,
-                label: 'Tarjetas',
+                label: 'Ahorros',
                 isActive: activeIndex == 2,
                 onTap: () => context.push('/savings/scheduled'),
               ),
