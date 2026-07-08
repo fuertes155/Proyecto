@@ -15,7 +15,25 @@ class AdminDashboardPage extends ConsumerWidget {
     final admin = adminState.valueOrNull;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final modules = [
+    final businessModules = [
+      _AdminModule(
+        icon: Icons.people_alt_rounded,
+        label: 'Gestión de\nSocios (KYC)',
+        route: '/admin/partners',
+      ),
+      _AdminModule(
+        icon: Icons.account_balance_wallet_rounded,
+        label: 'Cuentas y\nSaldos',
+        route: '/admin/accounts',
+      ),
+      _AdminModule(
+        icon: Icons.request_quote_rounded,
+        label: 'Solicitudes\nde Crédito',
+        route: '/admin/loans',
+      ),
+    ];
+
+    final securityModules = [
       _AdminModule(
         icon: Icons.emergency_rounded,
         label: 'Bloqueo\nEmergencia',
@@ -184,33 +202,79 @@ class AdminDashboardPage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Módulos de Gestión',
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Grid de módulos
                 Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.85,
-                    ),
-                    itemCount: modules.length,
-                    itemBuilder: (context, i) => _ModuleCard(module: modules[i]),
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    children: [
+                      // Sección 1: Operaciones
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.business_center_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Operaciones y Socios',
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.85,
+                        ),
+                        itemCount: businessModules.length,
+                        itemBuilder: (context, i) => _ModuleCard(module: businessModules[i]),
+                      ),
+                      
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Divider(height: 24, thickness: 1, color: Colors.black12),
+                      ),
+
+                      // Sección 2: Seguridad
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.security_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Seguridad y Sistema',
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.85,
+                        ),
+                        itemCount: securityModules.length,
+                        itemBuilder: (context, i) => _ModuleCard(module: securityModules[i]),
+                      ),
+                    ],
                   ),
                 ),
               ],

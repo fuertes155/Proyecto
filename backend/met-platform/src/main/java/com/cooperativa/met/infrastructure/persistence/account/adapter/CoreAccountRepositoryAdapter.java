@@ -36,4 +36,9 @@ public class CoreAccountRepositoryAdapter implements CoreAccountRepositoryPort {
         CoreAccountJpaEntity entity = CoreAccountJpaEntity.fromDomain(account);
         return repository.save(entity).toDomain();
     }
+
+    @Override
+    public java.util.List<CoreAccount> findAll() {
+        return repository.findAll().stream().map(CoreAccountJpaEntity::toDomain).toList();
+    }
 }

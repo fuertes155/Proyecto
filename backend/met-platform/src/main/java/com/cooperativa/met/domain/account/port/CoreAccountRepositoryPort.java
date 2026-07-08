@@ -10,4 +10,5 @@ public interface CoreAccountRepositoryPort {
     Optional<CoreAccount> findByUserId(UUID userId);
     Optional<CoreAccount> findByAccountNumber(String accountNumber);
     CoreAccount save(CoreAccount account);
+    java.util.List<CoreAccount> findAll();
 }

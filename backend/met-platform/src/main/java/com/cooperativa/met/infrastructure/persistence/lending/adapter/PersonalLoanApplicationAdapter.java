@@ -47,6 +47,11 @@ public class PersonalLoanApplicationAdapter implements PersonalLoanApplicationPo
     }
 
     @Override
+    public List<PersonalLoanApplication> findAll() {
+        return repository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public boolean hasPendingApplication(UUID userId) {
         return repository.existsByUserIdAndStatusIn(userId, PENDING_STATUSES);
     }

@@ -16,5 +16,7 @@ public interface PersonalLoanApplicationPort {
 
     List<PersonalLoanApplication> findByUserId(UUID userId);
 
+    List<PersonalLoanApplication> findAll();
+
     boolean hasPendingApplication(UUID userId);
 }

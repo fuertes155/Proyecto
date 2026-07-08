@@ -45,6 +45,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public java.util.List<User> findAll() {
+        return repository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public boolean existsByDocument(DocumentType documentType, String documentNumber) {
         return repository.existsByDocumentTypeAndDocumentNumber(documentType, documentNumber);
     }

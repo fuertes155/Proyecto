@@ -13,7 +13,9 @@ import '../../features/admin/presentation/pages/risk_rules_page.dart';
 import '../../features/admin/presentation/pages/transaction_reversal_page.dart';
 import '../../features/admin/presentation/pages/reset_credentials_page.dart';
 import '../../features/admin/presentation/pages/regulatory_reports_page.dart';
-
+import '../../features/admin/presentation/pages/business/partners_page.dart';
+import '../../features/admin/presentation/pages/business/accounts_page.dart';
+import '../../features/admin/presentation/pages/business/loans_page.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/admin/login',
@@ -33,6 +35,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/limits', builder: (context, state) => const OperationLimitsPage()),
       GoRoute(path: '/admin/audit-log', builder: (context, state) => const AuditLogPage()),
       GoRoute(path: '/admin/reports', builder: (context, state) => const RegulatoryReportsPage()),
+      GoRoute(path: '/admin/partners', builder: (context, state) => const PartnersPage()),
+      GoRoute(path: '/admin/accounts', builder: (context, state) => const AccountsPage()),
+      GoRoute(path: '/admin/loans', builder: (context, state) => const LoansPage()),
     ],
   );
 });
