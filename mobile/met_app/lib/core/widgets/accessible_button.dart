@@ -20,7 +20,7 @@ class AccessibleButton extends StatelessWidget {
       button: true,
       label: semanticLabel ?? label,
       enabled: onPressed != null && !isLoading,
-      child: ElevatedButton(
+      child: FilledButton(
         onPressed: isLoading ? null : onPressed,
         child: isLoading
             ? const SizedBox(
