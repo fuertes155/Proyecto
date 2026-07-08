@@ -21,14 +21,19 @@ class FrenchAmortizationCalculatorTest {
         );
 
         assertEquals(12, result.getSchedule().size());
-        assertTrue(result.getMonthlyPayment().compareTo(BigDecimal.ZERO) > 0);
-        assertEquals(0, result.getSchedule().getLast().getRemainingBalance().compareTo(BigDecimal.ZERO));
+        
+        // El pago mensual exacto para $1'000.000 a 12 meses al 2% mensual (24% nominal anual)
+        // PMT = 1000000 * (0.02 * (1.02)^12) / ((1.02)^12 - 1) = 94559.60
+        assertEquals(new BigDecimal("94559.60"), result.getMonthlyPayment());
+        
+        // Verificamos que la última cuota deja el saldo en exactamente CERO
+        assertEquals(BigDecimal.ZERO, result.getSchedule().getLast().getRemainingBalance());
     }
 
     @Test
     void shouldConvertEffectiveAnnualToMonthly() {
         BigDecimal monthly = FrenchAmortizationCalculator.effectiveAnnualToMonthly(new BigDecimal("0.2400"));
-        assertTrue(monthly.compareTo(new BigDecimal("0.018")) > 0);
-        assertTrue(monthly.compareTo(new BigDecimal("0.019")) < 0);
+        // Ahora usamos TNA (24% / 12 = 2%)
+        assertEquals(new BigDecimal("0.02000000"), monthly);
     }
 }

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:intl/intl.dart';
+
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/accessible_button.dart';
 import '../../data/datasources/loan_remote_datasource.dart';
@@ -35,7 +37,7 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
     if (!_formKey.currentState!.validate()) return;
     await ref.read(loanSimulationProvider.notifier).simulate(
           SimulateLoanRequest(
-            amount: double.parse(_amountController.text),
+            amount: double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')),
             termMonths: _termMonths,
             annualInterestRate: _annualRate,
           ),
@@ -53,7 +55,7 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
     try {
       final app = await ref.read(loanRemoteDataSourceProvider).submitApplication(
             SubmitLoanApplicationRequest(
-              amount: double.parse(_amountController.text),
+              amount: double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')),
               termMonths: _termMonths,
               annualInterestRate: _annualRate,
               purpose: _purposeController.text.trim(),
@@ -101,9 +103,14 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
                     prefixText: '\$ ',
                   ),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    _CurrencyInputFormatter(),
+                  ],
                   validator: (v) {
-                    final val = double.tryParse(v ?? '');
+                    if (v == null || v.isEmpty) return 'Requerido';
+                    final cleanValue = v.replaceAll(RegExp(r'[^0-9]'), '');
+                    final val = double.tryParse(cleanValue);
                     if (val == null || val < 500000) return 'Mínimo \$500.000';
                     if (val > 50000000) return 'Máximo \$50.000.000';
                     return null;
@@ -149,6 +156,21 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) return newValue;
+    final value = double.tryParse(newValue.text.replaceAll(RegExp(r'[^0-9]'), ''));
+    if (value == null) return newValue;
+    final formatter = NumberFormat.currency(locale: 'es_CO', symbol: '', decimalDigits: 0);
+    final formatted = formatter.format(value).trim();
+    return newValue.copyWith(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

@@ -124,13 +124,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           subtitle: 'Calcula cuotas y solicita',
                           onTap: () => context.push('/loans/simulate'),
                         ).animate(delay: 900.ms).fade().slideX(begin: 0.1),
-                        const SizedBox(height: 12),
-                        _FeatureCard(
-                          icon: Icons.description_outlined,
-                          title: 'Reportes Supersolidaria',
-                          subtitle: 'Archivos planos regulatorios',
-                          onTap: () => context.push('/compliance/reports'),
-                        ).animate(delay: 1000.ms).fade().slideX(begin: 0.1),
+
                         const SizedBox(height: 32),
                         AccessibleButton(
                           label: 'Soporte 24/7',

@@ -56,18 +56,27 @@ public final class FrenchAmortizationCalculator {
     }
 
     public static BigDecimal effectiveAnnualToMonthly(BigDecimal annualRate) {
-        double monthly = Math.pow(1.0 + annualRate.doubleValue(), 1.0 / 12.0) - 1.0;
-        return BigDecimal.valueOf(monthly).setScale(8, RoundingMode.HALF_UP);
+        // Usamos Tasa Nominal (TNA -> Mensual) para evitar pérdida de precisión con raíces
+        return annualRate.divide(BigDecimal.valueOf(12), 8, RoundingMode.HALF_UP);
     }
 
     public static BigDecimal calculateMonthlyPayment(BigDecimal principal, BigDecimal monthlyRate, int termMonths) {
         if (monthlyRate.compareTo(BigDecimal.ZERO) == 0) {
             return principal.divide(BigDecimal.valueOf(termMonths), 2, RoundingMode.HALF_UP);
         }
-        double r = monthlyRate.doubleValue();
-        double factor = Math.pow(1 + r, termMonths);
-        double payment = principal.doubleValue() * (r * factor) / (factor - 1);
-        return BigDecimal.valueOf(payment).setScale(2, RoundingMode.HALF_UP);
+        
+        // factor = (1 + r)^n
+        BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);
+        BigDecimal factor = onePlusR.pow(termMonths);
+        
+        // numerator = principal * r * factor
+        BigDecimal numerator = principal.multiply(monthlyRate).multiply(factor);
+        
+        // denominator = factor - 1
+        BigDecimal denominator = factor.subtract(BigDecimal.ONE);
+        
+        // payment = numerator / denominator
+        return numerator.divide(denominator, 2, RoundingMode.HALF_UP);
     }
 
     private static List<AmortizationInstallment> buildSchedule(

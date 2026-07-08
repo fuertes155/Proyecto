@@ -19,6 +19,13 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
   int _month = DateTime.now().month;
   bool _isGenerating = false;
 
+  String _getFriendlyError(Object error) {
+    final msg = error.toString();
+    if (msg.contains('403')) return 'No tienes permisos administrativos para acceder a los reportes.';
+    if (msg.contains('SocketException') || msg.contains('Connection refused')) return 'No hay conexión con el servidor.';
+    return 'Ocurrió un error inesperado. Intenta de nuevo.';
+  }
+
   Future<void> _generate() async {
     if (_selectedType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -42,7 +49,7 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
         );
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_getFriendlyError(e))));
     } finally {
       if (mounted) setState(() => _isGenerating = false);
     }
@@ -68,7 +75,7 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
         ),
       );
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_getFriendlyError(e))));
     }
   }
 
@@ -91,7 +98,7 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
             const SizedBox(height: 16),
             typesAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Error: $e'),
+              error: (e, _) => Center(child: Text(_getFriendlyError(e), style: const TextStyle(color: Colors.red))),
               data: (types) => DropdownButtonFormField<String>(
                 value: _selectedType,
                 isExpanded: true,
@@ -143,7 +150,7 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
             const SizedBox(height: 12),
             reportsAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Error: $e'),
+              error: (e, _) => Center(child: Text(_getFriendlyError(e), style: const TextStyle(color: Colors.red))),
               data: (reports) {
                 if (reports.isEmpty) {
                   return const Text('No hay reportes generados');
