@@ -45,6 +45,8 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColorLight,
+          foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 56),
           textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -93,11 +95,11 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 56),
           textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

@@ -72,11 +72,7 @@ class ProfilePage extends ConsumerWidget {
                 title: 'Seguridad y Contraseña',
                 onTap: () => context.push('/profile/security'),
               ),
-              _ProfileOption(
-                icon: Icons.notifications_none,
-                title: 'Notificaciones',
-                onTap: () => context.push('/profile/notifications'),
-              ),
+
               _ProfileOption(
                 icon: Icons.help_outline,
                 title: 'Ayuda y Soporte',
