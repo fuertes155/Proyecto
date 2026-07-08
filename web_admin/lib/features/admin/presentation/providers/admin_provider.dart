@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/admin_models.dart';
@@ -20,6 +21,13 @@ class AdminAuthNotifier extends StateNotifier<AsyncValue<AdminAuthResponse?>> {
       final response = await _repo.login(AdminLoginRequest(username: username, password: password));
       state = AsyncValue.data(response);
     } catch (e, st) {
+      if (e is DioException && e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          state = AsyncValue.error(data['message'], st);
+          return;
+        }
+      }
       state = AsyncValue.error(e, st);
     }
   }

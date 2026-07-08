@@ -58,212 +58,203 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
     return Theme(
       data: AppTheme.lightTheme,
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth > 800;
-
-            return Row(
-              children: [
-                // Columna Izquierda: Branding (Solo visible en Desktop)
-                if (isDesktop)
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF53A835), Color(0xFF388E3C)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFE8F5E9), Color(0xFFF1F8E9), Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Stack(
+            children: [
+              // Círculos decorativos de fondo
+              Positioned(
+                top: -100,
+                right: -100,
+                child: Container(
+                  width: 400,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF53A835).withOpacity(0.15),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -150,
+                left: -50,
+                child: Container(
+                  width: 500,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF388E3C).withOpacity(0.1),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Contenedor Central
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF53A835).withOpacity(0.08),
+                          blurRadius: 40,
+                          spreadRadius: 10,
+                          offset: const Offset(0, 20),
                         ),
-                      ),
-                      child: Stack(
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 10,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Patrón de fondo sutil
-                          Positioned.fill(
-                            child: Opacity(
-                              opacity: 0.1,
-                              child: GridPaper(
-                                color: Colors.white,
-                                interval: 40,
-                                divisions: 1,
-                                subdivisions: 1,
+                          // Ícono y Título
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF53A835).withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.admin_panel_settings_rounded,
+                                size: 56,
+                                color: Color(0xFF53A835),
                               ),
                             ),
                           ),
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(24),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 30,
+                          const SizedBox(height: 24),
+                          Text(
+                            'MET Admin',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey.shade900,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Ingresa al sistema de gestión interna de la cooperativa.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 15,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+
+                          // Username
+                          TextFormField(
+                            controller: _usernameCtrl,
+                            style: TextStyle(color: Colors.grey.shade900, fontWeight: FontWeight.w500),
+                            decoration: _inputDeco(
+                              'Usuario administrador',
+                              Icons.person_outline_rounded,
+                            ),
+                            validator: (v) =>
+                                v == null || v.isEmpty ? 'Campo requerido' : null,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Password
+                          TextFormField(
+                            controller: _passwordCtrl,
+                            obscureText: _obscurePassword,
+                            style: TextStyle(color: Colors.grey.shade900, fontWeight: FontWeight.w500),
+                            decoration: _inputDeco(
+                              'Contraseña',
+                              Icons.lock_outline_rounded,
+                            ).copyWith(
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: Colors.grey.shade500,
+                                ),
+                                onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword),
+                              ),
+                            ),
+                            validator: (v) => v == null || v.length < 8
+                                ? 'Mínimo 8 caracteres'
+                                : null,
+                          ),
+                          const SizedBox(height: 40),
+
+                          // Botón login
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _login,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF53A835),
+                                foregroundColor: Colors.white,
+                                shadowColor: const Color(0xFF53A835).withOpacity(0.4),
+                                elevation: 8,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
                                       ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.admin_panel_settings_rounded,
-                                    size: 80,
-                                    color: Color(0xFF53A835),
-                                  ),
-                                ),
-                                const SizedBox(height: 32),
-                                const Text(
-                                  'MET Cooperativa',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Sistema de Gestión Interna',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ],
+                                    )
+                                  : const Text(
+                                      'Iniciar Sesión',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-
-                // Columna Derecha: Formulario de Login
-                Expanded(
-                  flex: 4,
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
-                      child: Container(
-                        constraints: const BoxConstraints(maxWidth: 450),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Si es móvil, mostramos el ícono arriba
-                              if (!isDesktop) ...[
-                                Center(
-                                  child: Icon(
-                                    Icons.admin_panel_settings_rounded,
-                                    size: 64,
-                                    color: const Color(0xFF53A835),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                              ],
-
-                              Text(
-                                'Bienvenido',
-                                style: TextStyle(
-                                  color: Colors.grey.shade900,
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Ingresa tus credenciales de administrador para continuar.',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 48),
-
-                              // Username
-                              TextFormField(
-                                controller: _usernameCtrl,
-                                style: TextStyle(color: Colors.grey.shade900),
-                                decoration: _inputDeco(
-                                  'Usuario administrador',
-                                  Icons.person_outline_rounded,
-                                ),
-                                validator: (v) =>
-                                    v == null || v.isEmpty ? 'Campo requerido' : null,
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Password
-                              TextFormField(
-                                controller: _passwordCtrl,
-                                obscureText: _obscurePassword,
-                                style: TextStyle(color: Colors.grey.shade900),
-                                decoration: _inputDeco(
-                                  'Contraseña',
-                                  Icons.lock_outline_rounded,
-                                ).copyWith(
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                    onPressed: () => setState(
-                                        () => _obscurePassword = !_obscurePassword),
-                                  ),
-                                ),
-                                validator: (v) => v == null || v.length < 8
-                                    ? 'Mínimo 8 caracteres'
-                                    : null,
-                              ),
-                              const SizedBox(height: 48),
-
-                              // Botón login
-                              SizedBox(
-                                height: 56,
-                                child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _login,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF53A835),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    elevation: 2,
-                                  ),
-                                  child: _isLoading
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Text(
-                                          'Ingresar al Panel',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
-              ],
-            );
-          },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -272,21 +263,26 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
   InputDecoration _inputDeco(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.grey.shade600),
-      prefixIcon: Icon(icon, color: Colors.grey.shade600),
+      labelStyle: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.normal),
+      prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),
       filled: true,
       fillColor: Colors.grey.shade50,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: Color(0xFF53A835), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.red.shade300, width: 1.5),
       ),
     );
   }
