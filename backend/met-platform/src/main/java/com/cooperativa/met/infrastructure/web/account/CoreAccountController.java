@@ -7,6 +7,7 @@ import com.cooperativa.met.application.account.dto.DepositRequest;
 import com.cooperativa.met.application.account.usecase.ExecuteTransferUseCase;
 import com.cooperativa.met.application.account.usecase.GetMyAccountUseCase;
 import com.cooperativa.met.application.account.usecase.VerifyRecipientUseCase;
+import com.cooperativa.met.application.account.usecase.RequestTransferOtpUseCase;
 import com.cooperativa.met.application.account.usecase.DepositUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
