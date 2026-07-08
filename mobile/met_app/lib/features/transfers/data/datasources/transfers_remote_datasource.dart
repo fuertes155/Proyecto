@@ -25,6 +25,10 @@ class TransfersRemoteDataSource {
     await _dio.post('/v1/accounts/transactions/transfer', data: request.toJson());
   }
 
+  Future<void> requestTransferOtp() async {
+    await _dio.post('/v1/accounts/transactions/transfer/otp/request');
+  }
+
   Future<void> deposit(DepositRequestModel request) async {
     await _dio.post('/v1/accounts/deposit', data: request.toJson());
   }

@@ -32,8 +32,8 @@ public class LoginUseCase {
     private final MetSecurityProperties securityProperties;
     private final JavaMailSender mailSender;
 
-    @Transactional(readOnly = true)
-    public AuthResponse execute(LoginRequest request) {
+    @Transactional
+    public AuthResponse execute(LoginRequest request, String ip) {
         System.out.println("Login attempt for doc: '" + request.documentNumber() + "' of type: '" + request.documentType() + "'");
         User user = userRepository.findByDocument(request.documentType(), request.documentNumber())
                 .orElseThrow(() -> {
@@ -64,8 +64,11 @@ public class LoginUseCase {
             throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas. Intento " + newAttempts + " de 3");
         }
 
-        if (user.getFailedLoginAttempts() > 0) {
-            userRepository.save(user.withFailedLoginAttempts(0));
+        if (user.getFailedLoginAttempts() > 0 || (user.getLastKnownIp() == null || !user.getLastKnownIp().equals(ip))) {
+            if (user.getLastKnownIp() != null && !user.getLastKnownIp().equals(ip)) {
+                sendFraudAlertEmail(user.getEmail(), ip);
+            }
+            userRepository.save(user.withFailedLoginAttempts(0).withLastKnownIp(ip));
         }
 
         String accessToken = tokenPort.generateAccessToken(user.getId(), user.getEmail());
@@ -116,6 +119,20 @@ public class LoginUseCase {
             mailSender.send(message);
         } catch (Exception e) {
             System.err.println("Failed to send account locked email to " + email + ": " + e.getMessage());
+        }
+    }
+
+    private void sendFraudAlertEmail(String email, String ip) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("security@met.com");
+            message.setTo(email);
+            message.setSubject("Alerta de Seguridad: Nuevo inicio de sesión");
+            message.setText("Hola,\n\nHemos detectado un inicio de sesión en tu cuenta desde una nueva ubicación (IP: " + ip + ").\n" +
+                    "Si no fuiste tú, por favor cambia tu contraseña inmediatamente y contacta a soporte.\n\nSaludos,\nEquipo de Seguridad MET");
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Failed to send fraud alert email to " + email + ": " + e.getMessage());
         }
     }
 }

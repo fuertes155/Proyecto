@@ -76,8 +76,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(loginUseCase.execute(request));
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest request,
+            jakarta.servlet.http.HttpServletRequest httpServletRequest) {
+        String ip = httpServletRequest.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            ip = httpServletRequest.getRemoteAddr();
+        }
+        return ResponseEntity.ok(loginUseCase.execute(request, ip));
     }
 
     @PostMapping("/refresh")

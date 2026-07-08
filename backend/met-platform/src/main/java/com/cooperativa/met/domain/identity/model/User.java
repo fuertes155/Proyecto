@@ -28,6 +28,7 @@ public class User {
     private final boolean pushNotificationsEnabled;
     private final Instant createdAt;
     private final Instant updatedAt;
+    private final String lastKnownIp;
 
     public User withPinHash(String newPinHash) {
         return this.toBuilder().pinHash(newPinHash).updatedAt(Instant.now()).build();
@@ -55,5 +56,9 @@ public class User {
 
     public User withFailedLoginAttempts(int attempts) {
         return this.toBuilder().failedLoginAttempts(attempts).updatedAt(Instant.now()).build();
+    }
+    
+    public User withLastKnownIp(String ip) {
+        return this.toBuilder().lastKnownIp(ip).updatedAt(Instant.now()).build();
     }
 }

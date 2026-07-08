@@ -7,5 +7,6 @@ abstract class TransfersRepository {
   Future<CoreAccountModel> getMyAccount();
   Future<VerifyRecipientModel> verifyRecipient(String identifier);
   Future<void> executeTransfer(TransferRequestModel request);
+  Future<void> requestTransferOtp();
   Future<void> deposit(DepositRequestModel request);
 }

@@ -18,6 +18,7 @@ public class CoreAccount {
     private final AccountStatus status;
     private final Instant createdAt;
     private final Instant updatedAt;
+    private final Long version;
 
     public CoreAccount creditPrincipal(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -48,6 +49,19 @@ public class CoreAccount {
         }
         return this.toBuilder()
                 .interestBalance(this.interestBalance.subtract(amount))
+                .updatedAt(Instant.now())
+                .build();
+    }
+
+    public CoreAccount debitPrincipal(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+        if (this.principalBalance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Fondos insuficientes");
+        }
+        return this.toBuilder()
+                .principalBalance(this.principalBalance.subtract(amount))
                 .updatedAt(Instant.now())
                 .build();
     }

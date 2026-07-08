@@ -26,6 +26,11 @@ class TransfersRepositoryImpl implements TransfersRepository {
   }
 
   @override
+  Future<void> requestTransferOtp() async {
+    return _remoteDataSource.requestTransferOtp();
+  }
+
+  @override
   Future<void> deposit(DepositRequestModel request) async {
     return _remoteDataSource.deposit(request);
   }

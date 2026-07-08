@@ -77,4 +77,7 @@ public class UserJpaEntity {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @Column(name = "last_known_ip", length = 45)
+    private String lastKnownIp;
 }

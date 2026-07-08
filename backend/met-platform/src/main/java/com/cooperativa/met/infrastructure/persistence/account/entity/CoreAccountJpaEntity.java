@@ -43,6 +43,10 @@ public class CoreAccountJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     public CoreAccount toDomain() {
         return CoreAccount.builder()
                 .id(id)
@@ -53,6 +57,7 @@ public class CoreAccountJpaEntity {
                 .status(status)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
+                .version(version)
                 .build();
     }
 
@@ -66,6 +71,7 @@ public class CoreAccountJpaEntity {
                 .status(domain.getStatus())
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())
+                .version(domain.getVersion())
                 .build();
     }
 }

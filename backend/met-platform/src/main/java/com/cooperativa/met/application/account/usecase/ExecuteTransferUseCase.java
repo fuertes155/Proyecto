@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.cooperativa.met.application.identity.service.OtpService;
+
 @Service
 @RequiredArgsConstructor
 public class ExecuteTransferUseCase {
@@ -28,6 +30,7 @@ public class ExecuteTransferUseCase {
     private final CoreTransactionRepositoryPort transactionRepository;
     private final UserRepositoryPort userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
 
     @Transactional
     public void execute(UUID userId, TransferRequest request) {
@@ -58,8 +61,17 @@ public class ExecuteTransferUseCase {
             throw new BusinessRuleException("SAME_ACCOUNT", "No puedes transferir a la misma cuenta");
         }
 
+        // 2.5. Verify OTP
+        if (request.otp() == null || request.otp().isEmpty()) {
+            throw new BusinessRuleException("OTP_REQUIRED", "Se requiere código de seguridad para transferir");
+        }
+        boolean isOtpValid = otpService.validateOtp(user.getDocumentNumber(), request.otp());
+        if (!isOtpValid) {
+            throw new BusinessRuleException("INVALID_OTP", "El código de seguridad es incorrecto o expiró");
+        }
+
         // 3. Process Transfer (Debit & Credit)
-        CoreAccount updatedSource = sourceAccount.debitInterest(request.amount());
+        CoreAccount updatedSource = sourceAccount.debitPrincipal(request.amount());
         CoreAccount updatedDest = destAccount.creditPrincipal(request.amount());
 
         // 4. Save Accounts

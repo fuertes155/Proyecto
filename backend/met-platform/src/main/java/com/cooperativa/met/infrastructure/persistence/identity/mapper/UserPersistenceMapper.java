@@ -27,6 +27,7 @@ public class UserPersistenceMapper {
                 .pushNotificationsEnabled(entity.isPushNotificationsEnabled())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .lastKnownIp(entity.getLastKnownIp())
                 .build();
     }
 
@@ -50,6 +51,7 @@ public class UserPersistenceMapper {
         entity.setPushNotificationsEnabled(user.isPushNotificationsEnabled());
         entity.setCreatedAt(user.getCreatedAt());
         entity.setUpdatedAt(user.getUpdatedAt());
+        entity.setLastKnownIp(user.getLastKnownIp());
         return entity;
     }
 }

@@ -17,6 +17,7 @@ class _TransferPageState extends ConsumerState<TransferPage> {
   final _amountController = TextEditingController();
   final _conceptController = TextEditingController();
   final _pinController = TextEditingController();
+  final _otpController = TextEditingController();
 
   @override
   void dispose() {
@@ -24,6 +25,7 @@ class _TransferPageState extends ConsumerState<TransferPage> {
     _amountController.dispose();
     _conceptController.dispose();
     _pinController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
@@ -38,7 +40,7 @@ class _TransferPageState extends ConsumerState<TransferPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            if (state.step > 0 && state.step < 3) {
+            if (state.step > 0 && state.step < 4) {
               notifier.previousStep();
             } else {
               context.pop();
@@ -54,7 +56,7 @@ class _TransferPageState extends ConsumerState<TransferPage> {
             children: [
               // Progress Indicator
               Row(
-                children: List.generate(4, (index) {
+                children: List.generate(5, (index) {
                   return Expanded(
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -115,6 +117,8 @@ class _TransferPageState extends ConsumerState<TransferPage> {
       case 2:
         return _buildPinStep(state, notifier);
       case 3:
+        return _buildOtpStep(state, notifier);
+      case 4:
         return _buildSuccessStep(state);
       default:
         return const SizedBox();
@@ -288,7 +292,13 @@ class _TransferPageState extends ConsumerState<TransferPage> {
           child: FilledButton(
             onPressed: state.isLoading 
                 ? null 
-                : () => notifier.executeTransfer(_pinController.text),
+                : () async {
+                    bool success = await notifier.executeTransfer(_pinController.text);
+                    if (!success && notifier.state.error == 'Se requiere código de seguridad para transferir') {
+                       await notifier.requestOtp();
+                       notifier.nextStep(); // Mover a step 3 (OTP)
+                    }
+                },
             child: state.isLoading 
                 ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Text('Confirmar y Enviar'),
@@ -298,9 +308,61 @@ class _TransferPageState extends ConsumerState<TransferPage> {
     );
   }
 
+  Widget _buildOtpStep(TransferState state, TransferNotifier notifier) {
+    return Column(
+      key: const ValueKey('step_3'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Código de Seguridad (OTP)',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Hemos enviado un código de 6 dígitos a tu correo electrónico para confirmar esta transferencia.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant
+          ),
+        ),
+        const SizedBox(height: 32),
+        TextField(
+          controller: _otpController,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 24, letterSpacing: 8),
+          decoration: const InputDecoration(
+            hintText: '000000',
+            counterText: '',
+          ),
+          onChanged: notifier.updateOtp,
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: TextButton(
+            onPressed: () => notifier.requestOtp(),
+            child: const Text('Reenviar código'),
+          ),
+        ),
+        const Spacer(),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: state.isLoading || state.otp.length < 6
+                ? null 
+                : () => notifier.executeTransfer(_pinController.text), // Uses state.otp automatically
+            child: state.isLoading 
+                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Text('Validar y Transferir'),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSuccessStep(TransferState state) {
     return Center(
-      key: const ValueKey('step_3'),
+      key: const ValueKey('step_4'),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

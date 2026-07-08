@@ -6,10 +6,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    # ports:
-    #   - "5433:5432" # Deshabilitado por seguridad en producción
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - met-secure-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -24,6 +24,8 @@ services:
     #   - "6379:6379" # Deshabilitado por seguridad en producción
     volumes:
       - redis_data:/data
+    networks:
+      - met-secure-net
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
@@ -57,8 +59,8 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       MAIL_USERNAME: ${MAIL_USERNAME:-your-email@gmail.com}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-your-app-password}
-    ports:
-      - "8080:8080"
+    networks:
+      - met-secure-net
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/actuator/health || exit 1"]
       interval: 30s
@@ -74,13 +76,32 @@ services:
     environment:
       PORT: 8090
       NOTIFICATION_API_KEY: ${NOTIFICATION_API_KEY}
-    ports:
-      - "8090:8090"
+    networks:
+      - met-secure-net
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8090/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: met-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+      - notification-service
+    networks:
+      - met-secure-net
+
+networks:
+  met-secure-net:
+    driver: bridge
 
 volumes:
   postgres_data:

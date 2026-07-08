@@ -27,6 +27,7 @@ public class CoreAccountController {
     private final GetMyAccountUseCase getMyAccountUseCase;
     private final VerifyRecipientUseCase verifyRecipientUseCase;
     private final ExecuteTransferUseCase executeTransferUseCase;
+    private final RequestTransferOtpUseCase requestTransferOtpUseCase;
     private final DepositUseCase depositUseCase;
 
     private UUID getAuthenticatedUserId() {
@@ -47,6 +48,12 @@ public class CoreAccountController {
         return ResponseEntity.ok(verifyRecipientUseCase.execute(identifier, getAuthenticatedUserId()));
     }
 
+    @PostMapping("/transactions/transfer/otp/request")
+    public ResponseEntity<Void> requestTransferOtp() {
+        requestTransferOtpUseCase.execute(getAuthenticatedUserId());
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/transactions/transfer")
     public ResponseEntity<Map<String, String>> transfer(@Valid @RequestBody TransferRequest request) {
         executeTransferUseCase.execute(getAuthenticatedUserId(), request);
@@ -54,6 +61,7 @@ public class CoreAccountController {
     }
 
     @PostMapping("/deposit")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> deposit(@Valid @RequestBody DepositRequest request) {
         depositUseCase.execute(getAuthenticatedUserId(), request);
         return ResponseEntity.ok().build();

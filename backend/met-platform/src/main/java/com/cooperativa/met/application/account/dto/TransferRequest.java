@@ -17,6 +17,8 @@ public record TransferRequest(
         String concept,
         
         @NotBlank(message = "PIN is required")
-        String pin
+        String pin,
+
+        String otp
 ) {
 }

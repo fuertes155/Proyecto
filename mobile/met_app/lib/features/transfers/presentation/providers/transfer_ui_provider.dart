@@ -11,6 +11,7 @@ class TransferState {
     this.recipient,
     this.amount = 0.0,
     this.concept = '',
+    this.otp = '',
     this.isLoading = false,
     this.error,
   });
@@ -20,6 +21,7 @@ class TransferState {
   final VerifyRecipientModel? recipient;
   final double amount;
   final String concept;
+  final String otp;
   final bool isLoading;
   final String? error;
 
@@ -29,6 +31,7 @@ class TransferState {
     VerifyRecipientModel? recipient,
     double? amount,
     String? concept,
+    String? otp,
     bool? isLoading,
     String? error,
   }) {
@@ -38,6 +41,7 @@ class TransferState {
       recipient: recipient ?? this.recipient,
       amount: amount ?? this.amount,
       concept: concept ?? this.concept,
+      otp: otp ?? this.otp,
       isLoading: isLoading ?? this.isLoading,
       error: error, // Can be null
     );
@@ -59,6 +63,7 @@ class TransferNotifier extends StateNotifier<TransferState> {
   void updateIdentifier(String id) => state = state.copyWith(recipientIdentifier: id, error: null);
   void updateAmount(double amt) => state = state.copyWith(amount: amt, error: null);
   void updateConcept(String conc) => state = state.copyWith(concept: conc);
+  void updateOtp(String val) => state = state.copyWith(otp: val);
 
   Future<bool> verifyRecipient() async {
     if (state.recipientIdentifier.isEmpty) {
@@ -100,6 +105,7 @@ class TransferNotifier extends StateNotifier<TransferState> {
         amount: state.amount,
         pin: pin,
         concept: state.concept,
+        otp: state.otp.isNotEmpty ? state.otp : null,
       ));
       
       // Refresh balance
@@ -121,6 +127,17 @@ class TransferNotifier extends StateNotifier<TransferState> {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Ocurrió un error inesperado');
       return false;
+    }
+  }
+
+  Future<void> requestOtp() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final repository = ref.read(transfersRepositoryProvider);
+      await repository.requestTransferOtp();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Error solicitando código OTP');
     }
   }
 }

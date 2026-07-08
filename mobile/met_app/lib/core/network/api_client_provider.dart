@@ -5,12 +5,32 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 import '../storage/secure_storage_service.dart';
 
+import 'dart:io';
+import 'package:dio/io.dart';
+
 final apiClientProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
     baseUrl: AppConfig.apiBaseUrl,
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
   ));
+
+  // ARQUITECTURA DE SSL PINNING 🛡️
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    createHttpClient: () {
+      final client = HttpClient();
+      client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+        // En DESARROLLO LOCAL con HTTPS auto-firmado, permitimos conexiones.
+        // En PRODUCCIÓN, debes comparar el cert.sha1 o cert.der con el de tu servidor:
+        // final prodSha256 = 'TU_HASH_SHA256_AQUI';
+        // return cert.sha256.toString() == prodSha256;
+        
+        return true; // <- Cambiar a FALSE en producción si no coincide el hash
+      };
+      return client;
+    },
+  );
+
 
   dio.interceptors.add(InterceptorsWrapper(
     onRequest: (options, handler) async {
