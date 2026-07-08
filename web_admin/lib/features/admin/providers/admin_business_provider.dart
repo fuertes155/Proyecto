@@ -9,8 +9,9 @@ class UserModel {
   final String lastName;
   final String email;
   final String kycStatus;
+  final String documentNumber;
   
-  UserModel({required this.id, required this.firstName, required this.lastName, required this.email, required this.kycStatus});
+  UserModel({required this.id, required this.firstName, required this.lastName, required this.email, required this.kycStatus, required this.documentNumber});
   
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -19,6 +20,7 @@ class UserModel {
       lastName: json['lastName'] ?? '',
       email: json['email'] ?? 'Sin correo',
       kycStatus: json['kycStatus'] ?? 'PENDING',
+      documentNumber: json['documentNumber'] ?? 'Sin documento',
     );
   }
 }
@@ -28,8 +30,9 @@ class AccountModel {
   final String accountNumber;
   final String userId;
   final String status;
+  final double balance;
   
-  AccountModel({required this.id, required this.accountNumber, required this.userId, required this.status});
+  AccountModel({required this.id, required this.accountNumber, required this.userId, required this.status, required this.balance});
   
   factory AccountModel.fromJson(Map<String, dynamic> json) {
     return AccountModel(
@@ -37,6 +40,7 @@ class AccountModel {
       accountNumber: json['accountNumber'] ?? '',
       userId: json['userId'] ?? '',
       status: json['status'] ?? 'ACTIVE',
+      balance: double.tryParse(json['principalBalance']?.toString() ?? '0') ?? 0.0,
     );
   }
 }
@@ -103,6 +107,29 @@ final accountsProvider = FutureProvider<List<AccountModel>>((ref) async {
   }
 });
 
+final accountsWithUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final accounts = await ref.watch(accountsProvider.future);
+  final users = await ref.watch(usersProvider.future);
+  
+  return accounts.map((account) {
+    final user = users.firstWhere(
+      (u) => u.id == account.userId,
+      orElse: () => UserModel(
+        id: account.userId,
+        firstName: 'Desconocido',
+        lastName: '',
+        email: '',
+        kycStatus: '',
+        documentNumber: 'N/A'
+      ),
+    );
+    return {
+      'account': account,
+      'user': user,
+    };
+  }).toList();
+});
+
 final loansProvider = FutureProvider<List<LoanModel>>((ref) async {
   try {
     final dio = ref.read(adminApiClientProvider);
@@ -113,4 +140,27 @@ final loansProvider = FutureProvider<List<LoanModel>>((ref) async {
     print('Error fetching loans: $e');
     return [];
   }
+});
+
+final loansWithUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final loans = await ref.watch(loansProvider.future);
+  final users = await ref.watch(usersProvider.future);
+  
+  return loans.map((loan) {
+    final user = users.firstWhere(
+      (u) => u.id == loan.userId,
+      orElse: () => UserModel(
+        id: loan.userId,
+        firstName: 'Desconocido',
+        lastName: '',
+        email: '',
+        kycStatus: '',
+        documentNumber: 'N/A'
+      ),
+    );
+    return {
+      'loan': loan,
+      'user': user,
+    };
+  }).toList();
 });

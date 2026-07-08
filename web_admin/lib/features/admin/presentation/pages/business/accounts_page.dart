@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../providers/admin_business_provider.dart';
 
 class AccountsPage extends ConsumerWidget {
@@ -7,7 +8,7 @@ class AccountsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final accountsAsync = ref.watch(accountsProvider);
+    final accountsAsync = ref.watch(accountsWithUsersProvider);
     final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
@@ -26,7 +27,9 @@ class AccountsPage extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             itemCount: accounts.length,
             itemBuilder: (context, index) {
-              final account = accounts[index];
+              final data = accounts[index];
+              final account = data['account'] as AccountModel;
+              final user = data['user'] as UserModel;
               return Card(
                 elevation: 0,
                 color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
@@ -41,11 +44,26 @@ class AccountsPage extends ConsumerWidget {
                     child: Icon(Icons.account_balance_wallet, color: primary),
                   ),
                   title: Text('Cuenta: ${account.accountNumber}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('Propietario ID: ${account.userId}'),
-                  trailing: Chip(
-                    label: Text(account.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                    backgroundColor: account.status == 'ACTIVE' ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-                    side: BorderSide.none,
+                  subtitle: Text('Propietario: ${user.firstName} ${user.lastName}\nCC: ${user.documentNumber}'),
+                  isThreeLine: true,
+                  trailing: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        NumberFormat.currency(symbol: '\$', decimalDigits: 2, locale: 'en_US').format(account.balance), 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)
+                      ),
+                      Chip(
+                        label: Text(account.status, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                        backgroundColor: account.status == 'ACTIVE' ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                        side: BorderSide.none,
+                        padding: EdgeInsets.zero,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
                   ),
                 ),
               );

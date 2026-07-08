@@ -41,7 +41,8 @@ class PartnersPage extends ConsumerWidget {
                     child: Icon(Icons.person, color: primary),
                   ),
                   title: Text('${user.firstName} ${user.lastName}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text(user.email),
+                  subtitle: Text('${user.email}\nCC: ${user.documentNumber}'),
+                  isThreeLine: true,
                   trailing: Chip(
                     label: Text(user.kycStatus, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                     backgroundColor: user.kycStatus == 'APPROVED' ? Colors.green.withOpacity(0.2) : Colors.orange.withOpacity(0.2),

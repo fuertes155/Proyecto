@@ -1,6 +1,10 @@
 import 'dart:ui';
+import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class RegulatoryReportsPage extends StatefulWidget {
@@ -23,13 +27,51 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
   Future<void> _generateReport() async {
     setState(() => _isGenerating = true);
     // Simulate generation delay
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (!mounted) return;
+    
+    try {
+      String fileName = '';
+      String fileContent = '';
+      
+      final now = DateTime.now();
+      final dateStr = DateFormat('yyyyMMdd_HHmmss').format(now);
+      
+      if (_selectedReport == 'uiaf') {
+        fileName = 'reporte_uiaf_$dateStr.csv';
+        fileContent = 'ID_REPORTE,TIPO,FECHA,ESTADO\nUIAF-001,PREVENCION_LAFT,$dateStr,COMPLETADO\n';
+      } else if (_selectedReport == 'super') {
+        fileName = 'reporte_superfinanciera_$dateStr.txt';
+        fileContent = 'REPORTE SUPERFINANCIERA\n-----------------------\nFecha: $dateStr\nEstado: OK\nSaldos Consolidados: Validados\n';
+      } else if (_selectedReport == 'tx') {
+        fileName = 'historico_tx_$dateStr.csv';
+        fileContent = 'ID_TX,CUENTA_ORIGEN,CUENTA_DESTINO,MONTO,FECHA\nTX-9983,1049189538,0000000000,500.00,$dateStr\n';
+      }
+
+      // Web download using dart:html
+      final bytes = utf8.encode(fileContent);
+      final blob = html.Blob([bytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute("download", fileName)
+        ..click();
+      html.Url.revokeObjectUrl(url);
+
       setState(() => _isGenerating = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('✅ Reporte generado y descargado exitosamente'),
+          content: Text('✅ $fileName descargado exitosamente'),
           backgroundColor: Theme.of(context).colorScheme.primary,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      setState(() => _isGenerating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error al generar el reporte: $e'),
+          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -65,7 +107,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -91,7 +133,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
                     ),
                     const SizedBox(height: 12),
                     ..._reportTypes.map((report) => _buildReportOption(report, isDark, primary)),
-                    const Spacer(),
+                    const SizedBox(height: 32),
                     SizedBox(
                       height: 56,
                       child: ElevatedButton(

@@ -7,7 +7,7 @@ class LoansPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loansAsync = ref.watch(loansProvider);
+    final loansAsync = ref.watch(loansWithUsersProvider);
     final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
@@ -26,7 +26,9 @@ class LoansPage extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             itemCount: loans.length,
             itemBuilder: (context, index) {
-              final loan = loans[index];
+              final data = loans[index];
+              final loan = data['loan'] as LoanModel;
+              final user = data['user'] as UserModel;
               return Card(
                 elevation: 0,
                 color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
@@ -41,7 +43,8 @@ class LoansPage extends ConsumerWidget {
                     child: Icon(Icons.request_quote, color: primary),
                   ),
                   title: Text('Préstamo ID: ${loan.id}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                  subtitle: Text('Socio ID: ${loan.userId}'),
+                  subtitle: Text('Solicitante: ${user.firstName} ${user.lastName}\nCC: ${user.documentNumber}'),
+                  isThreeLine: true,
                   trailing: Chip(
                     label: Text(loan.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                     backgroundColor: loan.status == 'APPROVED' ? Colors.green.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
