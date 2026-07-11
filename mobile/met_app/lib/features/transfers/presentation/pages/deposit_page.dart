@@ -48,7 +48,11 @@ class _DepositPageState extends ConsumerState<DepositPage> {
 
     ref.listen(depositProvider, (previous, next) async {
       if (next.paymentUrl != null && next.paymentUrl != previous?.paymentUrl) {
-        final url = Uri.parse(next.paymentUrl!);
+        String urlString = next.paymentUrl!;
+        if (urlString.startsWith('/v1')) {
+          urlString = 'http://localhost:8080/api' + urlString;
+        }
+        final url = Uri.parse(urlString);
         if (await canLaunchUrl(url)) {
           await launchUrl(url, mode: LaunchMode.externalApplication);
           if (mounted) {
