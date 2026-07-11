@@ -14,12 +14,19 @@ import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.LoanSimulationResult;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.AmortizationSchedulePort;
+import com.cooperativa.met.domain.account.model.CoreAccount;
+import com.cooperativa.met.domain.account.model.CoreTransaction;
+import com.cooperativa.met.domain.account.model.TransactionType;
+import com.cooperativa.met.domain.account.model.TransactionStatus;
+import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
+import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
 import com.cooperativa.met.domain.lending.service.FrenchAmortizationCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -33,6 +40,8 @@ public class SubmitPersonalLoanApplicationUseCase {
     private final PersonalLoanApplicationPort applicationPort;
     private final AmortizationSchedulePort schedulePort;
     private final ComplianceCheckPort complianceCheckPort;
+    private final CoreAccountRepositoryPort accountRepository;
+    private final CoreTransactionRepositoryPort transactionRepository;
     private final LendingMapper mapper;
 
     @Transactional
@@ -58,6 +67,13 @@ public class SubmitPersonalLoanApplicationUseCase {
             }
         }
 
+        // Capa 3: Motor de Riesgo (Filtro Externo simulado - DataCrédito/TransUnion)
+        int simulatedRiskScore = (int) (Math.random() * 1000); // 0 to 1000
+        if (simulatedRiskScore < 600) {
+            throw new BusinessRuleException("RISK_SCORE_LOW", 
+                    "Tu solicitud ha sido rechazada por nuestro motor de riesgo (Score: " + simulatedRiskScore + ").");
+        }
+
         LoanSimulationResult simulation = FrenchAmortizationCalculator.simulate(
                 request.amount(),
                 request.termMonths(),
@@ -76,7 +92,7 @@ public class SubmitPersonalLoanApplicationUseCase {
                 .totalInterest(simulation.getTotalInterest())
                 .totalPayment(simulation.getTotalPayment())
                 .purpose(request.purpose())
-                .status(LoanApplicationStatus.SUBMITTED)
+                .status(LoanApplicationStatus.APPROVED) // Aprobado automáticamente
                 .submittedAt(Instant.now())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -88,6 +104,28 @@ public class SubmitPersonalLoanApplicationUseCase {
                 applicationId,
                 simulation.getSchedule()
         );
+
+        // Capa 1: Desembolso automático descontando el "Fondo de Garantías" (15.000 COP)
+        BigDecimal fondoGarantias = new BigDecimal("15000.00");
+        BigDecimal netDisbursement = request.amount().subtract(fondoGarantias);
+
+        CoreAccount account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessRuleException("NO_ACCOUNT", "El usuario no tiene billetera virtual para desembolsar"));
+        
+        CoreAccount updatedAccount = account.creditPrincipal(netDisbursement);
+        accountRepository.save(updatedAccount);
+
+        CoreTransaction disbursementTx = CoreTransaction.builder()
+                .id(UUID.randomUUID())
+                .sourceAccountId(updatedAccount.getId())
+                .destinationAccountId(updatedAccount.getId())
+                .type(TransactionType.DEPOSIT)
+                .status(TransactionStatus.COMPLETED)
+                .amount(netDisbursement)
+                .concept("Desembolso Préstamo (Neto de FGA: -$15,000)")
+                .createdAt(Instant.now())
+                .build();
+        transactionRepository.save(disbursementTx);
 
         return mapper.toResponse(saved, schedule);
     }

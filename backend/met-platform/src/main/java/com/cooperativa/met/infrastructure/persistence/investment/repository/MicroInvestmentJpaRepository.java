@@ -20,4 +20,6 @@ public interface MicroInvestmentJpaRepository extends JpaRepository<MicroInvestm
     List<MicroInvestmentJpaEntity> findMaturingOnOrBefore(
             @Param("fecha") LocalDate fecha,
             @Param("estado") String estado);
+
+    List<MicroInvestmentJpaEntity> findByEstado(String estado);
 }

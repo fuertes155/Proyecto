@@ -9,6 +9,9 @@ import com.cooperativa.met.application.account.usecase.GetMyAccountUseCase;
 import com.cooperativa.met.application.account.usecase.VerifyRecipientUseCase;
 import com.cooperativa.met.application.account.usecase.RequestTransferOtpUseCase;
 import com.cooperativa.met.application.account.usecase.DepositUseCase;
+import com.cooperativa.met.application.account.usecase.GeneratePseLinkUseCase;
+import com.cooperativa.met.application.account.dto.GeneratePseLinkRequest;
+import com.cooperativa.met.application.account.dto.GeneratePseLinkResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,7 @@ public class CoreAccountController {
     private final ExecuteTransferUseCase executeTransferUseCase;
     private final RequestTransferOtpUseCase requestTransferOtpUseCase;
     private final DepositUseCase depositUseCase;
+    private final GeneratePseLinkUseCase generatePseLinkUseCase;
 
     private UUID getAuthenticatedUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -66,5 +70,10 @@ public class CoreAccountController {
     public ResponseEntity<Void> deposit(@Valid @RequestBody DepositRequest request) {
         depositUseCase.execute(getAuthenticatedUserId(), request);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/deposit-pse")
+    public ResponseEntity<GeneratePseLinkResponse> generatePseLink(@Valid @RequestBody GeneratePseLinkRequest request) {
+        return ResponseEntity.ok(generatePseLinkUseCase.execute(getAuthenticatedUserId(), request));
     }
 }

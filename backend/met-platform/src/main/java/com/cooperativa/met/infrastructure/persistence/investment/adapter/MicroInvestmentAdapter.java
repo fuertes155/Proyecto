@@ -49,6 +49,12 @@ public class MicroInvestmentAdapter implements MicroInvestmentPort {
                 .map(this::toDomain).collect(Collectors.toList());
     }
 
+    @Override
+    public List<MicroInvestment> findByStatus(InvestmentStatus status) {
+        return jpaRepository.findByEstado(status.name()).stream()
+                .map(this::toDomain).collect(Collectors.toList());
+    }
+
     private MicroInvestment toDomain(MicroInvestmentJpaEntity e) {
         return MicroInvestment.builder()
                 .id(e.getId())

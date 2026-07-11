@@ -20,4 +20,6 @@ public interface MicroInvestmentPort {
 
     /** Retorna todas las posiciones ACTIVE cuya fecha_vencimiento <= hoy (para maduración). */
     List<MicroInvestment> findMaturingOnOrBefore(LocalDate date, InvestmentStatus status);
+
+    List<MicroInvestment> findByStatus(InvestmentStatus status);
 }
