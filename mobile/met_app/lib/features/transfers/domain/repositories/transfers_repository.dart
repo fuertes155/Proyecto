@@ -9,4 +9,5 @@ abstract class TransfersRepository {
   Future<void> executeTransfer(TransferRequestModel request);
   Future<void> requestTransferOtp();
   Future<void> deposit(DepositRequestModel request);
+  Future<String> generatePseLink(double amount, String returnUrl);
 }

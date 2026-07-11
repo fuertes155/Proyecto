@@ -27,7 +27,7 @@ class FrenchAmortizationCalculatorTest {
         assertEquals(new BigDecimal("94559.60"), result.getMonthlyPayment());
         
         // Verificamos que la última cuota deja el saldo en exactamente CERO
-        assertEquals(BigDecimal.ZERO, result.getSchedule().getLast().getRemainingBalance());
+        assertEquals(BigDecimal.ZERO, result.getSchedule().get(result.getSchedule().size() - 1).getRemainingBalance());
     }
 
     @Test

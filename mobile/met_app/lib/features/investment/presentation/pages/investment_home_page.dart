@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/models/investment_models.dart';
 import '../providers/investment_providers.dart';
+import '../widgets/royalty_clock_widget.dart';
 
 /// Pantalla principal de inversiones.
 /// Muestra instrumentos disponibles, portfolios activos y botón para invertir.
@@ -47,7 +48,7 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
         slivers: [
           // ── Header con gradiente ──────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 180,
+            expandedHeight: 400, // Increased height to fit clock
             pinned: true,
             
             flexibleSpace: FlexibleSpaceBar(
@@ -89,6 +90,8 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
                         ),
                       ],
                     ),
+                    const SizedBox(height: 24),
+                    const RoyaltyClockWidget(),
                   ],
                 ),
               ),

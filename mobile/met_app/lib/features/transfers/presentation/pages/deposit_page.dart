@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/deposit_provider.dart';
 
 class DepositPage extends ConsumerStatefulWidget {
@@ -44,6 +45,37 @@ class _DepositPageState extends ConsumerState<DepositPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(depositProvider);
+
+    ref.listen(depositProvider, (previous, next) async {
+      if (next.paymentUrl != null && next.paymentUrl != previous?.paymentUrl) {
+        final url = Uri.parse(next.paymentUrl!);
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+          if (mounted) {
+            context.push('/deposit/waiting', extra: {
+              'method': widget.method,
+              'amount': next.amount,
+            });
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No se pudo abrir el enlace de pago')),
+            );
+          }
+        }
+      } else if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+      } else if (next.isSuccess && next.isSuccess != previous?.isSuccess) {
+        // Go straight to home or show success since we didn't go to waiting page
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Depósito exitoso')),
+        );
+        context.go('/home');
+      }
+    });
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8), // Light grey background
@@ -195,11 +227,15 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                         height: 56,
                         child: ElevatedButton(
                           onPressed: state.amount > 0 ? () {
-                            // Navigate to waiting screen (Simulating Webhook flow)
-                            context.push('/deposit/waiting', extra: {
-                              'method': widget.method,
-                              'amount': state.amount,
-                            });
+                            if (widget.method.toUpperCase() == 'PSE') {
+                              ref.read(depositProvider.notifier).submitDeposit('dummy_phone');
+                            } else {
+                              // Simulate standard flow if not PSE
+                              context.push('/deposit/waiting', extra: {
+                                'method': widget.method,
+                                'amount': state.amount,
+                              });
+                            }
                           } : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFE8E8E8), // Light grey when disabled/normal
@@ -215,8 +251,10 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                               return const Color(0xFFE8E8E8); // Still grey as per screenshot
                             }),
                           ),
-                          child: const Text(
-                            'DEPÓSITO',
+                          child: state.isLoading 
+                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator())
+                            : const Text(
+                                'DEPÓSITO',
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.2,

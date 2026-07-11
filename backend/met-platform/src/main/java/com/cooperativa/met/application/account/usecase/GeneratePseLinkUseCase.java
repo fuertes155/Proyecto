@@ -28,9 +28,19 @@ public class GeneratePseLinkUseCase {
             throw new BusinessRuleException("DEP_ERR_03", "Tu cuenta no está activa");
         }
 
-        // Mock Wompi/Bold PSE link generation
+        // Mock Wompi/Bold PSE link generation (Local Simulator)
         String mockTransactionId = UUID.randomUUID().toString();
-        String mockPaymentUrl = "https://mock.wompi.co/v1/payment/" + mockTransactionId + "?amount=" + request.getAmount() + "&userId=" + userId;
+        String encodedReturnUrl = "";
+        try {
+            if (request.getReturnUrl() != null) {
+                encodedReturnUrl = java.net.URLEncoder.encode(request.getReturnUrl(), java.nio.charset.StandardCharsets.UTF_8.toString());
+            }
+        } catch (Exception e) {}
+        
+        String mockPaymentUrl = "/v1/mock-payment-gateway?transactionId=" + mockTransactionId + 
+                                "&amount=" + request.getAmount() + 
+                                "&userId=" + userId + 
+                                "&returnUrl=" + encodedReturnUrl;
 
         return GeneratePseLinkResponse.builder()
                 .paymentUrl(mockPaymentUrl)

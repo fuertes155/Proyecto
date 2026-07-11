@@ -11,6 +11,7 @@ class DepositState {
     this.isLoading = false,
     this.error,
     this.isSuccess = false,
+    this.paymentUrl,
   });
 
   final double amount;
@@ -19,6 +20,7 @@ class DepositState {
   final bool isLoading;
   final String? error;
   final bool isSuccess;
+  final String? paymentUrl;
 
   DepositState copyWith({
     double? amount,
@@ -27,6 +29,7 @@ class DepositState {
     bool? isLoading,
     String? error,
     bool? isSuccess,
+    String? paymentUrl,
   }) {
     return DepositState(
       amount: amount ?? this.amount,
@@ -35,6 +38,7 @@ class DepositState {
       isLoading: isLoading ?? this.isLoading,
       error: error,
       isSuccess: isSuccess ?? this.isSuccess,
+      paymentUrl: paymentUrl ?? this.paymentUrl,
     );
   }
 }
@@ -76,16 +80,21 @@ class DepositNotifier extends StateNotifier<DepositState> {
     try {
       final repository = ref.read(transfersRepositoryProvider);
       
-      await repository.deposit(DepositRequestModel(
-        amount: state.amount,
-        method: state.method,
-        reference: 'APP-DEP-\${DateTime.now().millisecondsSinceEpoch}',
-      ));
+      if (state.method.toUpperCase() == 'PSE') {
+        final url = await repository.generatePseLink(state.amount, 'metapp://deposit/success');
+        state = state.copyWith(isLoading: false, paymentUrl: url);
+      } else {
+        await repository.deposit(DepositRequestModel(
+          amount: state.amount,
+          method: state.method,
+          reference: 'APP-DEP-\${DateTime.now().millisecondsSinceEpoch}',
+        ));
 
-      // Refresh account balance
-      ref.invalidate(myAccountProvider);
-      
-      state = state.copyWith(isLoading: false, isSuccess: true);
+        // Refresh account balance
+        ref.invalidate(myAccountProvider);
+        
+        state = state.copyWith(isLoading: false, isSuccess: true);
+      }
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';
       state = state.copyWith(isLoading: false, error: msg);

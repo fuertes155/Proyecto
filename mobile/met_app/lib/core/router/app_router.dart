@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/pages/home_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/biometric_registration_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/email_verification_page.dart';
 import '../../features/auth/presentation/pages/profile_page.dart';
@@ -40,6 +41,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (context, state) => const SplashPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
+      GoRoute(path: '/biometric-registration', builder: (context, state) => const BiometricRegistrationPage()),
       GoRoute(
         path: '/verify-email',
         builder: (context, state) {

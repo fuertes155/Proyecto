@@ -1,10 +1,11 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
-import 'package:intl/intl.dart';
-
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/accessible_button.dart';
 import '../../data/datasources/loan_remote_datasource.dart';
@@ -20,31 +21,28 @@ class LoanSimulationPage extends ConsumerStatefulWidget {
 
 class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController(text: '5000000');
   final _purposeController = TextEditingController();
+  
+  double _amount = 5000000;
   int _termMonths = 24;
-  double _annualRate = 0.24;
+  final double _annualRate = 0.24;
   bool _isSubmitting = false;
 
   @override
   void dispose() {
-    _amountController.dispose();
     _purposeController.dispose();
     super.dispose();
   }
 
-  Future<void> _simulate() async {
-    if (!_formKey.currentState!.validate()) return;
-    await ref.read(loanSimulationProvider.notifier).simulate(
-          SimulateLoanRequest(
-            amount: double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')),
-            termMonths: _termMonths,
-            annualInterestRate: _annualRate,
-          ),
-        );
+  double get _monthlyPayment {
+    final r = _annualRate / 12;
+    if (r == 0) return _amount / _termMonths;
+    final num = _amount * r * math.pow(1 + r, _termMonths);
+    final den = math.pow(1 + r, _termMonths) - 1;
+    return num / den;
   }
 
-  Future<void> _submitApplication() async {
+  Future<void> _simulateAndApply() async {
     if (_purposeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Indica el propósito del préstamo')),
@@ -55,7 +53,7 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
     try {
       final app = await ref.read(loanRemoteDataSourceProvider).submitApplication(
             SubmitLoanApplicationRequest(
-              amount: double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')),
+              amount: _amount,
               termMonths: _termMonths,
               annualInterestRate: _annualRate,
               purpose: _purposeController.text.trim(),
@@ -63,11 +61,11 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Solicitud enviada correctamente')),
+        const SnackBar(content: Text('¡Solicitud enviada correctamente!')),
       );
-      context.push('/loans/applications/${app.id}');
+      context.push('/loans/applications/\${app.id}');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('\$e')));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -75,184 +73,207 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final simulation = ref.watch(loanSimulationProvider);
-
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Simular préstamo'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.list_alt),
-            tooltip: 'Mis solicitudes',
-            onPressed: () => context.push('/loans/applications'),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextFormField(
-                  controller: _amountController,
-                  decoration: const InputDecoration(
-                    labelText: 'Monto a solicitar',
-                    prefixText: '\$ ',
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 280,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [const Color(0xFF1E3C72), const Color(0xFF2A5298)],
                   ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    _CurrencyInputFormatter(),
-                  ],
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Requerido';
-                    final cleanValue = v.replaceAll(RegExp(r'[^0-9]'), '');
-                    final val = double.tryParse(cleanValue);
-                    if (val == null || val < 500000) return 'Mínimo \$500.000';
-                    if (val > 50000000) return 'Máximo \$50.000.000';
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
-                  value: _termMonths,
-                  decoration: const InputDecoration(labelText: 'Plazo (meses)'),
-                  items: const [6, 12, 18, 24, 36, 48, 60]
-                      .map((m) => DropdownMenuItem(value: m, child: Text('$m meses')))
-                      .toList(),
-                  onChanged: (v) => setState(() => _termMonths = v ?? 24),
-                ),
-                const SizedBox(height: 16),
-                Text('Tasa EA: ${(_annualRate * 100).toStringAsFixed(1)}%'),
-                Slider(
-                  value: _annualRate,
-                  min: 0.12,
-                  max: 0.36,
-                  divisions: 12,
-                  label: '${(_annualRate * 100).toStringAsFixed(1)}%',
-                  onChanged: (v) => setState(() => _annualRate = v),
-                ),
-                const SizedBox(height: 16),
-                AccessibleButton(label: 'Simular', onPressed: _simulate),
-                const SizedBox(height: 24),
-                simulation.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Text('Error: $e'),
-                  data: (result) {
-                    if (result == null) return const SizedBox.shrink();
-                    return _SimulationResult(
-                      result: result,
-                      purposeController: _purposeController,
-                      isSubmitting: _isSubmitting,
-                      onSubmit: _submitApplication,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CurrencyInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.isEmpty) return newValue;
-    final value = double.tryParse(newValue.text.replaceAll(RegExp(r'[^0-9]'), ''));
-    if (value == null) return newValue;
-    final formatter = NumberFormat.currency(locale: 'es_CO', symbol: '', decimalDigits: 0);
-    final formatted = formatter.format(value).trim();
-    return newValue.copyWith(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
-}
-
-class _SimulationResult extends StatelessWidget {
-  const _SimulationResult({
-    required this.result,
-    required this.purposeController,
-    required this.isSubmitting,
-    required this.onSubmit,
-  });
-
-  final LoanSimulationResult result;
-  final TextEditingController purposeController;
-  final bool isSubmitting;
-  final VoidCallback onSubmit;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Resultado de la simulación',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 16),
-            _SummaryRow('Cuota mensual', formatCop(result.monthlyPayment)),
-            _SummaryRow('Total intereses', formatCop(result.totalInterest)),
-            _SummaryRow('Total a pagar', formatCop(result.totalPayment)),
-            const SizedBox(height: 16),
-            const Text('Tabla de amortización (sistema francés)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            ...result.schedule.take(3).map(
-                  (i) => ListTile(
-                    dense: true,
-                    title: Text('Cuota ${i.installmentNumber}: ${formatCop(i.paymentAmount)}'),
-                    subtitle: Text(
-                      'Capital: ${formatCop(i.principalAmount)} · Interés: ${formatCop(i.interestAmount)}',
+                padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Calcula tu Préstamo',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Encuentra la cuota ideal para ti',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Cuota estimada', style: TextStyle(color: Colors.white70)),
+                              const SizedBox(height: 4),
+                              Text(
+                                formatCop(_monthlyPayment),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const Text('Tasa EA', style: TextStyle(color: Colors.white70)),
+                              const SizedBox(height: 4),
+                              Text(
+                                '\${(_annualRate * 100).toStringAsFixed(1)}%',
+                                style: const TextStyle(
+                                  color: Colors.greenAccent,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn().slideY(begin: 0.2),
+                  ],
                 ),
-            if (result.schedule.length > 3)
-              Text('... y ${result.schedule.length - 3} cuotas más',
-                  style: TextStyle(color: Colors.grey.shade700)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: purposeController,
-              decoration: const InputDecoration(
-                labelText: 'Propósito del préstamo',
-                hintText: 'Ej: Mejoras en vivienda',
               ),
             ),
-            const SizedBox(height: 16),
-            AccessibleButton(
-              label: 'Solicitar préstamo',
-              isLoading: isSubmitting,
-              onPressed: onSubmit,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.list_alt, color: Colors.white),
+                tooltip: 'Mis solicitudes',
+                onPressed: () => context.push('/loans/applications'),
+              ),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '¿Cuánto dinero necesitas?',
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: Text(
+                        formatCop(_amount),
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: AppTheme.primaryColor,
+                        inactiveTrackColor: AppTheme.primaryColor.withOpacity(0.2),
+                        thumbColor: AppTheme.primaryColor,
+                        overlayColor: AppTheme.primaryColor.withOpacity(0.1),
+                        trackHeight: 8,
+                      ),
+                      child: Slider(
+                        value: _amount,
+                        min: 500000,
+                        max: 50000000,
+                        divisions: 99,
+                        onChanged: (v) => setState(() => _amount = (v / 10000).round() * 10000),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(formatCop(500000), style: theme.textTheme.bodySmall),
+                        Text(formatCop(50000000), style: theme.textTheme.bodySmall),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    Text(
+                      '¿En cuánto tiempo quieres pagarlo?',
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: Text(
+                        '\$_termMonths meses',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: theme.colorScheme.secondary,
+                        inactiveTrackColor: theme.colorScheme.secondary.withOpacity(0.2),
+                        thumbColor: theme.colorScheme.secondary,
+                        trackHeight: 8,
+                      ),
+                      child: Slider(
+                        value: _termMonths.toDouble(),
+                        min: 6,
+                        max: 60,
+                        divisions: 54,
+                        onChanged: (v) => setState(() => _termMonths = v.toInt()),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('6 meses', style: theme.textTheme.bodySmall),
+                        Text('60 meses', style: theme.textTheme.bodySmall),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 32),
+                    TextFormField(
+                      controller: _purposeController,
+                      decoration: InputDecoration(
+                        labelText: 'Propósito del préstamo',
+                        hintText: 'Ej: Remodelación, Viaje, Estudio...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 48),
+                    AccessibleButton(
+                      label: 'Solicitar Préstamo',
+                      isLoading: _isSubmitting,
+                      onPressed: _simulateAndApply,
+                    ).animate(delay: 200.ms).fadeIn().scale(),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow(this.label, this.value);
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          ),
         ],
       ),
     );

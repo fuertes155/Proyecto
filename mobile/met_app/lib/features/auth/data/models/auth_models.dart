@@ -83,6 +83,7 @@ class UserResponse {
     required this.email,
     required this.phone,
     required this.status,
+    required this.kycStatus,
     required this.emailNotificationsEnabled,
     required this.pushNotificationsEnabled,
   });
@@ -95,6 +96,7 @@ class UserResponse {
       email: json['email'] as String,
       phone: json['phone'] as String? ?? '',
       status: json['status'] as String,
+      kycStatus: json['kycStatus'] as String? ?? 'PENDING',
       emailNotificationsEnabled: json['emailNotificationsEnabled'] as bool? ?? true,
       pushNotificationsEnabled: json['pushNotificationsEnabled'] as bool? ?? true,
     );
@@ -106,6 +108,7 @@ class UserResponse {
   final String email;
   final String phone;
   final String status;
+  final String kycStatus;
   final bool emailNotificationsEnabled;
   final bool pushNotificationsEnabled;
 

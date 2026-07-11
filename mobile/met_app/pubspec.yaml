@@ -22,6 +22,8 @@ dependencies:
   fl_chart: ^1.2.0
   flutter_animate: ^4.5.2
   flutter_jailbreak_detection: ^1.10.0
+  image_picker: ^1.2.2
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

@@ -478,7 +478,11 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
       return;
     }
     if (state.hasValue && state.value != null) {
-      context.go('/home');
+      if (state.value!.kycStatus == 'PENDING') {
+        context.go('/biometric-registration');
+      } else {
+        context.go('/home');
+      }
     }
   }
 
@@ -543,7 +547,11 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
         return;
       }
       if (state.hasValue && state.value != null) {
-        context.go('/home');
+        if (state.value!.kycStatus == 'PENDING') {
+          context.go('/biometric-registration');
+        } else {
+          context.go('/home');
+        }
       }
     } on PlatformException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

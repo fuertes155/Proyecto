@@ -23,7 +23,7 @@ class InstallmentPlanCalculatorTest {
                 LocalDate.of(2026, 6, 1)
         );
         assertEquals(6, plan.size());
-        assertEquals(1, plan.getFirst().getInstallmentNumber());
-        assertEquals(6, plan.getLast().getInstallmentNumber());
+        assertEquals(1, plan.get(0).getInstallmentNumber());
+        assertEquals(6, plan.get(plan.size() - 1).getInstallmentNumber());
     }
 }

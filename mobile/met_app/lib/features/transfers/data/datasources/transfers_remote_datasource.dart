@@ -32,4 +32,14 @@ class TransfersRemoteDataSource {
   Future<void> deposit(DepositRequestModel request) async {
     await _dio.post('/v1/accounts/deposit', data: request.toJson());
   }
+
+  Future<String> generatePseLink(double amount, String returnUrl) async {
+    final response = await _dio.post('/v1/accounts/deposit-pse', data: {
+      'amount': amount,
+      'returnUrl': returnUrl,
+    });
+    final url = response.data['paymentUrl'] as String;
+    if (url.startsWith('http')) return url;
+    return '\${_dio.options.baseUrl}\$url';
+  }
 }

@@ -34,4 +34,9 @@ class TransfersRepositoryImpl implements TransfersRepository {
   Future<void> deposit(DepositRequestModel request) async {
     return _remoteDataSource.deposit(request);
   }
+
+  @override
+  Future<String> generatePseLink(double amount, String returnUrl) async {
+    return _remoteDataSource.generatePseLink(amount, returnUrl);
+  }
 }
