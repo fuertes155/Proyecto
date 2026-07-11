@@ -5,7 +5,7 @@ COPY pom.xml ./pom.xml
 COPY met-platform/pom.xml ./met-platform/pom.xml
 COPY met-platform/src ./met-platform/src
 
-RUN mvn -f pom.xml -pl met-platform -am package -DskipTests
+RUN mvn -f pom.xml -pl met-platform -am package -Dmaven.test.skip=true
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
