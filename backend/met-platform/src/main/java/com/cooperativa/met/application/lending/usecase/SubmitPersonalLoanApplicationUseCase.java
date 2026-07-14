@@ -60,7 +60,7 @@ public class SubmitPersonalLoanApplicationUseCase {
 
         for (ComplianceListType listType : ComplianceListType.values()) {
             ComplianceResult result = complianceCheckPort.checkUser(userId, listType);
-            complianceCheckPort.persistCheck(userId, listType, result, "LOAN_APPLICATION");
+            complianceCheckPort.persistCheck(userId, listType, result, "{\"context\": \"LOAN_APPLICATION\"}");
             if (result == ComplianceResult.MATCH) {
                 throw new BusinessRuleException("COMPLIANCE_MATCH",
                         "No es posible solicitar préstamo: lista restrictiva " + listType);
@@ -72,6 +72,16 @@ public class SubmitPersonalLoanApplicationUseCase {
         if (simulatedRiskScore < 600) {
             throw new BusinessRuleException("RISK_SCORE_LOW", 
                     "Tu solicitud ha sido rechazada por nuestro motor de riesgo (Score: " + simulatedRiskScore + ").");
+        }
+
+        // Capa 4: Validación de Saldo (Ahorro)
+        CoreAccount account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessRuleException("NO_ACCOUNT", "El usuario no tiene billetera virtual para validar el saldo"));
+        
+        BigDecimal maxLoanAmount = account.getPrincipalBalance().multiply(new BigDecimal("10"));
+        if (request.amount().compareTo(maxLoanAmount) > 0) {
+            throw new BusinessRuleException("MAX_LOAN_EXCEEDED", 
+                    "El monto solicitado excede tu límite. Puedes pedir máximo 10 veces tu saldo actual.");
         }
 
         LoanSimulationResult simulation = FrenchAmortizationCalculator.simulate(
@@ -92,7 +102,7 @@ public class SubmitPersonalLoanApplicationUseCase {
                 .totalInterest(simulation.getTotalInterest())
                 .totalPayment(simulation.getTotalPayment())
                 .purpose(request.purpose())
-                .status(LoanApplicationStatus.APPROVED) // Aprobado automáticamente
+                .status(LoanApplicationStatus.IN_REVIEW) // Pasa a revisión manual
                 .submittedAt(Instant.now())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -104,28 +114,6 @@ public class SubmitPersonalLoanApplicationUseCase {
                 applicationId,
                 simulation.getSchedule()
         );
-
-        // Capa 1: Desembolso automático descontando el "Fondo de Garantías" (15.000 COP)
-        BigDecimal fondoGarantias = new BigDecimal("15000.00");
-        BigDecimal netDisbursement = request.amount().subtract(fondoGarantias);
-
-        CoreAccount account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessRuleException("NO_ACCOUNT", "El usuario no tiene billetera virtual para desembolsar"));
-        
-        CoreAccount updatedAccount = account.creditPrincipal(netDisbursement);
-        accountRepository.save(updatedAccount);
-
-        CoreTransaction disbursementTx = CoreTransaction.builder()
-                .id(UUID.randomUUID())
-                .sourceAccountId(updatedAccount.getId())
-                .destinationAccountId(updatedAccount.getId())
-                .type(TransactionType.DEPOSIT)
-                .status(TransactionStatus.COMPLETED)
-                .amount(netDisbursement)
-                .concept("Desembolso Préstamo (Neto de FGA: -$15,000)")
-                .createdAt(Instant.now())
-                .build();
-        transactionRepository.save(disbursementTx);
 
         return mapper.toResponse(saved, schedule);
     }

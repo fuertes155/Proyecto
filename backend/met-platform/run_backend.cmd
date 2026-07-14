@@ -3,16 +3,29 @@ REM ==========================================
 REM = WARNING: DEV ONLY. DO NOT USE IN PROD! =
 REM ==========================================
 setlocal DisableDelayedExpansion
-set "JAVA_HOME=C:\Users\Samuel\.vscode\extensions\redhat.java-1.54.0-win32-x64\jre\21.0.10-win32-x86_64"
-set "DB_HOST=127.0.0.1"
-set "DB_PORT=5433"
-set "DB_NAME=met"
-set "DB_USER=met"
-set "DB_PASSWORD=MetDev2026Secure"
-set "JWT_SECRET=super_secret_jwt_key_that_is_at_least_256_bits_long!"
-set "AES_KEY=met-dev-aes-key-32-chars-long!!!"
-set "SPRING_PROFILES_ACTIVE=dev"
-set "REDIS_PASSWORD=RedisDev2026Secure"
-set "CORS_ORIGINS=*"
-set "GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE"
-"C:\Users\Samuel\.m2\wrapper\dists\apache-maven-3.9.15\0226a00282e400185496f3b60ec5a3f029cbdc6893912937d4876d57695224e1\bin\mvn.cmd" spring-boot:run
+
+REM Cargar variables de entorno desde el archivo .env
+if exist ".env" (
+    echo Cargando variables desde el archivo .env...
+    for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
+        set "%%a=%%b"
+    )
+) else (
+    echo Advertencia: No se encontro el archivo .env. Asegurate de que las variables requeridas esten configuradas.
+)
+
+REM Verificar que JAVA_HOME este configurado
+if "%JAVA_HOME%"=="" (
+    echo Error: La variable de entorno JAVA_HOME no esta configurada en el sistema.
+    echo Por favor, configura JAVA_HOME para que apunte a tu instalacion del JDK.
+    exit /b 1
+)
+
+REM Ejecutar Spring Boot (Usa mvnw si existe, o mvn del sistema en caso contrario)
+if exist "mvnw.cmd" (
+    echo Usando Maven Wrapper del proyecto...
+    call mvnw.cmd spring-boot:run
+) else (
+    echo Usando Maven del sistema...
+    call mvn spring-boot:run
+)

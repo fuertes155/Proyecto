@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/admin_business_provider.dart';
 
@@ -45,10 +46,44 @@ class LoansPage extends ConsumerWidget {
                   title: Text('Préstamo ID: ${loan.id}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                   subtitle: Text('Solicitante: ${user.firstName} ${user.lastName}\nCC: ${user.documentNumber}'),
                   isThreeLine: true,
-                  trailing: Chip(
-                    label: Text(loan.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                    backgroundColor: loan.status == 'APPROVED' ? Colors.green.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
-                    side: BorderSide.none,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Chip(
+                        label: Text(loan.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                        backgroundColor: loan.status == 'APPROVED' ? Colors.green.withOpacity(0.2) : (loan.status == 'REJECTED' ? Colors.red.withOpacity(0.2) : Colors.orange.withOpacity(0.2)),
+                        side: BorderSide.none,
+                      ),
+                      if (loan.status == 'IN_REVIEW' || loan.status == 'PENDING') ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.check_circle, color: Colors.green),
+                          tooltip: 'Aprobar',
+                          onPressed: () async {
+                            final dio = ref.read(adminApiClientProvider);
+                            try {
+                              await dio.put('/loans/${loan.id}/status?status=APPROVED');
+                              ref.invalidate(loansProvider);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.cancel, color: Colors.red),
+                          tooltip: 'Rechazar',
+                          onPressed: () async {
+                            final dio = ref.read(adminApiClientProvider);
+                            try {
+                              await dio.put('/loans/${loan.id}/status?status=REJECTED');
+                              ref.invalidate(loansProvider);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                            }
+                          },
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               );

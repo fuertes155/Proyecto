@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/error_mapper.dart';
 import '../../../../core/widgets/accessible_button.dart';
 import '../../data/datasources/loan_remote_datasource.dart';
 import '../../data/models/loan_models.dart';
@@ -63,9 +65,9 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('¡Solicitud enviada correctamente!')),
       );
-      context.push('/loans/applications/\${app.id}');
+      context.push('/loans/applications/${app.id}');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('\$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ErrorMapper.toUserMessage(e)), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -80,18 +82,18 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 320,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [const Color(0xFF1E3C72), const Color(0xFF2A5298)],
+                    colors: [AppTheme.primaryColorLight, AppTheme.primaryColor],
                   ),
                 ),
-                padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
+                padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -141,9 +143,9 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
                               const Text('Tasa EA', style: TextStyle(color: Colors.white70)),
                               const SizedBox(height: 4),
                               Text(
-                                '\${(_annualRate * 100).toStringAsFixed(1)}%',
+                                '${(_annualRate * 100).toStringAsFixed(1)}%',
                                 style: const TextStyle(
-                                  color: Colors.greenAccent,
+                                  color: Colors.white,
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -219,18 +221,19 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
                     const SizedBox(height: 16),
                     Center(
                       child: Text(
-                        '\$_termMonths meses',
+                        '$_termMonths meses',
                         style: theme.textTheme.headlineMedium?.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: theme.colorScheme.secondary,
-                        inactiveTrackColor: theme.colorScheme.secondary.withOpacity(0.2),
-                        thumbColor: theme.colorScheme.secondary,
+                        activeTrackColor: AppTheme.primaryColor,
+                        inactiveTrackColor: AppTheme.primaryColor.withOpacity(0.2),
+                        thumbColor: AppTheme.primaryColor,
+                        overlayColor: AppTheme.primaryColor.withOpacity(0.1),
                         trackHeight: 8,
                       ),
                       child: Slider(

@@ -3,10 +3,23 @@ spring:
     show-sql: true
   flyway:
     enabled: true
+  # En dev: deshabilitar el health check de mail para que el actuator no falle
+  # cuando las credenciales SMTP no están configuradas
+  mail:
+    test-connection: false
 
 logging:
   level:
     com.cooperativa.met: DEBUG
+    # Silenciar el error de mail en dev (no es crítico para desarrollo local)
+    org.springframework.mail: WARN
+
+management:
+  health:
+    mail:
+      # Deshabilitado en dev — evita que el actuator/health devuelva DOWN
+      # cuando no hay credenciales SMTP configuradas
+      enabled: false
 
 met:
   security:
