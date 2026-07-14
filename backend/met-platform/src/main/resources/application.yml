@@ -64,7 +64,7 @@ met:
     gemini:
       api-key: ${GEMINI_API_KEY}
   cors:
-    allowed-origins: ${CORS_ORIGINS:*}
+    allowed-origins: ${CORS_ORIGINS}
   compliance:
     entity-code: ${COMPLIANCE_ENTITY_CODE:COOP001}
     storage-path: ${COMPLIANCE_STORAGE_PATH:./data/regulatory-reports}

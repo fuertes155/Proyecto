@@ -32,7 +32,6 @@ import '../../features/investment/presentation/pages/create_portfolio_page.dart'
 import '../../features/investment/presentation/pages/portfolio_detail_page.dart';
 import 'package:met/features/support/presentation/pages/chat_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
-import '../../features/transfers/presentation/pages/transfer_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(

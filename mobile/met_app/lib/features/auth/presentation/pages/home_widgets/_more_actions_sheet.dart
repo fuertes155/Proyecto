@@ -18,12 +18,6 @@ class MoreActionsSheet {
               runSpacing: 12,
               children: [
                 SheetActionTile(
-                  icon: Icons.savings_outlined,
-                  title: 'Ahorro',
-                  subtitle: 'Programado',
-                  onTap: () => context.push('/savings/scheduled'),
-                ),
-                SheetActionTile(
                   icon: Icons.handshake_outlined,
                   title: 'Solidaridad',
                   subtitle: 'Grupos',

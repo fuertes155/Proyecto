@@ -104,25 +104,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                         ).animate(delay: 600.ms).fade(),
                         const SizedBox(height: 16),
                         _FeatureCard(
-                          icon: Icons.savings_outlined,
-                          title: 'Ahorro programado',
-                          subtitle: 'Configura aportes automáticos',
-                          onTap: () => context.push('/savings/scheduled'),
-                        ).animate(delay: 700.ms).fade().slideX(begin: 0.1),
-                        const SizedBox(height: 12),
-                        _FeatureCard(
-                          icon: Icons.handshake_outlined,
-                          title: 'Ahorro solidario',
-                          subtitle: 'Micropréstamos entre asociados',
-                          onTap: () => context.push('/solidarity'),
-                        ).animate(delay: 800.ms).fade().slideX(begin: 0.1),
-                        const SizedBox(height: 12),
-                        _FeatureCard(
                           icon: Icons.calculate_outlined,
                           title: 'Simular préstamo',
                           subtitle: 'Calcula cuotas y solicita',
                           onTap: () => context.push('/loans/simulate'),
-                        ).animate(delay: 900.ms).fade().slideX(begin: 0.1),
+                        ).animate(delay: 700.ms).fade().slideX(begin: 0.1),
 
                         const SizedBox(height: 32),
                         AccessibleButton(
@@ -273,9 +259,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               _BottomNavItem(
                 icon: Icons.credit_card,
-                label: 'Ahorros',
+                label: 'Inversiones',
                 isActive: activeIndex == 2,
-                onTap: () => context.push('/savings/scheduled'),
+                onTap: () => context.push('/investment'),
               ),
               _BottomNavItem(
                 icon: Icons.person_outline,

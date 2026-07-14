@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/utils/error_mapper.dart';
 
 class PinRecoveryRequestPage extends ConsumerStatefulWidget {
   const PinRecoveryRequestPage({super.key});
@@ -44,7 +45,10 @@ class _PinRecoveryRequestPageState extends ConsumerState<PinRecoveryRequestPage>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(ErrorMapper.toUserMessage(e)),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {

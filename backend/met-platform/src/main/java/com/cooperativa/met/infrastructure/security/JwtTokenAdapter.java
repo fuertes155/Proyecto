@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Component;
@@ -23,6 +24,16 @@ import lombok.RequiredArgsConstructor;
 public class JwtTokenAdapter implements TokenPort {
 
     private final MetSecurityProperties securityProperties;
+
+    /** SecretKey cacheada al arrancar — evita recrearla en cada request JWT */
+    private SecretKey cachedSecretKey;
+
+    @PostConstruct
+    void init() {
+        byte[] keyBytes = securityProperties.getJwt().getSecret()
+                .getBytes(StandardCharsets.UTF_8);
+        this.cachedSecretKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     @Override
     public String generateAccessToken(UUID userId, String email) {
@@ -56,7 +67,7 @@ public class JwtTokenAdapter implements TokenPort {
                 .claim("type", "access")
                 .claim("role", role)
                 .claim("username", username)
-                .signWith(secretKey())
+                .signWith(cachedSecretKey)
                 .compact();
     }
 
@@ -119,7 +130,7 @@ public class JwtTokenAdapter implements TokenPort {
         if (email != null) {
             builder.claim("email", email);
         }
-        return builder.signWith(secretKey()).compact();
+        return builder.signWith(cachedSecretKey).compact();
     }
 
     private String buildToken(UUID userId, String email, Instant issuedAt, Instant expiry, String type) {
@@ -129,17 +140,12 @@ public class JwtTokenAdapter implements TokenPort {
     private Claims parseClaims(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(secretKey())
+                    .verifyWith(cachedSecretKey)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (Exception ex) {
             throw new BusinessRuleException("INVALID_TOKEN", "Token inválido o expirado");
         }
-    }
-
-    private SecretKey secretKey() {
-        byte[] keyBytes = securityProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

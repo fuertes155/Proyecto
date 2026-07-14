@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: backend
-          image: met/backend:latest
+          image: met/backend:1.0.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           envFrom:

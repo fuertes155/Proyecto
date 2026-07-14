@@ -164,27 +164,14 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     }
 
     private boolean isEnabled() {
-        return (Boolean) readField("enabled", Boolean.class, DEFAULT_ENABLED);
+        return props != null && props.isEnabled();
     }
 
     private int maxRequests() {
-        return (Integer) readField("maxRequests", Integer.class, DEFAULT_MAX_REQUESTS);
+        return props != null ? props.getMaxRequests() : DEFAULT_MAX_REQUESTS;
     }
 
     private long windowSeconds() {
-        return (Long) readField("windowSeconds", Long.class, DEFAULT_WINDOW_SECONDS);
-    }
-
-    private Object readField(String fieldName, Class<?> type, Object defaultValue) {
-        try {
-            var field = RateLimitProperties.class.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            Object value = field.get(props);
-            if (value == null) return defaultValue;
-            if (!type.isInstance(value)) return defaultValue;
-            return value;
-        } catch (Exception e) {
-            return defaultValue;
-        }
+        return props != null ? props.getWindowSeconds() : DEFAULT_WINDOW_SECONDS;
     }
 }

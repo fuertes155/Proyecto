@@ -13,8 +13,7 @@ public class MockPaymentGatewayController {
     public String renderGateway(
             @RequestParam("transactionId") String transactionId,
             @RequestParam("amount") String amount,
-            @RequestParam("userId") String userId,
-            @RequestParam(value = "returnUrl", required = false, defaultValue = "") String returnUrl) {
+            @RequestParam("userId") String userId) {
 
         return """
             <!DOCTYPE html>
@@ -22,69 +21,69 @@ public class MockPaymentGatewayController {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Mock Wompi / PSE Gateway</title>
+                <title>Pasarela PSE Simulada</title>
                 <style>
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
                     body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                        background-color: #f4f6f8;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        background: linear-gradient(135deg, #1a237e 0%%, #0d47a1 100%%);
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        height: 100vh;
-                        margin: 0;
+                        min-height: 100vh;
                     }
                     .card {
                         background: white;
-                        border-radius: 12px;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                        padding: 32px;
-                        width: 100%;
-                        max-width: 400px;
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                        padding: 40px 32px;
+                        width: 100%%;
+                        max-width: 420px;
                         text-align: center;
                     }
-                    h1 {
-                        color: #1a237e;
-                        font-size: 24px;
-                        margin-bottom: 24px;
+                    .logo { font-size: 12px; color: #888; margin-bottom: 12px; letter-spacing: 2px; text-transform: uppercase; }
+                    h1 { color: #1a237e; font-size: 22px; margin-bottom: 8px; }
+                    .subtitle { color: #666; font-size: 14px; margin-bottom: 28px; }
+                    .amount-box {
+                        background: #f0f4ff;
+                        border-radius: 12px;
+                        padding: 20px;
+                        margin-bottom: 12px;
                     }
-                    .amount {
-                        font-size: 32px;
-                        font-weight: bold;
-                        color: #333;
-                        margin-bottom: 32px;
-                    }
+                    .amount-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+                    .amount { font-size: 36px; font-weight: 800; color: #1a237e; }
+                    .info { font-size: 11px; color: #bbb; margin-bottom: 28px; word-break: break-all; }
                     .btn {
-                        background-color: #0044ff;
+                        background: linear-gradient(135deg, #0044ff, #0033cc);
                         color: white;
                         border: none;
-                        border-radius: 6px;
+                        border-radius: 10px;
                         padding: 16px 24px;
                         font-size: 16px;
                         font-weight: bold;
-                        width: 100%;
+                        width: 100%%;
                         cursor: pointer;
-                        transition: background-color 0.2s;
+                        transition: all 0.2s;
+                        letter-spacing: 0.5px;
                     }
-                    .btn:hover {
-                        background-color: #0033cc;
-                    }
-                    .btn:disabled {
-                        background-color: #cccccc;
-                        cursor: not-allowed;
-                    }
-                    #status {
-                        margin-top: 16px;
-                        color: #666;
-                        font-size: 14px;
-                    }
+                    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,68,255,0.4); }
+                    .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+                    #status { margin-top: 16px; font-size: 14px; color: #666; min-height: 20px; }
+                    .success { color: #2e7d32; font-weight: bold; }
+                    .error { color: #c62828; }
                 </style>
             </head>
             <body>
                 <div class="card">
-                    <h1>Pasarela de Pago Simulada</h1>
-                    <p>Estás a punto de pagar con PSE</p>
-                    <div class="amount">$ %s</div>
-                    <button class="btn" id="payButton" onclick="processPayment()">Confirmar Pago (MOCK)</button>
+                    <div class="logo">🏦 Entidad Bancaria PSE</div>
+                    <h1>Pasarela de Pago</h1>
+                    <p class="subtitle">Autorización de débito PSE simulado</p>
+                    <div class="amount-box">
+                        <div class="amount-label">Monto a pagar</div>
+                        <div class="amount">$ %s</div>
+                    </div>
+                    <p class="info">Transacción: %s</p>
+                    <button class="btn" id="payButton" onclick="processPayment()">✓ Confirmar Pago</button>
                     <div id="status"></div>
                 </div>
 
@@ -94,8 +93,8 @@ public class MockPaymentGatewayController {
                         const status = document.getElementById('status');
                         
                         btn.disabled = true;
-                        btn.innerText = "Procesando...";
-                        status.innerText = "Simulando autorización con tu banco...";
+                        btn.innerText = 'Procesando...';
+                        status.innerText = 'Simulando autorización bancaria...';
 
                         const payload = {
                             event: "transaction.updated",
@@ -107,44 +106,32 @@ public class MockPaymentGatewayController {
                             }
                         };
 
-                        // Send Webhook to Backend
-                        fetch('/v1/webhooks/payment', {
+                        fetch('/api/v1/webhooks/payment', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         })
                         .then(response => {
                             if (response.ok) {
-                                status.innerText = "Pago Aprobado. Redirigiendo...";
-                                status.style.color = "green";
-                                setTimeout(() => {
-                                    const returnUrl = "%s";
-                                    if (returnUrl) {
-                                        window.location.href = returnUrl;
-                                    } else {
-                                        status.innerText = "Pago completado. Puedes cerrar esta ventana.";
-                                    }
-                                }, 1500);
+                                btn.innerText = '✓ Pago Aprobado';
+                                btn.style.background = 'linear-gradient(135deg, #2e7d32, #1b5e20)';
+                                status.innerHTML = '<span class="success">✓ Pago confirmado exitosamente. Ya puedes cerrar esta ventana.</span>';
                             } else {
-                                status.innerText = "Error procesando webhook.";
-                                status.style.color = "red";
+                                status.innerHTML = '<span class="error">✗ Error procesando el pago. Intenta de nuevo.</span>';
                                 btn.disabled = false;
-                                btn.innerText = "Intentar de nuevo";
+                                btn.innerText = 'Reintentar';
                             }
                         })
                         .catch(err => {
                             console.error(err);
-                            status.innerText = "Error de red.";
-                            status.style.color = "red";
+                            status.innerHTML = '<span class="error">✗ Error de red. Intenta de nuevo.</span>';
                             btn.disabled = false;
-                            btn.innerText = "Intentar de nuevo";
+                            btn.innerText = 'Reintentar';
                         });
                     }
                 </script>
             </body>
             </html>
-            """.formatted(amount, transactionId, amount, userId, returnUrl);
+            """.formatted(amount, transactionId, transactionId, amount, userId);
     }
 }

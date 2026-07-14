@@ -40,6 +40,10 @@ class TransfersRemoteDataSource {
     });
     final url = response.data['paymentUrl'] as String;
     if (url.startsWith('http')) return url;
-    return '\${_dio.options.baseUrl}\$url';
+    // baseUrl = 'http://localhost:8080/api', url starts with '/v1'
+    final base = _dio.options.baseUrl.endsWith('/')
+        ? _dio.options.baseUrl.substring(0, _dio.options.baseUrl.length - 1)
+        : _dio.options.baseUrl;
+    return '$base$url';
   }
 }

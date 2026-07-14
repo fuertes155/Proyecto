@@ -45,7 +45,7 @@ public class RegisterUserUseCase {
                 .lastName(request.lastName())
                 .pinHash(encryptionPort.hashPin(request.pin()))
                 .status(UserStatus.PENDING_VERIFICATION)
-                .kycStatus(KycStatus.APPROVED)
+                .kycStatus(KycStatus.PENDING)
                 .termsAccepted(request.termsAccepted())
                 .termsAcceptedAt(Instant.now())
                 .createdAt(Instant.now())

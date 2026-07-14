@@ -30,17 +30,12 @@ public class GeneratePseLinkUseCase {
 
         // Mock Wompi/Bold PSE link generation (Local Simulator)
         String mockTransactionId = UUID.randomUUID().toString();
-        String encodedReturnUrl = "";
-        try {
-            if (request.getReturnUrl() != null) {
-                encodedReturnUrl = java.net.URLEncoder.encode(request.getReturnUrl(), java.nio.charset.StandardCharsets.UTF_8.toString());
-            }
-        } catch (Exception e) {}
-        
-        String mockPaymentUrl = "/v1/mock-payment-gateway?transactionId=" + mockTransactionId + 
-                                "&amount=" + request.getAmount() + 
-                                "&userId=" + userId + 
-                                "&returnUrl=" + encodedReturnUrl;
+        // Note: returnUrl is NOT passed as a query param to avoid Spring parsing issues with
+        // special characters (e.g. ':' encoded as %3A triggers BAD_REQUEST).
+        // The gateway page will close itself after confirming payment.
+        String mockPaymentUrl = "/v1/mock-payment-gateway?transactionId=" + mockTransactionId +
+                                "&amount=" + request.getAmount() +
+                                "&userId=" + userId;
 
         return GeneratePseLinkResponse.builder()
                 .paymentUrl(mockPaymentUrl)

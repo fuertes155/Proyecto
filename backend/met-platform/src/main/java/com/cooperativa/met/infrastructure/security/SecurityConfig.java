@@ -68,8 +68,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/loans/simulate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/support/chat").permitAll()
+                        // Simulador de pasarela de pagos (se abre en navegador sin token)
+                        .requestMatchers("/v1/mock-payment-gateway").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/webhook/payment/**").permitAll()
                         // Login público del admin
                         .requestMatchers(HttpMethod.POST, "/v1/admin/auth/login").permitAll()
+                        // Swagger UI (solo disponible en perfil dev gracias a @Profile en OpenApiConfig)
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Rutas admin — requieren rol ADMIN o SUPER_ADMIN
                         .requestMatchers("/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .anyRequest().authenticated()

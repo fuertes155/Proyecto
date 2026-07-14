@@ -48,23 +48,19 @@ class _DepositPageState extends ConsumerState<DepositPage> {
 
     ref.listen(depositProvider, (previous, next) async {
       if (next.paymentUrl != null && next.paymentUrl != previous?.paymentUrl) {
-        String urlString = next.paymentUrl!;
-        if (urlString.startsWith('/v1')) {
-          urlString = 'http://localhost:8080/api' + urlString;
-        }
-        final url = Uri.parse(urlString);
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
+        final url = Uri.parse(next.paymentUrl!);
+        try {
+          await launchUrl(url, mode: LaunchMode.platformDefault);
           if (mounted) {
             context.push('/deposit/waiting', extra: {
               'method': widget.method,
               'amount': next.amount,
             });
           }
-        } else {
+        } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No se pudo abrir el enlace de pago')),
+              SnackBar(content: Text('No se pudo abrir el enlace de pago: $e')),
             );
           }
         }
