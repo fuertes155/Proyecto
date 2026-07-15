@@ -8,7 +8,6 @@ import com.cooperativa.met.domain.account.model.CoreTransaction;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
-import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;

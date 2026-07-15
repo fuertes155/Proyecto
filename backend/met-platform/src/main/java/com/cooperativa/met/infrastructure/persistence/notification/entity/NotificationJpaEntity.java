@@ -1,7 +1,6 @@
 package com.cooperativa.met.infrastructure.persistence.notification.entity;
 
 import com.cooperativa.met.domain.notification.model.Notification;
-import com.cooperativa.met.infrastructure.persistence.identity.entity.UserJpaEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

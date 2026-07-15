@@ -79,3 +79,9 @@ logging:
   level:
     com.cooperativa.met: INFO
     org.springframework.security: WARN
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
