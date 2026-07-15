@@ -1,13 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/deposit_request_model.dart';
 import 'transfers_provider.dart';
 
+/// Estado del flujo de depósito.
 class DepositState {
   DepositState({
     this.amount = 0.0,
     this.method = '',
-    this.phoneNumber = '',
     this.isLoading = false,
     this.error,
     this.isSuccess = false,
@@ -16,29 +15,29 @@ class DepositState {
 
   final double amount;
   final String method;
-  final String phoneNumber;
   final bool isLoading;
   final String? error;
   final bool isSuccess;
+
+  /// URL del checkout de Wompi — cuando se establece, la UI navega al WebView.
   final String? paymentUrl;
 
   DepositState copyWith({
     double? amount,
     String? method,
-    String? phoneNumber,
     bool? isLoading,
     String? error,
     bool? isSuccess,
     String? paymentUrl,
+    bool clearPaymentUrl = false,
   }) {
     return DepositState(
       amount: amount ?? this.amount,
       method: method ?? this.method,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       isSuccess: isSuccess ?? this.isSuccess,
-      paymentUrl: paymentUrl ?? this.paymentUrl,
+      paymentUrl: clearPaymentUrl ? null : (paymentUrl ?? this.paymentUrl),
     );
   }
 }
@@ -56,51 +55,42 @@ class DepositNotifier extends StateNotifier<DepositState> {
     state = state.copyWith(amount: amount, error: null);
   }
 
-  void setPhoneNumber(String phone) {
-    state = state.copyWith(phoneNumber: phone, error: null);
-  }
-
-  Future<void> simulateWaitingNequi() async {
-    // We will just set loading state, UI will show waiting screen.
-    state = state.copyWith(isLoading: true, error: null);
-  }
-
-  Future<void> submitDeposit(String phone) async {
+  /// Inicia el depósito para cualquier método de pago soportado por Wompi.
+  ///
+  /// Todos los métodos (Nequi, PSE, Bre-B, tarjetas) pasan por el checkout
+  /// de Wompi — el usuario elige el método dentro de la pasarela.
+  ///
+  /// El parámetro [method] se usa solo para el concepto de la transacción.
+  Future<void> submitDeposit(String method) async {
     if (state.amount <= 0) {
       state = state.copyWith(error: 'El monto debe ser mayor a 0');
       return;
     }
-    if (state.method.isEmpty) {
-      state = state.copyWith(error: 'Método inválido');
-      return;
-    }
 
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, clearPaymentUrl: true);
 
     try {
       final repository = ref.read(transfersRepositoryProvider);
-      
-      if (state.method.toUpperCase() == 'PSE') {
-        final url = await repository.generatePseLink(state.amount, 'metapp://deposit/success');
-        state = state.copyWith(isLoading: false, paymentUrl: url);
-      } else {
-        await repository.deposit(DepositRequestModel(
-          amount: state.amount,
-          method: state.method,
-          reference: 'APP-DEP-\${DateTime.now().millisecondsSinceEpoch}',
-        ));
 
-        // Refresh account balance
-        ref.invalidate(myAccountProvider);
-        
-        state = state.copyWith(isLoading: false, isSuccess: true);
-      }
+      // Todos los métodos de depósito generan un link de Wompi Checkout
+      final url = await repository.generatePseLink(
+        state.amount,
+        'metapp://deposit/success',
+      );
+
+      state = state.copyWith(isLoading: false, paymentUrl: url);
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';
       state = state.copyWith(isLoading: false, error: msg);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Ocurrió un error inesperado: \$e');
+      state = state.copyWith(isLoading: false, error: 'Ocurrió un error inesperado: $e');
     }
+  }
+
+  /// Marca el depósito como exitoso (llamado desde el WebView al confirmar el pago).
+  void markSuccess() {
+    state = state.copyWith(isLoading: false, isSuccess: true, clearPaymentUrl: true);
+    ref.invalidate(myAccountProvider);
   }
 
   void reset() {

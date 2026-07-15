@@ -70,7 +70,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/support/chat").permitAll()
                         // Simulador de pasarela de pagos (se abre en navegador sin token)
                         .requestMatchers("/v1/mock-payment-gateway").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/v1/webhook/payment/**").permitAll()
+                        // Webhooks de Wompi — no llevan JWT, la seguridad es por firma HMAC
+                        .requestMatchers(HttpMethod.POST, "/v1/webhooks/payment").permitAll()
+                        // Webhook simulado para desarrollo local (MockPaymentGateway)
+                        .requestMatchers(HttpMethod.POST, "/v1/webhooks/mock-payment").permitAll()
                         // Login público del admin
                         .requestMatchers(HttpMethod.POST, "/v1/admin/auth/login").permitAll()
                         // Swagger UI (solo disponible en perfil dev gracias a @Profile en OpenApiConfig)

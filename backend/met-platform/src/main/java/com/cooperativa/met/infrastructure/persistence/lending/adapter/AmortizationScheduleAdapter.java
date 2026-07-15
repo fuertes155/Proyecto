@@ -31,6 +31,8 @@ public class AmortizationScheduleAdapter implements AmortizationSchedulePort {
                             .interestAmount(i.getInterestAmount())
                             .remainingBalance(i.getRemainingBalance())
                             .dueDate(i.getDueDate())
+                            .penaltyInterestAmount(i.getPenaltyInterestAmount() != null ? i.getPenaltyInterestAmount() : java.math.BigDecimal.ZERO)
+                            .status(i.getStatus() != null ? i.getStatus() : "PENDING")
                             .build();
                     return mapper.toEntity(withAppId);
                 })
@@ -41,6 +43,12 @@ public class AmortizationScheduleAdapter implements AmortizationSchedulePort {
     @Override
     public List<AmortizationInstallment> findByApplicationId(UUID applicationId) {
         return repository.findByApplicationIdOrderByInstallmentNumberAsc(applicationId).stream()
+                .map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<AmortizationInstallment> findPendingInstallmentsByDueDateBeforeOrEqual(java.time.LocalDate date) {
+        return repository.findPendingInstallmentsByDueDateBeforeOrEqual(date).stream()
                 .map(mapper::toDomain).toList();
     }
 }

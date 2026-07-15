@@ -12,6 +12,8 @@ public interface PersonalLoanApplicationJpaRepository extends JpaRepository<Pers
 
     List<PersonalLoanApplicationJpaEntity> findByUserIdOrderBySubmittedAtDesc(UUID userId);
 
+    List<PersonalLoanApplicationJpaEntity> findByStatusOrderBySubmittedAtAsc(LoanApplicationStatus status);
+
     Optional<PersonalLoanApplicationJpaEntity> findByIdAndUserId(UUID id, UUID userId);
 
     boolean existsByUserIdAndStatusIn(UUID userId, List<LoanApplicationStatus> statuses);

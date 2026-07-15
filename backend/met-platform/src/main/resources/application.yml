@@ -74,6 +74,19 @@ met:
     max-requests: ${RATE_LIMIT_MAX_REQUESTS:10}
     # Ventana de tiempo en segundos (60 = 10 intentos por minuto por IP)
     window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:60}
+  wompi:
+    # Credenciales del comercio - obtenerlas en dashboard.wompi.co
+    # En sandbox usar las llaves de prueba (pub_test_*, prv_test_*)
+    public-key: ${WOMPI_PUBLIC_KEY:pub_test_REPLACE_ME}
+    private-key: ${WOMPI_PRIVATE_KEY:prv_test_REPLACE_ME}
+    # Secret de integridad (para calcular el hash SHA-256 del link de pago)
+    integrity-secret: ${WOMPI_INTEGRITY_SECRET:test_integrity_REPLACE_ME}
+    # Secret para validar firmas de webhooks entrantes de Wompi
+    webhook-secret: ${WOMPI_WEBHOOK_SECRET:test_webhook_REPLACE_ME}
+    # URL base de la API REST de Wompi
+    api-url: ${WOMPI_API_URL:https://sandbox.wompi.co/v1}
+    # URL base del checkout Wompi (donde el usuario completa el pago)
+    checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
 
 logging:
   level:

@@ -80,4 +80,7 @@ public class UserJpaEntity {
 
     @Column(name = "last_known_ip", length = 45)
     private String lastKnownIp;
+
+    @Column(name = "payment_card_token", length = 255)
+    private String paymentCardToken;
 }

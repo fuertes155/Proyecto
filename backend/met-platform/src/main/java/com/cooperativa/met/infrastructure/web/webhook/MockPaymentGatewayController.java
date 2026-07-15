@@ -106,7 +106,7 @@ public class MockPaymentGatewayController {
                             }
                         };
 
-                        fetch('/api/v1/webhooks/payment', {
+                        fetch('/api/v1/webhooks/mock-payment', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)

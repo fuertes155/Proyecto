@@ -52,6 +52,12 @@ public class PersonalLoanApplicationAdapter implements PersonalLoanApplicationPo
     }
 
     @Override
+    public List<PersonalLoanApplication> findByStatus(LoanApplicationStatus status) {
+        return repository.findByStatusOrderBySubmittedAtAsc(status).stream()
+                .map(mapper::toDomain).toList();
+    }
+
+    @Override
     public boolean hasPendingApplication(UUID userId) {
         return repository.existsByUserIdAndStatusIn(userId, PENDING_STATUSES);
     }

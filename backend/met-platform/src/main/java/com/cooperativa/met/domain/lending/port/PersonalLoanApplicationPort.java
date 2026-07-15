@@ -18,5 +18,7 @@ public interface PersonalLoanApplicationPort {
 
     List<PersonalLoanApplication> findAll();
 
+    List<PersonalLoanApplication> findByStatus(com.cooperativa.met.domain.lending.model.LoanApplicationStatus status);
+
     boolean hasPendingApplication(UUID userId);
 }

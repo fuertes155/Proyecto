@@ -31,6 +31,23 @@ class LoanApplicationDetailPage extends ConsumerWidget {
               _Row('Cuota mensual', formatCop(app.monthlyPayment)),
               _Row('Total a pagar', formatCop(app.totalPayment)),
               _Row('Plazo', '${app.termMonths} meses'),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (c) => AlertDialog(
+                      title: const Text('Contrato Protegido'),
+                      content: const Text('El mandato de descuento ha sido firmado electrónicamente. Su hash SHA-256 está custodiado en el backend como prueba inmutable de aceptación.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c), child: const Text('Cerrar')),
+                      ],
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.picture_as_pdf),
+                label: const Text('Ver Mandato Firmado'),
+              ),
               const SizedBox(height: 24),
               const Text('Plan de amortización',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),

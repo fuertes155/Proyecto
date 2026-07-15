@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
+import com.cooperativa.met.application.investment.usecase.DistributeDepositUseCase;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class DepositUseCase {
 
     private final CoreAccountRepositoryPort accountRepository;
     private final CoreTransactionRepositoryPort transactionRepository;
+    private final DistributeDepositUseCase distributeDepositUseCase;
 
     @Transactional
     public void execute(UUID userId, DepositRequest request) {
@@ -53,5 +55,8 @@ public class DepositUseCase {
                 .build();
 
         transactionRepository.save(transaction);
+
+        // 4. Fraccionar y emparejar la inversión automáticamente
+        distributeDepositUseCase.execute(updatedAccount.getId(), transaction.getId(), request.getAmount());
     }
 }

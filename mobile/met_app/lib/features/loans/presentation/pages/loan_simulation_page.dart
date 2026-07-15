@@ -11,6 +11,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/error_mapper.dart';
 import '../../../../core/widgets/accessible_button.dart';
 import '../../data/datasources/loan_remote_datasource.dart';
+import '../../data/datasources/legal_remote_datasource.dart';
 import '../../data/models/loan_models.dart';
 import '../providers/loan_provider.dart';
 
@@ -53,6 +54,22 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
     }
     setState(() => _isSubmitting = true);
     try {
+      // 1. Solicitar Firma (OTP)
+      final txId = await ref.read(legalRemoteDataSourceProvider).requestSignature();
+      
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+
+      // 2. Mostrar Diálogo OTP
+      final otp = await _showOtpDialog();
+      if (otp == null || otp.isEmpty) return; // User cancelled
+
+      setState(() => _isSubmitting = true);
+
+      // 3. Confirmar Firma
+      await ref.read(legalRemoteDataSourceProvider).confirmSignature(txId, otp);
+
+      // 4. Crear Préstamo
       final app = await ref.read(loanRemoteDataSourceProvider).submitApplication(
             SubmitLoanApplicationRequest(
               amount: _amount,
@@ -63,7 +80,7 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('¡Solicitud enviada correctamente!')),
+        const SnackBar(content: Text('¡Solicitud y firma procesadas exitosamente!')),
       );
       context.push('/loans/applications/${app.id}');
     } catch (e) {
@@ -71,6 +88,45 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  Future<String?> _showOtpDialog() async {
+    final otpController = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Firma de Mandato Legal'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Hemos enviado un código OTP a tu correo registrado para firmar electrónicamente el mandato de descuento de cuotas.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: otpController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: const InputDecoration(
+                  labelText: 'Código OTP (6 dígitos)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(null),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(otpController.text),
+              child: const Text('Firmar y Continuar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

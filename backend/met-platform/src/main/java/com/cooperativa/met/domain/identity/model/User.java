@@ -29,6 +29,7 @@ public class User {
     private final Instant createdAt;
     private final Instant updatedAt;
     private final String lastKnownIp;
+    private final String paymentCardToken;
 
     public User withPinHash(String newPinHash) {
         return this.toBuilder().pinHash(newPinHash).updatedAt(Instant.now()).build();
@@ -60,5 +61,9 @@ public class User {
     
     public User withLastKnownIp(String ip) {
         return this.toBuilder().lastKnownIp(ip).updatedAt(Instant.now()).build();
+    }
+
+    public User withPaymentCardToken(String token) {
+        return this.toBuilder().paymentCardToken(token).updatedAt(Instant.now()).build();
     }
 }

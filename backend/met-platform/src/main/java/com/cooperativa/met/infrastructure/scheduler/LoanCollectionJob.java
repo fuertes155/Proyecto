@@ -17,9 +17,9 @@ public class LoanCollectionJob {
 
     private final ProcessLoanCollectionsUseCase processLoanCollectionsUseCase;
 
-    @Scheduled(cron = "0 0 6 * * *", zone = "America/Bogota")
+    @Scheduled(cron = "0 1 0 * * *", zone = "America/Bogota")
     public void processCollections() {
-        log.info("[CRON] Iniciando La Cobradora (6:00 AM)...");
+        log.info("[CRON] Iniciando La Cobradora (00:01 AM)...");
         processLoanCollectionsUseCase.execute();
         log.info("[CRON] La Cobradora finalizó sus tareas de gestión de cobro.");
     }

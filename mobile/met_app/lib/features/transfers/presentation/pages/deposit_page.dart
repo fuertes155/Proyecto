@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../providers/deposit_provider.dart';
 
 class DepositPage extends ConsumerStatefulWidget {
@@ -48,21 +47,13 @@ class _DepositPageState extends ConsumerState<DepositPage> {
 
     ref.listen(depositProvider, (previous, next) async {
       if (next.paymentUrl != null && next.paymentUrl != previous?.paymentUrl) {
-        final url = Uri.parse(next.paymentUrl!);
-        try {
-          await launchUrl(url, mode: LaunchMode.platformDefault);
-          if (mounted) {
-            context.push('/deposit/waiting', extra: {
-              'method': widget.method,
-              'amount': next.amount,
-            });
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('No se pudo abrir el enlace de pago: $e')),
-            );
-          }
+        // Navegar al WebView embebido en lugar de abrir el navegador externo
+        if (mounted) {
+          context.push('/deposit/webview', extra: {
+            'paymentUrl': next.paymentUrl!,
+            'method': widget.method,
+            'amount': next.amount,
+          });
         }
       } else if (next.error != null && next.error != previous?.error) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -226,48 +217,11 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: state.amount > 0 ? () async {
-                            if (widget.method.toUpperCase() == 'PSE') {
-                              ref.read(depositProvider.notifier).submitDeposit('dummy_phone');
-                            } else if (widget.method.toUpperCase() == 'WOMPI') {
-                              // Simular pasarela segura y envío de Webhook
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Pasarela Wompi', style: TextStyle(color: Color(0xFF0033A0))),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const CircularProgressIndicator(),
-                                      const SizedBox(height: 16),
-                                      Text('Procesando pago de \$${state.amount} COP...'),
-                                      const SizedBox(height: 8),
-                                      const Text('Generando firma HMAC SHA-256...', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                                    ],
-                                  ),
-                                ),
-                              );
-                              
-                              await Future.delayed(const Duration(seconds: 3));
-                              Navigator.pop(context); // Close dialog
-                              
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Pago Exitoso. Webhook enviado al backend con firma criptográfica.')),
-                              );
-                              
-                              // Optionally submit to our backend deposit to actually reflect balance
-                              ref.read(depositProvider.notifier).submitDeposit('wompi_simulated');
-                            } else {
-                              // Simulate standard flow if not PSE or Wompi
-                              context.push('/deposit/waiting', extra: {
-                                'method': widget.method,
-                                'amount': state.amount,
-                              });
-                            }
-                          } : null,
+                          onPressed: state.amount > 0 && !state.isLoading
+                            ? () => ref.read(depositProvider.notifier).submitDeposit(widget.method)
+                            : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE8E8E8), // Light grey when disabled/normal
+                            backgroundColor: const Color(0xFFE8E8E8),
                             foregroundColor: Colors.black26,
                             disabledBackgroundColor: const Color(0xFFF2F4F7),
                             elevation: 0,
@@ -277,18 +231,18 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                           ).copyWith(
                             backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
                               if (states.contains(WidgetState.disabled)) return const Color(0xFFF2F4F7);
-                              return const Color(0xFFE8E8E8); // Still grey as per screenshot
+                              return const Color(0xFFE8E8E8);
                             }),
                           ),
-                          child: state.isLoading 
+                          child: state.isLoading
                             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator())
                             : const Text(
                                 'DEPÓSITO',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
                         ),
                       ),
                     ],
