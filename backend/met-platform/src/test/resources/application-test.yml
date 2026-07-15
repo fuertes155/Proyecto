@@ -22,6 +22,9 @@ met:
       refresh-expiration-ms: 604800000
     encryption:
       aes-key: test-aes-key-32-characters-long!!
+  ai:
+    gemini:
+      api-key: test-gemini-key
   cors:
     allowed-origins:
       - http://localhost:3000

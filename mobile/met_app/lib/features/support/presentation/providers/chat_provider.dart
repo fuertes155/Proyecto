@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import '../../../core/network/api_client_provider.dart';
+import 'package:met/core/network/api_client_provider.dart';
 
 class ChatMessage {
   final String text;
