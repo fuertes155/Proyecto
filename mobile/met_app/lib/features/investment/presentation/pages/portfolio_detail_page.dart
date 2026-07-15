@@ -73,11 +73,7 @@ class _PortfolioDetailContent extends ConsumerWidget {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [const Color(0xFF1E291E), Theme.of(context).colorScheme.surfaceContainer],
-                  ),
+                  color: Theme.of(context).colorScheme.surface,
                   border: Border.all(
                       color: AppTheme.primaryColor.withOpacity(0.3)),
                 ),

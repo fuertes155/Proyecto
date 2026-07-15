@@ -154,4 +154,45 @@ class ExecuteTransferUseCaseTest {
             
         assertEquals("INACTIVE_ACCOUNT", exception.getCode());
     }
+
+    @Test
+    void execute_failsWhenTransferringToSameAccount() {
+        // Arrange: El destino es la misma cuenta origen
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(true);
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
+        when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(sourceAccount)); // Devuelve la misma cuenta
+
+        // Act & Assert
+        BusinessRuleException exception = assertThrows(BusinessRuleException.class, 
+            () -> executeTransferUseCase.execute(userId, transferRequest));
+            
+        assertEquals("SAME_ACCOUNT", exception.getCode());
+        verify(accountRepository, never()).save(any());
+    }
+
+    @Test
+    void execute_failsWhenAmountIsNegativeOrZero() {
+        // Arrange: Transferir cantidad negativa
+        TransferRequest negativeRequest = new TransferRequest(
+            destAccountId, 
+            new BigDecimal("-5000.00"), 
+            "Pago", 
+            "1234", 
+            "000000"
+        );
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(true);
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
+        when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(destAccount));
+        when(otpService.validateOtp("123456789", "000000")).thenReturn(true);
+
+        // Act & Assert: Debe fallar al hacer debitPrincipal
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+            () -> executeTransferUseCase.execute(userId, negativeRequest));
+            
+        assertEquals("Amount must be greater than zero", exception.getMessage());
+        verify(accountRepository, never()).save(any());
+    }
 }

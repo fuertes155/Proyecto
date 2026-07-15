@@ -48,54 +48,14 @@ class _InvestmentHomePageState extends ConsumerState<InvestmentHomePage>
         slivers: [
           // ── Header con gradiente ──────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 400, // Increased height to fit clock
-            pinned: true,
-            
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [const Color(0xFF1A2E1A), Theme.of(context).scaffoldBackgroundColor],
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(20, 80, 20, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(Icons.trending_up,
-                              color: AppTheme.primaryColor, size: 28),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Mis Inversiones',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    fontWeight: FontWeight.bold)),
-                            Text('Haz crecer tu dinero',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54))),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    const RoyaltyClockWidget(),
-                  ],
-                ),
-              ),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            title: Text(
+              'Mis Inversiones',
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
+            pinned: true,
+            centerTitle: false,
+            elevation: 0,
             bottom: TabBar(
               controller: _tabController,
               labelColor: AppTheme.primaryColor,
@@ -159,9 +119,17 @@ class _InstrumentsTab extends ConsumerWidget {
         }
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: instruments.length,
-          itemBuilder: (_, i) =>
-              _InstrumentCard(instrument: instruments[i], currencyFormat: currencyFormat),
+          itemCount: instruments.length + 1,
+          itemBuilder: (_, i) {
+            if (i == 0) {
+              return const Padding(
+                padding: EdgeInsets.only(bottom: 24),
+                child: RoyaltyClockWidget(),
+              );
+            }
+            return _InstrumentCard(
+                instrument: instruments[i - 1], currencyFormat: currencyFormat);
+          },
         );
       },
     );
@@ -180,11 +148,7 @@ class _InstrumentCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [const Color(0xFF1E291E), Theme.of(context).colorScheme.surfaceContainer],
-        ),
+        color: Theme.of(context).colorScheme.surface,
         border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
       ),
       child: Padding(

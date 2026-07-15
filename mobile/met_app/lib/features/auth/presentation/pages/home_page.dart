@@ -261,7 +261,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 icon: Icons.credit_card,
                 label: 'Inversiones',
                 isActive: activeIndex == 2,
-                onTap: () => context.push('/investment'),
+                onTap: () => context.push('/investments'),
               ),
               _BottomNavItem(
                 icon: Icons.person_outline,
