@@ -40,4 +40,10 @@ public class PersonalLoanAmortizationJpaEntity {
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
+
+    @Column(name = "status", nullable = false, length = 20)
+    private String status; // PENDING, PAID, LATE
+
+    @Column(name = "penalty_interest_amount", precision = 18, scale = 2)
+    private BigDecimal penaltyInterestAmount;
 }

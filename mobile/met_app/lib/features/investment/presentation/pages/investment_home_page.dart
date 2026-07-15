@@ -304,13 +304,7 @@ class _PortfolioCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isActive
-                ? [const Color(0xFF1E291E), Theme.of(context).colorScheme.surfaceContainer]
-                : [const Color(0xFF1A1A1A), const Color(0xFF1A1A1A)],
-          ),
+          color: Theme.of(context).colorScheme.surface,
           border: Border.all(color: accentColor.withOpacity(0.3)),
         ),
         child: Padding(
