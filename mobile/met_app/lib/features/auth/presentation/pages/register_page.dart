@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/widgets/accessible_button.dart';
 import '../../data/models/auth_models.dart';
@@ -68,10 +69,32 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         'documentType': _documentType,
         'documentNumber': _documentController.text.trim(),
       });
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final responseData = e.response?.data;
+      final errorMsg = responseData is Map ? responseData['message']?.toString() : null;
+      final msg = errorMsg ?? e.message ?? e.toString();
+      
+      String friendlyMsg = msg;
+      if (msg.toLowerCase().contains('correo') || msg.toLowerCase().contains('email')) {
+        friendlyMsg = 'Este correo ya tiene dueño. Por favor, usa otro distinto.';
+      } else if (msg.toLowerCase().contains('documento') || msg.toLowerCase().contains('user_already_exists')) {
+        friendlyMsg = 'Este documento ya está registrado.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(friendlyMsg),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
+        SnackBar(
+          content: Text('Error inesperado: $error'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

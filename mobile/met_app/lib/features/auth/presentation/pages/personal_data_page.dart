@@ -31,22 +31,54 @@ class PersonalDataPage extends ConsumerWidget {
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 24),
-            TextFormField(
-              initialValue: user.id,
-              decoration: InputDecoration(
-                labelText: 'ID de Cuenta Principal',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.copy),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: user.id));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ID copiado al portapapeles')),
-                    );
-                  },
+              TextFormField(
+                initialValue: user.id,
+                decoration: InputDecoration(
+                  labelText: 'ID de Cuenta Principal',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: user.id));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('ID copiado al portapapeles')),
+                      );
+                    },
+                  ),
                 ),
+                readOnly: true,
               ),
-              readOnly: true,
-            ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: user.fullName,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre Completo',
+                ),
+                readOnly: true,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: user.email,
+                decoration: const InputDecoration(
+                  labelText: 'Correo Electrónico',
+                ),
+                readOnly: true,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: user.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Número Celular',
+                ),
+                readOnly: true,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: user.status,
+                decoration: const InputDecoration(
+                  labelText: 'Estado de la Cuenta',
+                ),
+                readOnly: true,
+              ),
           ],
         ),
       ),
