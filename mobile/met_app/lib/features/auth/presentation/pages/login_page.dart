@@ -702,33 +702,30 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                         delayMs: 0,
                         child: Center(
                           child: Container(
+                            width: 140,
+                            height: 140,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(32),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF2D4A1E).withOpacity(0.6),
-                                  blurRadius: 32,
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 30,
                                   spreadRadius: 2,
-                                  offset: const Offset(0, 10),
+                                  offset: const Offset(0, 12),
                                 ),
                               ],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(32),
                               child: Image.asset(
                                 'assets/images/logo.png',
-                                width: 130,
-                                height: 130,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    Text(
-                                  'E',
-                                  style: TextStyle(
-                                    fontSize: 120,
-                                    fontWeight: FontWeight.w900,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    letterSpacing: -4,
-                                  ),
+                                    const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.white54,
+                                  size: 40,
                                 ),
                               ),
                             ),
