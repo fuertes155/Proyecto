@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../data/models/investment_models.dart';
+import 'investment_breakdown_page.dart';
 import '../providers/investment_providers.dart';
 
 /// Pantalla de detalle de un portfolio con sus posiciones individuales,
@@ -157,6 +158,32 @@ class _PortfolioDetailContent extends ConsumerWidget {
                 ),
               ),
 
+              // ── Encabezado de posiciones ──────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.pie_chart_outline,
+                        color: AppTheme.primaryColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text('Posiciones',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const InvestmentBreakdownPage()));
+                      },
+                      icon: const Icon(Icons.account_tree, size: 16),
+                      label: const Text('Ver distribución'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              
               // ── Botón cancelar (solo si está ACTIVE) ─────────────────
               if (isActive)
                 Padding(

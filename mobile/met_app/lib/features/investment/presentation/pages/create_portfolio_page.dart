@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../data/models/investment_models.dart';
+import '../widgets/otp_mandate_dialog.dart';
 import '../providers/investment_providers.dart';
 
 /// Pantalla para crear un nuevo portfolio de micro-inversiones.
@@ -50,21 +51,33 @@ class _CreatePortfolioPageState extends ConsumerState<CreatePortfolioPage> {
 
     final strategy = ref.read(selectedStrategyProvider);
 
-    setState(() => _isLoading = true);
-    try {
-      final portfolio = await ref
-          .read(investmentPortfoliosProvider.notifier)
-          .createPortfolio(
-              CreatePortfolioRequest(montoTotal: amount, estrategia: strategy));
+    // Show OTP Dialog first (TEST 3)
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => OtpMandateDialog(
+        onValidSignature: () async {
+          Navigator.pop(context); // Close OTP Dialog
+          
+          setState(() => _isLoading = true);
+          try {
+            final portfolio = await ref
+                .read(investmentPortfoliosProvider.notifier)
+                .createPortfolio(
+                    CreatePortfolioRequest(montoTotal: amount, estrategia: strategy));
 
-      if (mounted) {
-        context.pushReplacement('/investments/portfolio/${portfolio.id}');
-      }
-    } catch (e) {
-      if (mounted) _showError(e.toString());
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+            if (mounted) {
+              context.pushReplacement('/investments/portfolio/${portfolio.id}');
+            }
+          } catch (e) {
+            if (mounted) _showError(e.toString());
+          } finally {
+            if (mounted) setState(() => _isLoading = false);
+          }
+        },
+      ),
+    );
   }
 
   void _showError(String msg) {

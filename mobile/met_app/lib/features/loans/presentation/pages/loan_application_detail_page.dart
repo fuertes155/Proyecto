@@ -35,10 +35,44 @@ class LoanApplicationDetailPage extends ConsumerWidget {
               const Text('Plan de amortización',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
               ...app.schedule.map(
-                (i) => ListTile(
-                  title: Text('Cuota ${i.installmentNumber}: ${formatCop(i.paymentAmount)}'),
-                  subtitle: Text('Vence: ${i.dueDate} · Saldo: ${formatCop(i.remainingBalance)}'),
-                ),
+                (i) {
+                  final isLate = i.status == 'LATE';
+                  
+                  return Card(
+                    color: isLate ? Colors.red.shade50 : null,
+                    shape: isLate ? RoundedRectangleBorder(
+                      side: const BorderSide(color: Colors.red, width: 1.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ) : null,
+                    child: ListTile(
+                      title: Text(
+                        'Cuota ${i.installmentNumber}: ${formatCop(i.paymentAmount)}',
+                        style: TextStyle(
+                          fontWeight: isLate ? FontWeight.bold : FontWeight.normal,
+                          color: isLate ? Colors.red.shade900 : null,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Vence: ${i.dueDate} · Saldo: ${formatCop(i.remainingBalance)}'),
+                          if (isLate) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Interés moratorio: ${formatCop(i.penaltyInterestAmount)} (Tasa de usura)',
+                              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ],
+                        ],
+                      ),
+                      trailing: isLate 
+                          ? const Icon(Icons.warning, color: Colors.red) 
+                          : i.status == 'PAID'
+                              ? const Icon(Icons.check_circle, color: Colors.green)
+                              : null,
+                    ),
+                  );
+                },
               ),
             ],
           ),

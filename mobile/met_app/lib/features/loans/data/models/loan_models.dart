@@ -45,6 +45,8 @@ class AmortizationInstallment {
     required this.interestAmount,
     required this.remainingBalance,
     required this.dueDate,
+    this.status = 'PENDING',
+    this.penaltyInterestAmount = 0.0,
   });
 
   factory AmortizationInstallment.fromJson(Map<String, dynamic> json) {
@@ -55,6 +57,8 @@ class AmortizationInstallment {
       interestAmount: (json['interestAmount'] as num).toDouble(),
       remainingBalance: (json['remainingBalance'] as num).toDouble(),
       dueDate: json['dueDate'] as String,
+      status: json['status'] as String? ?? 'PENDING',
+      penaltyInterestAmount: (json['penaltyInterestAmount'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -64,6 +68,8 @@ class AmortizationInstallment {
   final double interestAmount;
   final double remainingBalance;
   final String dueDate;
+  final String status;
+  final double penaltyInterestAmount;
 }
 
 class LoanSimulationResult {

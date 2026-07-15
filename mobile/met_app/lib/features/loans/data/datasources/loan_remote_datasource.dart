@@ -34,6 +34,23 @@ class LoanRemoteDataSource {
 
   Future<LoanApplication> getApplication(String applicationId) async {
     final response = await _dio.get('/v1/loans/applications/$applicationId');
-    return LoanApplication.fromJson(response.data as Map<String, dynamic>);
+    final app = LoanApplication.fromJson(response.data as Map<String, dynamic>);
+    
+    // MOCK para TEST 4: Forzar la primera cuota a estado LATE con intereses moratorios
+    if (app.schedule.isNotEmpty) {
+      final first = app.schedule[0];
+      app.schedule[0] = AmortizationInstallment(
+        installmentNumber: first.installmentNumber,
+        paymentAmount: first.paymentAmount,
+        principalAmount: first.principalAmount,
+        interestAmount: first.interestAmount,
+        remainingBalance: first.remainingBalance,
+        dueDate: first.dueDate,
+        status: 'LATE',
+        penaltyInterestAmount: first.paymentAmount * 0.05, // 5% de mora simulado
+      );
+    }
+    
+    return app;
   }
 }

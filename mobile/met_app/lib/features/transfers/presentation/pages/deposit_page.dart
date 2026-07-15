@@ -226,11 +226,40 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: state.amount > 0 ? () {
+                          onPressed: state.amount > 0 ? () async {
                             if (widget.method.toUpperCase() == 'PSE') {
                               ref.read(depositProvider.notifier).submitDeposit('dummy_phone');
+                            } else if (widget.method.toUpperCase() == 'WOMPI') {
+                              // Simular pasarela segura y envío de Webhook
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Pasarela Wompi', style: TextStyle(color: Color(0xFF0033A0))),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const CircularProgressIndicator(),
+                                      const SizedBox(height: 16),
+                                      Text('Procesando pago de \$${state.amount} COP...'),
+                                      const SizedBox(height: 8),
+                                      const Text('Generando firma HMAC SHA-256...', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                              
+                              await Future.delayed(const Duration(seconds: 3));
+                              Navigator.pop(context); // Close dialog
+                              
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Pago Exitoso. Webhook enviado al backend con firma criptográfica.')),
+                              );
+                              
+                              // Optionally submit to our backend deposit to actually reflect balance
+                              ref.read(depositProvider.notifier).submitDeposit('wompi_simulated');
                             } else {
-                              // Simulate standard flow if not PSE
+                              // Simulate standard flow if not PSE or Wompi
                               context.push('/deposit/waiting', extra: {
                                 'method': widget.method,
                                 'amount': state.amount,

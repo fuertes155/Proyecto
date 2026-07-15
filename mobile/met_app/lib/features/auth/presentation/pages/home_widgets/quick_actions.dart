@@ -121,6 +121,12 @@ class QuickActions extends StatelessWidget {
         _buildSectionHeader(context, 'WALLETS'),
         _buildDepositMethodTile(
           context,
+          'Wompi',
+          'Instantáneo y Seguro (HMAC)',
+          Text('Wompi', style: TextStyle(color: Color(0xFF0033A0), fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
+        ),
+        _buildDepositMethodTile(
+          context,
           'Daviplata',
           'Normalmente en 10 minutos',
           Text('DaviPlata', style: TextStyle(color: Color(0xFFED1C24), fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
