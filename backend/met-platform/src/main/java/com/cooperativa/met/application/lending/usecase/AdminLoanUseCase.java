@@ -7,6 +7,8 @@ import com.cooperativa.met.domain.account.model.TransactionType;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.admin.model.FeeSchedule;
+import com.cooperativa.met.domain.admin.port.FeeScheduleRepositoryPort;
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
@@ -29,6 +31,7 @@ public class AdminLoanUseCase {
     private final CoreAccountRepositoryPort accountRepository;
     private final CoreTransactionRepositoryPort transactionRepository;
     private final NotificationRepositoryPort notificationRepository;
+    private final FeeScheduleRepositoryPort feeRepository;
 
     public List<PersonalLoanApplication> getAllLoans() {
         return loanApplicationPort.findAll();
@@ -41,7 +44,12 @@ public class AdminLoanUseCase {
 
         // Si se aprueba, realizar el desembolso
         if (status == LoanApplicationStatus.APPROVED && loan.getStatus() != LoanApplicationStatus.APPROVED) {
-            BigDecimal fondoGarantias = new BigDecimal("15000.00");
+            BigDecimal fondoGarantias = feeRepository.findVigentes().stream()
+                .filter(f -> "FONDO_GARANTIAS".equals(f.getTipoTarifa()))
+                .findFirst()
+                .map(FeeSchedule::getValor)
+                .orElse(new BigDecimal("15000.00")); // Fallback seguro
+                
             BigDecimal netDisbursement = loan.getAmount().subtract(fondoGarantias);
 
             CoreAccount account = accountRepository.findByUserId(loan.getUserId())

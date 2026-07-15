@@ -11,10 +11,8 @@ class AppConfig {
       return 'http://localhost:8080/api';
     }
     
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:8080/api';
-    }
-    
-    return 'http://localhost:8080/api';
+    // Si no se define en producción, fallará (lo cual es seguro para evitar que se conecte a un servidor local).
+    // Para compilar la app usa: flutter build apk --dart-define=API_BASE_URL=https://api.tudominio.com
+    return 'http://localhost:8080/api'; // Fallback solo para desarrollo local (Emulator)
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import '../../../core/network/api_client_provider.dart';
 
 class ChatMessage {
   final String text;
@@ -60,7 +61,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
     try {
       final response = await dio.post(
-        '/api/support/chat',
+        '/support/chat', // El baseUrl del apiClient ya incluye '/api'
         data: {'message': text},
       );
 
@@ -115,6 +116,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 }
 
 final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
-  final dio = Dio(BaseOptions(baseUrl: 'http://localhost:8080'));
+  final dio = ref.read(apiClientProvider);
   return ChatNotifier(dio);
 });

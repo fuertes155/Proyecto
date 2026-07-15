@@ -61,10 +61,11 @@ class LoanModel {
   }
 }
 
-// Cliente de API configurado para el Admin
 final adminApiClientProvider = Provider<Dio>((ref) {
+  const baseUrl = String.fromEnvironment('API_URL', defaultValue: 'http://localhost:8080/api/v1/admin');
+  
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://localhost:8080/api/v1/admin',
+    baseUrl: baseUrl,
     connectTimeout: const Duration(seconds: 5),
   ));
   
@@ -91,7 +92,7 @@ final usersProvider = FutureProvider<List<UserModel>>((ref) async {
     return data.map((json) => UserModel.fromJson(json)).toList();
   } catch (e) {
     print('Error fetching users: $e');
-    return [];
+    throw e;
   }
 });
 
@@ -103,7 +104,7 @@ final accountsProvider = FutureProvider<List<AccountModel>>((ref) async {
     return data.map((json) => AccountModel.fromJson(json)).toList();
   } catch (e) {
     print('Error fetching accounts: $e');
-    return [];
+    throw e;
   }
 });
 
@@ -138,7 +139,7 @@ final loansProvider = FutureProvider<List<LoanModel>>((ref) async {
     return data.map((json) => LoanModel.fromJson(json)).toList();
   } catch (e) {
     print('Error fetching loans: $e');
-    return [];
+    throw e;
   }
 });
 
