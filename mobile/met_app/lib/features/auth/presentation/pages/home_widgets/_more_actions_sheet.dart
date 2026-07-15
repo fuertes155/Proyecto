@@ -18,18 +18,6 @@ class MoreActionsSheet {
               runSpacing: 12,
               children: [
                 SheetActionTile(
-                  icon: Icons.handshake_outlined,
-                  title: 'Solidaridad',
-                  subtitle: 'Grupos',
-                  onTap: () => context.push('/solidarity'),
-                ),
-                SheetActionTile(
-                  icon: Icons.calculate_outlined,
-                  title: 'Préstamos',
-                  subtitle: 'Simulación',
-                  onTap: () => context.push('/loans/simulate'),
-                ),
-                SheetActionTile(
                   icon: Icons.description_outlined,
                   title: 'Reportes',
                   subtitle: 'Regulatorios',

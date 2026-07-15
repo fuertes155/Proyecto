@@ -935,20 +935,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               child:
                                   Text('¿No tienes cuenta? Regístrate'),
                             ),
-                            // Acceso Admin (discreto)
-                            const SizedBox(height: 8),
-                            TextButton.icon(
-                              onPressed: () => context.push('/admin/login'),
-                              icon: Icon(Icons.admin_panel_settings_rounded,
-                                  size: 14, color: Color(0xFFCF3232)),
-                              label: Text(
-                                'Acceso Administrador',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFFCF3232),
-                                    fontWeight: FontWeight.w500),
-                              ),
-                            ),
+                            // Acceso admin removido
                           ],
                         ),
                       ),

@@ -64,6 +64,7 @@ public class SecurityConfig {
                         // Rutas públicas de usuarios
                         .requestMatchers(HttpMethod.POST, "/v1/auth/register", "/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/pin-recovery/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/verify-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/biometric").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/loans/simulate").permitAll()

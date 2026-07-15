@@ -46,8 +46,10 @@ class _EmailVerificationPageState extends ConsumerState<EmailVerificationPage> {
         context.go('/login');
       }
     } on DioException catch (e) {
+      final responseData = e.response?.data;
+      final errorMsg = responseData is Map ? responseData['message']?.toString() : null;
       setState(() {
-        _error = e.response?.data?['message'] ?? 'Error al verificar el correo';
+        _error = errorMsg ?? 'Código inválido o expirado';
       });
     } finally {
       if (mounted) {

@@ -297,9 +297,9 @@ class QuickActions extends StatelessWidget {
           onTap: () => _showDepositSheet(context),
         ),
         _QuickAction(
-          icon: Icons.grid_view,
-          label: 'Más',
-          onTap: onTapMore,
+          icon: Icons.description_outlined,
+          label: 'Reportes',
+          onTap: () => context.push('/compliance/reports'),
         ),
       ],
     );
