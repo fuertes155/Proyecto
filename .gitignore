@@ -54,6 +54,7 @@ build_log*.txt
 # JARs compilados en raíz del proyecto
 /backend_app.jar
 /maven.zip
+/apache-maven-3.9.6/
 
 # Scripts temporales de parche (usar carpeta scripts/ documentada)
 /fix_*.py
