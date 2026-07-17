@@ -202,11 +202,11 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                       // Quick Amount Buttons
                       Row(
                         children: [
-                          Expanded(child: _buildAmountButton('20000')),
+                          Expanded(child: _buildAmountButton('20000', '20.000')),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildAmountButton('22000')),
+                          Expanded(child: _buildAmountButton('50000', '50.000')),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildAmountButton('50000')),
+                          Expanded(child: _buildAmountButton('100000', '100.000')),
                         ],
                       ),
                       
@@ -217,28 +217,33 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: state.amount > 0 && !state.isLoading
-                            ? () => ref.read(depositProvider.notifier).submitDeposit(widget.method)
-                            : null,
+                          onPressed: state.isLoading
+                            ? null
+                            : () {
+                                if (state.amount <= 0) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Ingresa un monto para depositar')),
+                                  );
+                                  return;
+                                }
+                                ref.read(depositProvider.notifier).submitDeposit(widget.method);
+                              },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE8E8E8),
-                            foregroundColor: Colors.black26,
-                            disabledBackgroundColor: const Color(0xFFF2F4F7),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                            disabledForegroundColor: Colors.white70,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                          ).copyWith(
-                            backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                              if (states.contains(WidgetState.disabled)) return const Color(0xFFF2F4F7);
-                              return const Color(0xFFE8E8E8);
-                            }),
                           ),
                           child: state.isLoading
-                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator())
+                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                             : const Text(
                                 'DEPÓSITO',
                                 style: TextStyle(
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.2,
                                 ),
@@ -256,21 +261,21 @@ class _DepositPageState extends ConsumerState<DepositPage> {
     );
   }
 
-  Widget _buildAmountButton(String amount) {
+  Widget _buildAmountButton(String value, String display) {
     return ElevatedButton(
-      onPressed: () => _setAmount(amount),
+      onPressed: () => _setAmount(value),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2C3545), // Dark grey/blue
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF2F4F7), // Light grey
+        foregroundColor: const Color(0xFF2C3545), // Dark text
         elevation: 0,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
       child: Text(
-        '\$$amount',
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        '\$$display',
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
       ),
     );
   }

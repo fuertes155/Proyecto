@@ -29,12 +29,14 @@ import com.cooperativa.met.application.identity.usecase.UpdateNotificationsUseCa
 import com.cooperativa.met.application.identity.usecase.RequestPinRecoveryUseCase;
 import com.cooperativa.met.application.identity.usecase.ResetPinWithOtpUseCase;
 import com.cooperativa.met.application.identity.usecase.VerifyEmailUseCase;
+import com.cooperativa.met.application.identity.usecase.ResendEmailOtpUseCase;
 import com.cooperativa.met.application.identity.dto.UpdateProfileRequest;
 import com.cooperativa.met.application.identity.dto.UpdatePinRequest;
 import com.cooperativa.met.application.identity.dto.UpdateNotificationsRequest;
 import com.cooperativa.met.application.identity.dto.PinRecoveryRequest;
 import com.cooperativa.met.application.identity.dto.PinRecoveryResetRequest;
 import com.cooperativa.met.application.identity.dto.VerifyEmailRequest;
+import com.cooperativa.met.application.identity.dto.ResendEmailOtpRequest;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import jakarta.validation.Valid;
@@ -56,6 +58,7 @@ public class AuthController {
     private final RequestPinRecoveryUseCase requestPinRecoveryUseCase;
     private final ResetPinWithOtpUseCase resetPinWithOtpUseCase;
     private final VerifyEmailUseCase verifyEmailUseCase;
+    private final ResendEmailOtpUseCase resendEmailOtpUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
@@ -65,6 +68,12 @@ public class AuthController {
     @PostMapping("/verify-email")
     public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         verifyEmailUseCase.execute(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/resend-email-otp")
+    public ResponseEntity<Void> resendEmailOtp(@Valid @RequestBody ResendEmailOtpRequest request) {
+        resendEmailOtpUseCase.execute(request);
         return ResponseEntity.ok().build();
     }
 

@@ -44,7 +44,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   ChatNotifier(this.dio)
       : super(ChatState([
           ChatMessage(
-            'Soy el asistente virtual de MET.',
+            'Soy el asistente virtual de MET. ¿En qué te puedo ayudar?',
             false,
           )
         ], false, showQuickOptions: true));
