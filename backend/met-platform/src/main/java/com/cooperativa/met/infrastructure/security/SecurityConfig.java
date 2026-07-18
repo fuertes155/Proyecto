@@ -57,6 +57,22 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Headers de seguridad HTTP estándar para aplicaciones financieras
+                .headers(headers -> headers
+                        // Evita que el navegador adivine el tipo MIME (protege contra content-sniffing)
+                        .contentTypeOptions(contentTypeOptions -> {})
+                        // Prohíbe que la app sea embebida en iframes externos (anti-clickjacking)
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                        // Fuerza HTTPS por 1 año e incluye subdominios
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                        // Política de contenido: solo permite recursos del mismo origen
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; frame-ancestors 'none'; object-src 'none'")
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         // Permitir preflight CORS
@@ -78,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/webhooks/mock-payment").permitAll()
                         // Login público del admin
                         .requestMatchers(HttpMethod.POST, "/v1/admin/auth/login").permitAll()
-                        // Swagger UI (solo disponible en perfil dev gracias a @Profile en OpenApiConfig)
+                        // Swagger UI — solo en perfil dev (controlado por @Profile en OpenApiConfig)
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Rutas admin — requieren rol ADMIN o SUPER_ADMIN
                         .requestMatchers("/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")

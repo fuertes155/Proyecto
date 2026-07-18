@@ -8,9 +8,10 @@ import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.EncryptionPort;
 import com.cooperativa.met.domain.identity.port.NotificationPort;
-import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
 import com.cooperativa.met.domain.identity.port.TokenPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
+import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
+import com.cooperativa.met.application.identity.service.OtpService;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class LoginUseCase {
     private final RefreshTokenRepositoryPort refreshTokenRepository;
     private final MetSecurityProperties securityProperties;
     private final NotificationPort notificationPort;
+    private final OtpService otpService;
 
     @Transactional
     public AuthResponse execute(LoginRequest request, String ip) {
@@ -66,6 +68,24 @@ public class LoginUseCase {
             throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas. Intento " + newAttempts + " de 3");
         }
 
+        // 🛡️ Fix Device Binding: Verificar si es un dispositivo nuevo
+        if (!user.isDeviceRecognized(request.deviceId())) {
+            if (request.otpCode() == null || request.otpCode().isBlank()) {
+                otpService.generateAndSendOtp(user.getId(), "LOGIN_NEW_DEVICE");
+                throw new BusinessRuleException("DEVICE_NOT_RECOGNIZED", "Nuevo dispositivo detectado. Se ha enviado un código de seguridad a tu correo/SMS.");
+            } else {
+                boolean isOtpValid = otpService.validateOtp(user.getId(), "LOGIN_NEW_DEVICE", request.otpCode());
+                if (!isOtpValid) {
+                    throw new BusinessRuleException("INVALID_OTP", "El código de seguridad es incorrecto o ha expirado.");
+                }
+                // Si el OTP es válido, vinculamos el nuevo dispositivo
+                user = user.withLastKnownDeviceId(request.deviceId());
+            }
+        } else if (user.getLastKnownDeviceId() == null || user.getLastKnownDeviceId().isBlank()) {
+            // Primer inicio de sesión, vinculamos automáticamente
+            user = user.withLastKnownDeviceId(request.deviceId());
+        }
+
         if (user.getFailedLoginAttempts() > 0 || (user.getLastKnownIp() == null || !user.getLastKnownIp().equals(ip))) {
             if (user.getLastKnownIp() != null && !user.getLastKnownIp().equals(ip)) {
                 notificationPort.sendNewLoginFromNewIpEmail(user.getEmail(), ip);
@@ -75,6 +95,9 @@ public class LoginUseCase {
 
         String accessToken = tokenPort.generateAccessToken(user.getId(), user.getEmail());
         String refreshToken = tokenPort.generateRefreshToken(user.getId());
+
+        // 🔒 Fix 7: Una sola sesión activa por usuario. Revocar cualquier sesión previa en otro dispositivo.
+        refreshTokenRepository.revokeAllByUserId(user.getId());
 
         // Persistir refresh token para permitir revocación/rotación
         var refreshClaims = tokenPort.validateRefreshTokenClaims(refreshToken);

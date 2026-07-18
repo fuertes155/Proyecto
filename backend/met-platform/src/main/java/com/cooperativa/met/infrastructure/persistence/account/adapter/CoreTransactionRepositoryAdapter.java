@@ -29,4 +29,9 @@ public class CoreTransactionRepositoryAdapter implements CoreTransactionReposito
                 .map(CoreTransactionJpaEntity::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public java.math.BigDecimal sumOutgoingTransfersByAccountIdAndDateRange(UUID accountId, java.time.Instant start, java.time.Instant end) {
+        return repository.sumOutgoingTransfers(accountId, start, end);
+    }
 }

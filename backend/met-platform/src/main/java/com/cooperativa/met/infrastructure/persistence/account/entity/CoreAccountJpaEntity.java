@@ -47,6 +47,12 @@ public class CoreAccountJpaEntity {
     @Column(name = "version")
     private Long version;
 
+    @Column(name = "daily_transfer_limit")
+    private BigDecimal dailyTransferLimit;
+
+    @Column(name = "per_transaction_limit")
+    private BigDecimal perTransactionLimit;
+
     public CoreAccount toDomain() {
         return CoreAccount.builder()
                 .id(id)
@@ -58,6 +64,8 @@ public class CoreAccountJpaEntity {
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .version(version)
+                .dailyTransferLimit(dailyTransferLimit)
+                .perTransactionLimit(perTransactionLimit)
                 .build();
     }
 
@@ -72,6 +80,8 @@ public class CoreAccountJpaEntity {
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())
                 .version(domain.getVersion())
+                .dailyTransferLimit(domain.getDailyTransferLimit())
+                .perTransactionLimit(domain.getPerTransactionLimit())
                 .build();
     }
 }

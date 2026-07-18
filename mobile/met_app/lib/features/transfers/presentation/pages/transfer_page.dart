@@ -125,47 +125,162 @@ class _TransferPageState extends ConsumerState<TransferPage> {
     }
   }
 
+  // Destinatarios recientes (mock visual — se puede conectar al historial real)
+  static const List<Map<String, String>> _recentRecipients = [
+    {'name': 'María García', 'id': '3001234567', 'initial': 'M'},
+    {'name': 'Carlos López', 'id': '3109876543', 'initial': 'C'},
+    {'name': 'Ana Martínez', 'id': '3205551234', 'initial': 'A'},
+  ];
+
+  static const List<Color> _avatarColors = [
+    Color(0xFF2E7D32),
+    Color(0xFF1565C0),
+    Color(0xFF6A1B9A),
+  ];
+
   Widget _buildRecipientStep(TransferState state, TransferNotifier notifier) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Column(
       key: const ValueKey('step_0'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '¿A quién le vas a enviar?',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Ingresa el número de cuenta o celular.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant
+        // Contenido desplazable
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¿A quién le vas a enviar?',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Ingresa el número de cuenta o celular del destinatario.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // Campo de búsqueda
+                TextField(
+                  controller: _identifierController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Número de cuenta o celular',
+                    prefixIcon: const Icon(Icons.person_search_outlined),
+                    suffixIcon: _identifierController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _identifierController.clear();
+                              notifier.updateIdentifier('');
+                              setState(() {});
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                  ),
+                  onChanged: (val) {
+                    notifier.updateIdentifier(val);
+                    setState(() {});
+                  },
+                ),
+
+                const SizedBox(height: 28),
+
+                // Sección de recientes (solo si el campo está vacío)
+                if (state.recipientIdentifier.isEmpty) ...[
+                  Row(
+                    children: [
+                      const Icon(Icons.history, size: 16, color: Colors.grey),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Recientes',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ..._recentRecipients.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final r = entry.value;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: _avatarColors[i % _avatarColors.length],
+                          child: Text(
+                            r['initial']!,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        title: Text(r['name']!, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text(r['id']!, style: const TextStyle(fontSize: 12)),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        onTap: () {
+                          _identifierController.text = r['id']!;
+                          notifier.updateIdentifier(r['id']!);
+                          setState(() {});
+                        },
+                      ),
+                    );
+                  }),
+                ],
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 32),
-        TextField(
-          controller: _identifierController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Número de cuenta o celular',
-            prefixIcon: Icon(Icons.person_search_outlined),
-          ),
-          onChanged: notifier.updateIdentifier,
-        ),
-        const Spacer(),
+
+        // Botón fijo en la parte inferior
+        const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
+          height: 52,
           child: FilledButton(
-            onPressed: state.isLoading || state.recipientIdentifier.isEmpty
+            style: FilledButton.styleFrom(
+              backgroundColor: primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            onPressed: state.isLoading
                 ? null
-                : () => notifier.verifyRecipient(),
-            child: state.isLoading 
-                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Buscar Destinatario'),
+                : () {
+                    if (state.recipientIdentifier.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ingresa un número de cuenta o celular')),
+                      );
+                      return;
+                    }
+                    notifier.verifyRecipient();
+                  },
+            child: state.isLoading
+                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text(
+                    'Buscar Destinatario',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
           ),
         ),
       ],
     );
   }
+
 
   Widget _buildAmountStep(TransferState state, TransferNotifier notifier) {
     final accountOpt = ref.watch(myAccountProvider).value;

@@ -24,9 +24,9 @@ management:
 met:
   security:
     jwt:
-      secret: "0123456789012345678901234567890123456789012345678901234567891234"
+      secret: ${JWT_SECRET}
     encryption:
-      aes-key: "01234567890123456789012345678912"
+      aes-key: ${AES_KEY}
 
 springdoc:
   api-docs:

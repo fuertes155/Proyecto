@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/config/app_config.dart';
 import 'core/router/app_router.dart';
+import 'core/session/inactivity_detector.dart';
 import 'core/theme/app_theme.dart';
 
 
@@ -84,6 +85,9 @@ class MetApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ref.watch(themeModeProvider),
       routerConfig: router,
+      builder: (context, child) => InactivityDetector(
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
 }

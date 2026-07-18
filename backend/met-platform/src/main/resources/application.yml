@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:met}
     username: ${DB_USER:met}
-    password: ${DB_PASSWORD:met_secret}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -40,6 +40,20 @@ server:
   forward-headers-strategy: framework
   servlet:
     context-path: /api
+  # Límite de tamaño de petición HTTP — protección contra ataques DoS por payloads enormes
+  tomcat:
+    max-http-form-post-size: 1MB
+    max-swallow-size: 2MB
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  mvc:
+    # Límite para peticiones no-multipart (JSON, etc.)
+    async:
+      request-timeout: 30000
 
 management:
   endpoints:
@@ -55,7 +69,8 @@ met:
     jwt:
       # Obligatorio: no usar defaults en producción
       secret: ${JWT_SECRET}
-      expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+      # Access token: 30 min (estándar para apps financieras — el refresh token renueva la sesión)
+      expiration-ms: ${JWT_EXPIRATION_MS:1800000}
       refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
     encryption:
       # Obligatorio: no usar defaults en producción
@@ -76,15 +91,14 @@ met:
     window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:60}
   wompi:
     # Credenciales del comercio - obtenerlas en dashboard.wompi.co
-    # En sandbox usar las llaves de prueba (pub_test_*, prv_test_*)
-    public-key: ${WOMPI_PUBLIC_KEY:pub_test_REPLACE_ME}
-    private-key: ${WOMPI_PRIVATE_KEY:prv_test_REPLACE_ME}
+    public-key: ${WOMPI_PUBLIC_KEY}
+    private-key: ${WOMPI_PRIVATE_KEY}
     # Secret de integridad (para calcular el hash SHA-256 del link de pago)
-    integrity-secret: ${WOMPI_INTEGRITY_SECRET:test_integrity_REPLACE_ME}
+    integrity-secret: ${WOMPI_INTEGRITY_SECRET}
     # Secret para validar firmas de webhooks entrantes de Wompi
-    webhook-secret: ${WOMPI_WEBHOOK_SECRET:test_webhook_REPLACE_ME}
-    # URL base de la API REST de Wompi
+    webhook-secret: ${WOMPI_WEBHOOK_SECRET}
     api-url: ${WOMPI_API_URL:https://sandbox.wompi.co/v1}
+    checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
     # URL base del checkout Wompi (donde el usuario completa el pago)
     checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
 

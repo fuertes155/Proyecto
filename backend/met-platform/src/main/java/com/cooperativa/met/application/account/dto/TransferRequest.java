@@ -19,6 +19,9 @@ public record TransferRequest(
         @NotBlank(message = "PIN is required")
         String pin,
 
-        String otp
+        String otp,
+
+        @NotBlank(message = "Idempotency key is required")
+        String idempotencyKey
 ) {
 }

@@ -30,6 +30,7 @@ public class User {
     private final Instant updatedAt;
     private final String lastKnownIp;
     private final String paymentCardToken;
+    private final String lastKnownDeviceId;
 
     public User withPinHash(String newPinHash) {
         return this.toBuilder().pinHash(newPinHash).updatedAt(Instant.now()).build();
@@ -59,8 +60,19 @@ public class User {
         return this.toBuilder().failedLoginAttempts(attempts).updatedAt(Instant.now()).build();
     }
     
-    public User withLastKnownIp(String ip) {
-        return this.toBuilder().lastKnownIp(ip).updatedAt(Instant.now()).build();
+    public User withLastKnownIp(String newIp) {
+        return this.toBuilder().lastKnownIp(newIp).updatedAt(Instant.now()).build();
+    }
+
+    public User withLastKnownDeviceId(String newDeviceId) {
+        return this.toBuilder().lastKnownDeviceId(newDeviceId).updatedAt(Instant.now()).build();
+    }
+
+    public boolean isDeviceRecognized(String deviceId) {
+        if (this.lastKnownDeviceId == null || this.lastKnownDeviceId.isBlank()) {
+            return true; // Primer login, se asume reconocido y se vincula luego
+        }
+        return this.lastKnownDeviceId.equals(deviceId);
     }
 
     public User withPaymentCardToken(String token) {

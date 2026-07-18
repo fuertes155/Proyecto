@@ -1,7 +1,13 @@
 include: package:flutter_lints/flutter.yaml
 
+
+
 linter:
   rules:
     prefer_const_constructors: true
     prefer_const_literals_to_create_immutables: true
     avoid_print: true
+    avoid_dynamic_calls: true
+    control_flow_in_finally: true
+    throw_in_finally: true
+    always_declare_return_types: true

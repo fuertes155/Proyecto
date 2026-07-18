@@ -3,6 +3,7 @@ class TransferRequestModel {
     required this.destinationAccountId,
     required this.amount,
     required this.pin,
+    required this.idempotencyKey,
     this.concept,
     this.otp,
   });
@@ -10,6 +11,7 @@ class TransferRequestModel {
   final String destinationAccountId;
   final double amount;
   final String pin;
+  final String idempotencyKey;
   final String? concept;
   final String? otp;
 
@@ -18,6 +20,7 @@ class TransferRequestModel {
       'destinationAccountId': destinationAccountId,
       'amount': amount,
       'pin': pin,
+      'idempotencyKey': idempotencyKey,
       if (concept != null && concept!.isNotEmpty) 'concept': concept,
       if (otp != null) 'otp': otp,
     };

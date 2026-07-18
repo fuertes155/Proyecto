@@ -81,6 +81,9 @@ public class UserJpaEntity {
     @Column(name = "last_known_ip", length = 45)
     private String lastKnownIp;
 
+    @Column(name = "last_known_device_id")
+    private String lastKnownDeviceId;
+
     @Column(name = "payment_card_token", length = 255)
     private String paymentCardToken;
 }

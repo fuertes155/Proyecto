@@ -61,7 +61,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserResponse> getProfile() => _remote.getProfile();
 
   @override
-  Future<void> logout() => _storage.clear();
+  Future<void> logout() async {
+    await _remoteDataSource.logout();
+    await _storage.clear();
+  }
 
   @override
   Future<bool> hasSession() async {

@@ -4,14 +4,17 @@ import '../../data/models/auth_models.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 
+import '../../core/storage/secure_storage_service.dart';
+
 final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<UserResponse?>>((ref) {
-  return AuthNotifier(ref.watch(authRepositoryProvider));
+  return AuthNotifier(ref.watch(authRepositoryProvider), ref);
 });
 
 class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
-  AuthNotifier(this._repository) : super(const AsyncValue.data(null));
+  AuthNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
 
   final AuthRepository _repository;
+  final Ref _ref;
 
   Future<void> checkSession() async {
     state = const AsyncValue.loading();
@@ -31,7 +34,15 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
   Future<void> loginWithPin(LoginRequest request) async {
     state = const AsyncValue.loading();
     try {
-      await _repository.loginWithPin(request);
+      final storage = _ref.read(secureStorageProvider);
+      final deviceId = await storage.getDeviceId();
+      final enhancedRequest = LoginRequest(
+        documentType: request.documentType,
+        documentNumber: request.documentNumber,
+        deviceId: deviceId,
+        pin: request.pin,
+      );
+      await _repository.loginWithPin(enhancedRequest);
       final profile = await _repository.getProfile();
       state = AsyncValue.data(profile);
     } catch (error, stackTrace) {
@@ -42,7 +53,15 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
   Future<void> loginWithBiometric(LoginRequest request) async {
     state = const AsyncValue.loading();
     try {
-      final response = await _repository.loginWithBiometric(request);
+      final storage = _ref.read(secureStorageProvider);
+      final deviceId = await storage.getDeviceId();
+      final enhancedRequest = LoginRequest(
+        documentType: request.documentType,
+        documentNumber: request.documentNumber,
+        deviceId: deviceId,
+        biometricPayload: request.biometricPayload,
+      );
+      final response = await _repository.loginWithBiometric(enhancedRequest);
       if (response == null) {
         state = AsyncValue.error('Autenticación biométrica cancelada', StackTrace.current);
         return;

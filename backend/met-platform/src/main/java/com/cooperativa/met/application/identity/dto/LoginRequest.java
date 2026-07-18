@@ -7,7 +7,9 @@ import jakarta.validation.constraints.NotNull;
 public record LoginRequest(
         @NotNull DocumentType documentType,
         @NotBlank String documentNumber,
+        @NotBlank String deviceId,
         String pin,
-        String biometricPayload
+        String biometricPayload,
+        String otpCode
 ) {
 }

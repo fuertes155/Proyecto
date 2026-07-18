@@ -6,6 +6,7 @@ import com.cooperativa.met.domain.common.exception.RateLimitExceededException;
 import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
 import com.cooperativa.met.infrastructure.config.RateLimitProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class GlobalExceptionHandler {
 
     private final RateLimitProperties rateLimitProperties;
@@ -70,7 +72,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
-        ex.printStackTrace();
+        log.error("Error interno no controlado: {}", ex.getMessage(), ex);
         ApiErrorResponse body = new ApiErrorResponse(
                 "INTERNAL_ERROR",
                 "Error interno del servidor",

@@ -28,6 +28,8 @@ public class UserPersistenceMapper {
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .lastKnownIp(entity.getLastKnownIp())
+                .paymentCardToken(entity.getPaymentCardToken())
+                .lastKnownDeviceId(entity.getLastKnownDeviceId())
                 .build();
     }
 
@@ -52,6 +54,8 @@ public class UserPersistenceMapper {
         entity.setCreatedAt(user.getCreatedAt());
         entity.setUpdatedAt(user.getUpdatedAt());
         entity.setLastKnownIp(user.getLastKnownIp());
+        entity.setPaymentCardToken(user.getPaymentCardToken());
+        entity.setLastKnownDeviceId(user.getLastKnownDeviceId());
         return entity;
     }
 }

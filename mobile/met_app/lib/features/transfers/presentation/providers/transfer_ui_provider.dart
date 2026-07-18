@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:uuid/uuid.dart';
 import '../../data/models/verify_recipient_model.dart';
 import 'transfers_provider.dart';
 import '../../data/models/transfer_request_model.dart';
@@ -12,6 +13,7 @@ class TransferState {
     this.amount = 0.0,
     this.concept = '',
     this.otp = '',
+    this.idempotencyKey = '',
     this.isLoading = false,
     this.error,
   });
@@ -22,6 +24,7 @@ class TransferState {
   final double amount;
   final String concept;
   final String otp;
+  final String idempotencyKey;
   final bool isLoading;
   final String? error;
 
@@ -32,6 +35,7 @@ class TransferState {
     double? amount,
     String? concept,
     String? otp,
+    String? idempotencyKey,
     bool? isLoading,
     String? error,
   }) {
@@ -42,6 +46,7 @@ class TransferState {
       amount: amount ?? this.amount,
       concept: concept ?? this.concept,
       otp: otp ?? this.otp,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
       isLoading: isLoading ?? this.isLoading,
       error: error, // Can be null
     );
@@ -49,7 +54,7 @@ class TransferState {
 }
 
 class TransferNotifier extends StateNotifier<TransferState> {
-  TransferNotifier(this.ref) : super(TransferState());
+  TransferNotifier(this.ref) : super(TransferState(idempotencyKey: const Uuid().v4()));
 
   final Ref ref;
 
@@ -104,6 +109,7 @@ class TransferNotifier extends StateNotifier<TransferState> {
         destinationAccountId: state.recipient!.accountId,
         amount: state.amount,
         pin: pin,
+        idempotencyKey: state.idempotencyKey,
         concept: state.concept,
         otp: state.otp.isNotEmpty ? state.otp : null,
       ));

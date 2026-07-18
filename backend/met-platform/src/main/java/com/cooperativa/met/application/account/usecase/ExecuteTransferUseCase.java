@@ -12,15 +12,21 @@ import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
+import com.cooperativa.met.infrastructure.audit.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.cooperativa.met.application.identity.service.OtpService;
+import com.cooperativa.met.infrastructure.security.IdempotencyService;
+import com.cooperativa.met.application.account.service.TransferLimitService;
+import com.cooperativa.met.infrastructure.security.PinAttemptService;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +37,39 @@ public class ExecuteTransferUseCase {
     private final UserRepositoryPort userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
+    private final AuditLogService auditLogService;
+    private final IdempotencyService idempotencyService;
+    private final TransferLimitService transferLimitService;
+    private final PinAttemptService pinAttemptService;
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void execute(UUID userId, TransferRequest request) {
-        // 1. Verify User PIN
+        // 0. Idempotency Check
+        if (request.idempotencyKey() != null) {
+            if (!idempotencyService.tryAcquire(request.idempotencyKey())) {
+                Optional<String> result = idempotencyService.getResult(request.idempotencyKey());
+                if (result.isPresent()) {
+                    // Si ya se procesó con éxito, retornamos sin hacer nada (es void)
+                    return;
+                } else {
+                    // Si está en proceso por otra petición concurrente
+                    throw new BusinessRuleException("CONCURRENT_REQUEST", "La transferencia está siendo procesada. Por favor espere.");
+                }
+            }
+        }
+
+        // 1. Verify User PIN & Status
+        pinAttemptService.checkBlocked(userId);
+        
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
         if (!passwordEncoder.matches(request.pin(), user.getPinHash())) {
-            throw new BusinessRuleException("INVALID_PIN", "El PIN ingresado es incorrecto");
+            auditLogService.logFailure(userId, AuditLogService.TRANSFER_FAILED,
+                    "TRANSFER", null, "{\"reason\":\"INVALID_PIN\"}");
+            pinAttemptService.checkAndRecordFailure(userId); // This throws exception
         }
+        pinAttemptService.resetAttempts(userId);
 
         // 2. Fetch Accounts
         CoreAccount sourceAccount = accountRepository.findByUserId(userId)
@@ -67,8 +96,13 @@ public class ExecuteTransferUseCase {
         }
         boolean isOtpValid = otpService.validateOtp(user.getDocumentNumber(), request.otp());
         if (!isOtpValid) {
+            auditLogService.logFailure(userId, AuditLogService.TRANSFER_FAILED,
+                    "TRANSFER", null, "{\"reason\":\"INVALID_OTP\"}");
             throw new BusinessRuleException("INVALID_OTP", "El código de seguridad es incorrecto o expiró");
         }
+
+        // 2.8. Validate Transfer Limits
+        transferLimitService.validateTransferLimits(sourceAccount, request.amount());
 
         // 3. Process Transfer (Debit & Credit)
         CoreAccount updatedSource = sourceAccount.debitPrincipal(request.amount());
@@ -91,5 +125,19 @@ public class ExecuteTransferUseCase {
                 .build();
                 
         transactionRepository.save(transaction);
+
+        // 6. Audit log — registro exitoso con datos enmascarados (Compliance)
+        String maskedAmount = "***";
+        String maskedAccount = request.destinationAccountId().toString().substring(0, 4) + "...";
+        
+        auditLogService.logSuccess(userId, AuditLogService.TRANSFER_EXECUTED,
+                "TRANSFER", transaction.getId().toString(),
+                String.format("{\"amount\":\"%s\",\"destinationAccountId\":\"%s\"}",
+                        maskedAmount, maskedAccount));
+                        
+        // 7. Save Idempotency Result
+        if (request.idempotencyKey() != null) {
+            idempotencyService.saveResult(request.idempotencyKey(), transaction.getId().toString());
+        }
     }
 }

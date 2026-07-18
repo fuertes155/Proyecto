@@ -19,6 +19,29 @@ public class CoreAccount {
     private final Instant createdAt;
     private final Instant updatedAt;
     private final Long version;
+    private final BigDecimal dailyTransferLimit;
+    private final BigDecimal perTransactionLimit;
+
+    private static final BigDecimal DEFAULT_DAILY_LIMIT = new BigDecimal("5000000.00");
+    private static final BigDecimal DEFAULT_TX_LIMIT = new BigDecimal("2000000.00");
+
+    @Builder
+    public CoreAccount(UUID id, UUID userId, String accountNumber,
+                       BigDecimal principalBalance, BigDecimal interestBalance, AccountStatus status,
+                       Instant createdAt, Instant updatedAt, Long version,
+                       BigDecimal dailyTransferLimit, BigDecimal perTransactionLimit) {
+        this.id = id;
+        this.userId = userId;
+        this.accountNumber = accountNumber;
+        this.principalBalance = principalBalance;
+        this.interestBalance = interestBalance;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.version = version;
+        this.dailyTransferLimit = dailyTransferLimit != null ? dailyTransferLimit : DEFAULT_DAILY_LIMIT;
+        this.perTransactionLimit = perTransactionLimit != null ? perTransactionLimit : DEFAULT_TX_LIMIT;
+    }
 
     public CoreAccount creditPrincipal(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {

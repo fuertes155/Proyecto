@@ -59,4 +59,12 @@ class AuthRemoteDataSource {
   Future<void> resetPinWithOtp(PinRecoveryResetRequest request) async {
     await _dio.post('/v1/auth/pin-recovery/reset', data: request.toJson());
   }
+
+  Future<void> logout() async {
+    try {
+      await _dio.post('/v1/auth/logout');
+    } catch (e) {
+      // Ignoramos errores de red en logout, el token local se limpiará igual
+    }
+  }
 }

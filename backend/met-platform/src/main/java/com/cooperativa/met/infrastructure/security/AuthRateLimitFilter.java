@@ -41,6 +41,16 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             "/v1/auth/refresh"
     };
 
+    /** Rutas de OTP: límite más estricto (3 intentos / 10 min) para evitar spam de correos */
+    private static final String[] OTP_PATHS = {
+            "/v1/auth/resend-email-otp",
+            "/v1/auth/verify-email",
+            "/v1/auth/pin-recovery/request"
+    };
+
+    private static final int OTP_MAX_ATTEMPTS = 3;
+    private static final long OTP_WINDOW_SECONDS = 600; // 10 minutos
+
     // Fallbacks si por cualquier razón no podemos leer los campos de RateLimitProperties
     private static final boolean DEFAULT_ENABLED = true;
     private static final int DEFAULT_MAX_REQUESTS = 10;
@@ -76,37 +86,59 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         }
 
 
-        if (!isEnabled() || !isProtectedPath(request)) {
+        if (!isEnabled()) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        boolean isOtpPath = isOtpPath(request);
+        boolean isAuthPath = !isOtpPath && isProtectedPath(request);
+
+        if (!isOtpPath && !isAuthPath) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String clientIp = extractClientIp(request);
-        boolean ipAllowed = tryConsumeIp(clientIp);
+        boolean allowed;
 
-        UUID userId = currentUserId();
-        boolean userAllowed = userId == null || tryConsumeUser(userId);
+        if (isOtpPath) {
+            // Rutas OTP: límite estricto 3 intentos / 10 minutos
+            allowed = redisRateLimiter.tryConsume(
+                    "ratelimit:otp:ip:" + clientIp,
+                    OTP_MAX_ATTEMPTS,
+                    Duration.ofSeconds(OTP_WINDOW_SECONDS)
+            );
+        } else {
+            // Rutas de autenticación general: límite configurable
+            boolean ipAllowed = tryConsumeIp(clientIp);
+            UUID userId = currentUserId();
+            boolean userAllowed = userId == null || tryConsumeUser(userId);
+            allowed = ipAllowed && userAllowed;
+        }
 
-        if (ipAllowed && userAllowed) {
+        if (allowed) {
             filterChain.doFilter(request, response);
         } else {
-            log.warn("Rate limit excedido. ip={} user={}",
-                    clientIp,
-                    userId != null ? userId : "N/A");
-            sendRateLimitResponse(response);
+            log.warn("Rate limit excedido. path={} ip={}", request.getRequestURI(), clientIp);
+            sendRateLimitResponse(response, isOtpPath ? OTP_WINDOW_SECONDS : windowSeconds());
         }
     }
 
     private boolean isProtectedPath(HttpServletRequest request) {
-        if (!"POST".equalsIgnoreCase(request.getMethod())) {
-            return false;
-        }
+        if (!"POST".equalsIgnoreCase(request.getMethod())) return false;
         String uri = request.getRequestURI();
         for (String path : PROTECTED_PATHS) {
-            if (uri.endsWith(path)) {
-                return true;
-            }
+            if (uri.endsWith(path)) return true;
+        }
+        return false;
+    }
+
+    private boolean isOtpPath(HttpServletRequest request) {
+        if (!"POST".equalsIgnoreCase(request.getMethod())) return false;
+        String uri = request.getRequestURI();
+        for (String path : OTP_PATHS) {
+            if (uri.endsWith(path)) return true;
         }
         return false;
     }
@@ -148,16 +180,16 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    private void sendRateLimitResponse(HttpServletResponse response) throws IOException {
+    private void sendRateLimitResponse(HttpServletResponse response, long waitSeconds) throws IOException {
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        response.setHeader("Retry-After", String.valueOf(windowSeconds()));
+        response.setHeader("Retry-After", String.valueOf(waitSeconds));
 
+        String minutes = waitSeconds >= 60 ? (waitSeconds / 60) + " minutos" : waitSeconds + " segundos";
         Map<String, Object> body = Map.of(
                 "code", "RATE_LIMIT_EXCEEDED",
-                "message", "Demasiados intentos. Por favor espera " +
-                        windowSeconds() + " segundos antes de intentar de nuevo.",
+                "message", "Demasiados intentos. Por favor espera " + minutes + " antes de intentar de nuevo.",
                 "timestamp", Instant.now().toString()
         );
         objectMapper.writeValue(response.getWriter(), body);

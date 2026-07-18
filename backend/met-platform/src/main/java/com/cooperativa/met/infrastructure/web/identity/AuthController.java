@@ -30,6 +30,7 @@ import com.cooperativa.met.application.identity.usecase.RequestPinRecoveryUseCas
 import com.cooperativa.met.application.identity.usecase.ResetPinWithOtpUseCase;
 import com.cooperativa.met.application.identity.usecase.VerifyEmailUseCase;
 import com.cooperativa.met.application.identity.usecase.ResendEmailOtpUseCase;
+import com.cooperativa.met.application.identity.usecase.LogoutUseCase;
 import com.cooperativa.met.application.identity.dto.UpdateProfileRequest;
 import com.cooperativa.met.application.identity.dto.UpdatePinRequest;
 import com.cooperativa.met.application.identity.dto.UpdateNotificationsRequest;
@@ -59,6 +60,7 @@ public class AuthController {
     private final ResetPinWithOtpUseCase resetPinWithOtpUseCase;
     private final VerifyEmailUseCase verifyEmailUseCase;
     private final ResendEmailOtpUseCase resendEmailOtpUseCase;
+    private final LogoutUseCase logoutUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
@@ -150,6 +152,21 @@ public class AuthController {
     @PostMapping("/pin-recovery/reset")
     public ResponseEntity<Void> resetPinWithOtp(@Valid @RequestBody PinRecoveryResetRequest request) {
         resetPinWithOtpUseCase.execute(request);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Cierre de sesión seguro:
+     * 1. Agrega el access token a la lista negra en Redis
+     * 2. Revoca todos los refresh tokens del usuario
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            Authentication authentication,
+            @org.springframework.web.bind.annotation.RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        String token = authorization.startsWith("Bearer ") ? authorization.substring(7) : authorization;
+        logoutUseCase.execute(userId, token);
         return ResponseEntity.ok().build();
     }
 }

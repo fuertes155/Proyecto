@@ -13,4 +13,8 @@ public interface CoreTransactionJpaRepository extends JpaRepository<CoreTransact
     
     @Query("SELECT t FROM CoreTransactionJpaEntity t WHERE t.sourceAccountId = :accountId OR t.destinationAccountId = :accountId ORDER BY t.createdAt DESC")
     List<CoreTransactionJpaEntity> findByAccountId(UUID accountId);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM CoreTransactionJpaEntity t " +
+           "WHERE t.sourceAccountId = :accountId AND t.createdAt >= :start AND t.createdAt <= :end")
+    java.math.BigDecimal sumOutgoingTransfers(UUID accountId, java.time.Instant start, java.time.Instant end);
 }

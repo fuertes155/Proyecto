@@ -25,6 +25,7 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenPort tokenPort;
+    private final TokenBlacklistService tokenBlacklist;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -33,6 +34,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
+                // 🔒 Verificar que el token no haya sido revocado por logout
+                if (tokenBlacklist.isRevoked(token)) {
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 UUID userId = tokenPort.validateAccessToken(token);
                 String role = tokenPort.extractRole(token);
 
