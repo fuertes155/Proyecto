@@ -56,5 +56,8 @@ public class MetSecurityProperties {
     @Setter
     public static class Encryption {
         private String aesKey;
+        private String rsaPrivateKey;
+        private String rsaPublicKey;
+        private String hmacSecret;
     }
 }

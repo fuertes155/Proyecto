@@ -21,8 +21,11 @@ import com.cooperativa.met.domain.account.model.TransactionStatus;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
+import com.cooperativa.met.domain.lending.port.CreditBureauPort;
+import com.cooperativa.met.domain.lending.model.CreditScoreResult;
 import com.cooperativa.met.domain.lending.service.FrenchAmortizationCalculator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +45,11 @@ public class SubmitPersonalLoanApplicationUseCase {
     private final ComplianceCheckPort complianceCheckPort;
     private final CoreAccountRepositoryPort accountRepository;
     private final CoreTransactionRepositoryPort transactionRepository;
+    private final CreditBureauPort creditBureauPort;
     private final LendingMapper mapper;
+
+    @Value("${met.credit-bureau.min-score:600}")
+    private int minCreditScore;
 
     @Transactional
     public LoanApplicationResponse execute(UUID userId, SubmitLoanApplicationRequest request) {
@@ -67,11 +74,23 @@ public class SubmitPersonalLoanApplicationUseCase {
             }
         }
 
-        // Capa 3: Motor de Riesgo (Filtro Externo simulado - DataCrédito/TransUnion)
-        int simulatedRiskScore = (int) (Math.random() * 1000); // 0 to 1000
-        if (simulatedRiskScore < 600) {
+        // Validación de Habeas Data
+        if (request.hasAcceptedHabeasData() == null || !request.hasAcceptedHabeasData()) {
+            throw new BusinessRuleException("HABEAS_DATA_REQUIRED", "Debes aceptar los términos de Habeas Data para consultar tu reporte de crédito.");
+        }
+
+        // Capa 3: Motor de Riesgo (Filtro Externo - DataCrédito Experian)
+        CreditScoreResult scoreResult = creditBureauPort.checkScore(
+                userId,
+                user.getDocumentNumber(),
+                user.getFirstName(),
+                user.getLastName(),
+                null // User doesn't have dateOfBirth yet
+        );
+
+        if (scoreResult.getScore() < minCreditScore) {
             throw new BusinessRuleException("RISK_SCORE_LOW", 
-                    "Tu solicitud ha sido rechazada por nuestro motor de riesgo (Score: " + simulatedRiskScore + ").");
+                    "Tu solicitud ha sido rechazada por nuestro motor de riesgo (Score: " + scoreResult.getScore() + ").");
         }
 
         // Capa 4: Validación de Saldo (Ahorro)
@@ -103,6 +122,8 @@ public class SubmitPersonalLoanApplicationUseCase {
                 .totalPayment(simulation.getTotalPayment())
                 .purpose(request.purpose())
                 .status(LoanApplicationStatus.IN_REVIEW) // Pasa a revisión manual
+                .creditScore(scoreResult.getScore())
+                .creditBureauRef(scoreResult.getReferenceId())
                 .submittedAt(Instant.now())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())

@@ -71,10 +71,10 @@ public class LoginUseCase {
         // 🛡️ Fix Device Binding: Verificar si es un dispositivo nuevo
         if (!user.isDeviceRecognized(request.deviceId())) {
             if (request.otpCode() == null || request.otpCode().isBlank()) {
-                otpService.generateAndSendOtp(user.getId(), "LOGIN_NEW_DEVICE");
+                otpService.generateAndSendOtp(user.getDocumentNumber(), user.getEmail());
                 throw new BusinessRuleException("DEVICE_NOT_RECOGNIZED", "Nuevo dispositivo detectado. Se ha enviado un código de seguridad a tu correo/SMS.");
             } else {
-                boolean isOtpValid = otpService.validateOtp(user.getId(), "LOGIN_NEW_DEVICE", request.otpCode());
+                boolean isOtpValid = otpService.validateOtp(user.getDocumentNumber(), request.otpCode());
                 if (!isOtpValid) {
                     throw new BusinessRuleException("INVALID_OTP", "El código de seguridad es incorrecto o ha expirado.");
                 }
@@ -129,7 +129,13 @@ public class LoginUseCase {
             return payloadHash.equals(user.getBiometricHash());
         }
         if (StringUtils.hasText(request.pin())) {
-            return encryptionPort.verifyPin(request.pin(), user.getPinHash());
+            try {
+                String plainPin = encryptionPort.decryptRsa(request.pin());
+                return encryptionPort.verifyPin(plainPin, user.getPinHash());
+            } catch (Exception e) {
+                log.warn("E2EE Decryption failed during login for userId={}", user.getId());
+                return false;
+            }
         }
         return false;
     }

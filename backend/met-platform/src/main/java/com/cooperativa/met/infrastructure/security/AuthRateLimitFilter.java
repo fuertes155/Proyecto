@@ -38,7 +38,9 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             "/v1/auth/login",
             "/v1/auth/biometric",
             "/v1/auth/register",
-            "/v1/auth/refresh"
+            "/v1/auth/refresh",
+            "/v1/auth/pin",
+            "/v1/accounts/verify"
     };
 
     /** Rutas de OTP: límite más estricto (3 intentos / 10 min) para evitar spam de correos */
@@ -126,7 +128,6 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     }
 
     private boolean isProtectedPath(HttpServletRequest request) {
-        if (!"POST".equalsIgnoreCase(request.getMethod())) return false;
         String uri = request.getRequestURI();
         for (String path : PROTECTED_PATHS) {
             if (uri.endsWith(path)) return true;
@@ -135,7 +136,6 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     }
 
     private boolean isOtpPath(HttpServletRequest request) {
-        if (!"POST".equalsIgnoreCase(request.getMethod())) return false;
         String uri = request.getRequestURI();
         for (String path : OTP_PATHS) {
             if (uri.endsWith(path)) return true;

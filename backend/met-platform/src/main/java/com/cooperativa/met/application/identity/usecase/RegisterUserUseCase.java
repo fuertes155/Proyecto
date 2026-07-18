@@ -35,6 +35,13 @@ public class RegisterUserUseCase {
             throw new BusinessRuleException("EMAIL_ALREADY_EXISTS", "El correo ya está registrado");
         }
 
+        String plainPin;
+        try {
+            plainPin = encryptionPort.decryptRsa(request.pin());
+        } catch (Exception e) {
+            throw new BusinessRuleException("SECURITY_ERROR", "Error de seguridad en la encriptación de extremo a extremo durante el registro");
+        }
+
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .documentType(request.documentType())
@@ -43,7 +50,7 @@ public class RegisterUserUseCase {
                 .phone(request.phone())
                 .firstName(request.firstName())
                 .lastName(request.lastName())
-                .pinHash(encryptionPort.hashPin(request.pin()))
+                .pinHash(encryptionPort.hashPin(plainPin))
                 .status(UserStatus.PENDING_VERIFICATION)
                 .kycStatus(KycStatus.PENDING)
                 .termsAccepted(request.termsAccepted())

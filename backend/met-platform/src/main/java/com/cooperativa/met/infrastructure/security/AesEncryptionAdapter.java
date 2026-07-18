@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import jakarta.annotation.PostConstruct;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 @Component
@@ -23,9 +25,36 @@ public class AesEncryptionAdapter implements EncryptionPort {
     private static final String AES_ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
+    private static final String RSA_ALGORITHM = "RSA/ECB/PKCS1Padding";
 
     private final MetSecurityProperties securityProperties;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    private PrivateKey rsaPrivateKey;
+    private String rsaPublicKeyBase64;
+
+    @PostConstruct
+    public void initRsaKeys() {
+        try {
+            String b64Priv = securityProperties.getEncryption().getRsaPrivateKey();
+            String b64Pub = securityProperties.getEncryption().getRsaPublicKey();
+
+            if (b64Priv != null && !b64Priv.isBlank() && b64Pub != null && !b64Pub.isBlank()) {
+                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                this.rsaPrivateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(b64Priv)));
+                this.rsaPublicKeyBase64 = b64Pub;
+            } else {
+                // Generate on the fly for development
+                KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
+                keyPairGen.initialize(2048);
+                KeyPair keyPair = keyPairGen.generateKeyPair();
+                this.rsaPrivateKey = keyPair.getPrivate();
+                this.rsaPublicKeyBase64 = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to initialize RSA keys", e);
+        }
+    }
 
     @Override
     public String encrypt(String plainText) {
@@ -84,6 +113,23 @@ public class AesEncryptionAdapter implements EncryptionPort {
         } catch (Exception ex) {
             throw new IllegalStateException("Error al hashear biometría", ex);
         }
+    }
+
+    @Override
+    public String decryptRsa(String encryptedBase64) {
+        try {
+            Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
+            byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedBase64));
+            return new String(decrypted, StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Error descifrando payload RSA. Revisa las llaves o el padding.", ex);
+        }
+    }
+
+    @Override
+    public String getRsaPublicKeyBase64() {
+        return rsaPublicKeyBase64;
     }
 
     private SecretKeySpec secretKey() throws Exception {

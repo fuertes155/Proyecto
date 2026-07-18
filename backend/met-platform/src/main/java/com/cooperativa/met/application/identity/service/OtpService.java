@@ -18,10 +18,17 @@ public class OtpService {
     private final StringRedisTemplate redisTemplate;
     private final JavaMailSender mailSender;
     private final SecureRandom secureRandom = new SecureRandom();
+    
     private static final String OTP_PREFIX = "pin-recovery-otp:";
+    private static final String OTP_ATTEMPTS_PREFIX = "otp-attempts:";
+    private static final String OTP_LOCKOUT_PREFIX = "otp-lockout:";
     private static final Duration OTP_EXPIRY = Duration.ofMinutes(5);
+    private static final Duration LOCKOUT_DURATION = Duration.ofMinutes(15);
+    private static final int MAX_ATTEMPTS = 3;
 
     public String generateAndSendOtp(String documentNumber, String email) {
+        checkLockout(documentNumber);
+
         // Generate a 6-digit OTP
         int otpNum = 100000 + secureRandom.nextInt(900000);
         String otpCode = String.valueOf(otpNum);
@@ -29,6 +36,9 @@ public class OtpService {
         // Save in Redis
         String key = OTP_PREFIX + documentNumber;
         redisTemplate.opsForValue().set(key, otpCode, OTP_EXPIRY);
+        
+        // Reset attempts
+        redisTemplate.delete(OTP_ATTEMPTS_PREFIX + documentNumber);
 
         // Send Email
         try {
@@ -51,22 +61,34 @@ public class OtpService {
     }
 
     public boolean validateOtp(String documentNumber, String inputOtp) {
+        checkLockout(documentNumber);
+        
         String key = OTP_PREFIX + documentNumber;
         String storedOtp = redisTemplate.opsForValue().get(key);
 
-        if (storedOtp != null && storedOtp.equals(inputOtp)) {
+        if (storedOtp == null) {
+            return false;
+        }
+
+        if (storedOtp.equals(inputOtp)) {
             // OTP is valid, remove it so it can't be used again
             redisTemplate.delete(key);
+            redisTemplate.delete(OTP_ATTEMPTS_PREFIX + documentNumber);
             return true;
         }
+        
+        handleFailedAttempt(documentNumber, key);
         return false;
     }
 
     public String generateAndSendEmailVerificationOtp(String documentNumber, String email) {
+        checkLockout(documentNumber);
+        
         int otpNum = 100000 + secureRandom.nextInt(900000);
         String otpCode = String.valueOf(otpNum);
         String key = "email-verification-otp:" + documentNumber;
         redisTemplate.opsForValue().set(key, otpCode, OTP_EXPIRY);
+        redisTemplate.delete(OTP_ATTEMPTS_PREFIX + documentNumber);
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -85,12 +107,43 @@ public class OtpService {
     }
 
     public boolean validateEmailVerificationOtp(String documentNumber, String inputOtp) {
+        checkLockout(documentNumber);
+        
         String key = "email-verification-otp:" + documentNumber;
         String storedOtp = redisTemplate.opsForValue().get(key);
-        if (storedOtp != null && storedOtp.equals(inputOtp)) {
+        
+        if (storedOtp == null) return false;
+        
+        if (storedOtp.equals(inputOtp)) {
             redisTemplate.delete(key);
+            redisTemplate.delete(OTP_ATTEMPTS_PREFIX + documentNumber);
             return true;
         }
+        
+        handleFailedAttempt(documentNumber, key);
         return false;
+    }
+    
+    private void checkLockout(String documentNumber) {
+        String lockoutKey = OTP_LOCKOUT_PREFIX + documentNumber;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
+            throw new com.cooperativa.met.domain.common.exception.BusinessRuleException(
+                "OTP_LOCKED", "Has superado el límite de intentos. Por seguridad, debes esperar 15 minutos para volver a intentar.");
+        }
+    }
+    
+    private void handleFailedAttempt(String documentNumber, String otpKey) {
+        String attemptsKey = OTP_ATTEMPTS_PREFIX + documentNumber;
+        Long attempts = redisTemplate.opsForValue().increment(attemptsKey);
+        
+        if (attempts != null && attempts >= MAX_ATTEMPTS) {
+            // Lock out user for OTPs
+            redisTemplate.opsForValue().set(OTP_LOCKOUT_PREFIX + documentNumber, "LOCKED", LOCKOUT_DURATION);
+            // Delete the active OTP to invalidate it completely
+            redisTemplate.delete(otpKey);
+            redisTemplate.delete(attemptsKey);
+            throw new com.cooperativa.met.domain.common.exception.BusinessRuleException(
+                "TOO_MANY_OTP_ATTEMPTS", "Has ingresado el código incorrectamente " + MAX_ATTEMPTS + " veces. El código ha sido invalidado por seguridad.");
+        }
     }
 }

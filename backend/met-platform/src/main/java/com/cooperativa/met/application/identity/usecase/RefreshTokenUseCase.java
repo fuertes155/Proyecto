@@ -39,7 +39,10 @@ public class RefreshTokenUseCase {
                 .orElseThrow(() -> new BusinessRuleException("INVALID_TOKEN", "Refresh token no registrado"));
 
         if (persisted.revoked()) {
-            throw new BusinessRuleException("REFRESH_TOKEN_REVOKED", "Refresh token revocado");
+            // DETECCIÓN DE REÚSO: Si se intenta usar un token ya revocado (usado),
+            // asumimos que la sesión fue clonada/robada y cerramos todas las sesiones.
+            refreshTokenRepository.revokeAllByUserId(userId);
+            throw new BusinessRuleException("REFRESH_TOKEN_REUSED", "Se ha detectado un uso anómalo de la sesión. Por seguridad, todas las sesiones han sido cerradas.");
         }
         if (persisted.expiresAt().isBefore(Instant.now())) {
             throw new BusinessRuleException("INVALID_TOKEN", "Refresh token expirado");

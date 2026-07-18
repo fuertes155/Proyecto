@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:freerasp/freerasp.dart';
 
 import 'core/config/app_config.dart';
 import 'core/router/app_router.dart';
@@ -12,6 +15,46 @@ import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  if (!kIsWeb && Platform.isAndroid) {
+    try {
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    } catch (e) {
+      debugPrint("Error setting secure flag: $e");
+    }
+  }
+
+  // Configuración de freeRASP (Detección de Emuladores, Debuggers y Hooks)
+  if (!kIsWeb) {
+    final config = TalsecConfig(
+      androidConfig: AndroidConfig(
+        packageName: 'com.cooperativa.met', // Reemplazar con real
+        signingCertHashes: ['REPLACE_WITH_SHA256_HASH'],
+      ),
+      iosConfig: IOSConfig(
+        bundleIds: ['com.cooperativa.met'],
+        teamId: 'REPLACE_TEAM_ID',
+      ),
+      watcherMail: 'security@cooperativa.met.com',
+      isProd: true,
+    );
+
+    final callback = ThreatCallback(
+      onAppIntegrity: () => debugPrint("THREAT: App Integrity"),
+      onObfuscationIssues: () => debugPrint("THREAT: Obfuscation"),
+      onDebug: () => debugPrint("THREAT: Debugging"),
+      onHooks: () => debugPrint("THREAT: Hooks (Frida/Xposed)"),
+      onPrivilegedAccess: () => debugPrint("THREAT: Root/Jailbreak"),
+      onSimulator: () => debugPrint("THREAT: Simulator"),
+    );
+
+    Talsec.instance.attachListener(callback);
+    try {
+      await Talsec.instance.start(config);
+    } catch (e) {
+      debugPrint("freeRASP start error: $e");
+    }
+  }
   
   bool jailbroken = false;
   if (!kIsWeb) {

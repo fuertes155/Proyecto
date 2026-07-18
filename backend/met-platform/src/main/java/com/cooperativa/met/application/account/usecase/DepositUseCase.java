@@ -8,6 +8,7 @@ import com.cooperativa.met.domain.account.model.TransactionStatus;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +24,19 @@ public class DepositUseCase {
     private final CoreAccountRepositoryPort accountRepository;
     private final CoreTransactionRepositoryPort transactionRepository;
     private final DistributeDepositUseCase distributeDepositUseCase;
+    private final UserRepositoryPort userRepository;
 
     @Transactional
     public void execute(UUID userId, DepositRequest request) {
         if (request.getAmount() == null || request.getAmount().doubleValue() <= 0) {
             throw new BusinessRuleException("DEP_ERR_01", "El monto a recargar debe ser mayor a cero");
+        }
+
+        com.cooperativa.met.domain.identity.model.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new com.cooperativa.met.domain.common.exception.ResourceNotFoundException("Usuario no encontrado"));
+                
+        if (user.getKycStatus() != com.cooperativa.met.domain.identity.model.KycStatus.APPROVED) {
+            throw new BusinessRuleException("KYC_REQUIRED", "Debe completar la validación de identidad biométrica para recargar");
         }
 
         // 1. Obtener la cuenta del usuario actual

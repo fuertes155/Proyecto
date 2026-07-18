@@ -1,13 +1,75 @@
 package com.cooperativa.met.infrastructure.web.webhook;
 
+import com.cooperativa.met.application.account.dto.DepositRequest;
+import com.cooperativa.met.application.account.usecase.DepositUseCase;
+import com.cooperativa.met.infrastructure.persistence.webhook.entity.ProcessedWebhookJpaEntity;
+import com.cooperativa.met.infrastructure.persistence.webhook.repository.ProcessedWebhookJpaRepository;
+import com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+
 @RestController
 @RequestMapping("/v1")
+@Profile("dev")
+@RequiredArgsConstructor
+@Slf4j
 public class MockPaymentGatewayController {
+
+    private final DepositUseCase depositUseCase;
+    private final ProcessedWebhookJpaRepository processedWebhookRepository;
+    private final ObjectMapper objectMapper;
+
+    @PostMapping("/webhooks/mock-payment")
+    public ResponseEntity<Void> handleMockPaymentWebhook(@RequestBody String rawPayload) {
+        try {
+            log.info("[DEV] Received mock payment webhook. Auto-signing payload.");
+            PaymentWebhookPayload payload = objectMapper.readValue(rawPayload, PaymentWebhookPayload.class);
+            
+            if (!"transaction.updated".equals(payload.getEvent()) || payload.getData() == null) {
+                return ResponseEntity.ok().build();
+            }
+
+            var data = payload.getData();
+            if (!"APPROVED".equals(data.getStatus()) || data.getUserId() == null) {
+                return ResponseEntity.ok().build();
+            }
+
+            String txId = data.getTransactionId();
+            if (processedWebhookRepository.existsById(txId)) {
+                log.info("Mock transaction {} already processed. Ignoring.", txId);
+                return ResponseEntity.ok().build();
+            }
+
+            DepositRequest request = new DepositRequest();
+            request.setAmount(data.getAmount());
+            request.setMethod("PSE_MOCK_" + txId);
+
+            depositUseCase.execute(data.getUserId(), request);
+
+            processedWebhookRepository.save(ProcessedWebhookJpaEntity.builder()
+                    .transactionId(txId)
+                    .gateway("MOCK_GATEWAY")
+                    .processedAt(Instant.now())
+                    .build());
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("[DEV] Error processing mock payment webhook: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     @GetMapping(value = "/mock-payment-gateway", produces = "text/html")
     public String renderGateway(

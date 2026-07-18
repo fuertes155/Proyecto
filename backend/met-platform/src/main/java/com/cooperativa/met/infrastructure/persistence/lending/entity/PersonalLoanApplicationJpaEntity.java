@@ -54,6 +54,12 @@ public class PersonalLoanApplicationJpaEntity {
     @Column(name = "rejection_reason")
     private String rejectionReason;
 
+    @Column(name = "credit_score")
+    private Integer creditScore;
+
+    @Column(name = "credit_bureau_ref")
+    private String creditBureauRef;
+
     @Column(name = "submitted_at", nullable = false)
     private Instant submittedAt;
 

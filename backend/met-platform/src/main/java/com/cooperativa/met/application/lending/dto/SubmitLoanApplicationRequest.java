@@ -14,6 +14,7 @@ public record SubmitLoanApplicationRequest(
         @NotNull @DecimalMin("500000") @DecimalMax("50000000") BigDecimal amount,
         @Min(6) @Max(60) int termMonths,
         @DecimalMin("0.01") @DecimalMax("1.00") BigDecimal annualInterestRate,
-        @NotBlank @Size(max = 255) String purpose
+        @NotBlank @Size(max = 255) String purpose,
+        @NotNull @jakarta.validation.constraints.AssertTrue(message = "Debes aceptar los términos de Habeas Data") Boolean hasAcceptedHabeasData
 ) {
 }

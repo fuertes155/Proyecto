@@ -47,9 +47,8 @@ public class WebhookController {
     /**
      * Secret de webhook de Wompi.
      * Formato en Wompi Dashboard → Desarrolladores → Webhooks → Secreto.
-     * En desarrollo se usa el secret simulado para el MockPaymentGateway.
      */
-    @Value("${met.wompi.webhook-secret:super_secret_key_12345}")
+    @Value("${met.wompi.webhook-secret}")
     private String wompiWebhookSecret;
 
     /**
@@ -87,41 +86,15 @@ public class WebhookController {
         }
     }
 
-    /**
-     * Endpoint exclusivo del entorno de desarrollo para el MockPaymentGateway.
-     * Se auto-firma internamente para evitar que el cliente HTML deba calcular HMAC.
-     *
-     * ⚠️  NO exponer en producción. Proteger con un perfil de Spring (@Profile("dev")).
-     */
-    @PostMapping("/mock-payment")
-    public ResponseEntity<Void> handleMockPaymentWebhook(@RequestBody String rawPayload) {
-        try {
-            log.info("[DEV] Received mock payment webhook. Auto-signing payload.");
-            processMockEvent(objectMapper.readValue(rawPayload,
-                    com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload.class));
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("[DEV] Error processing mock payment webhook: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
     private void processWebhookPayload(String rawPayload) throws Exception {
-        // Intentamos parsear como evento real de Wompi
-        try {
-            WompiWebhookPayload wompiPayload = objectMapper.readValue(rawPayload, WompiWebhookPayload.class);
-            if (wompiPayload.getEvent() != null && wompiPayload.getData() != null) {
-                processWompiEvent(wompiPayload);
-                return;
-            }
-        } catch (Exception ignored) {
-            // No es un payload de Wompi real, intentamos el formato simulado
+        WompiWebhookPayload wompiPayload = objectMapper.readValue(rawPayload, WompiWebhookPayload.class);
+        if (wompiPayload.getEvent() != null && wompiPayload.getData() != null) {
+            processWompiEvent(wompiPayload);
+        } else {
+            log.warn("Payload is missing event or data fields");
+            throw new IllegalArgumentException("Invalid Wompi payload");
         }
-
-        // Fallback: payload simulado del MockPaymentGateway (para desarrollo)
-        com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload mockPayload =
-                objectMapper.readValue(rawPayload, com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload.class);
-        processMockEvent(mockPayload);
     }
 
     /**
@@ -177,39 +150,7 @@ public class WebhookController {
         log.info("Successfully deposited {} COP for user {} via Wompi", amountInPesos, userId);
     }
 
-    /**
-     * Procesa un evento del MockPaymentGateway (solo para desarrollo).
-     */
-    private void processMockEvent(com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload payload) {
-        log.info("Received MOCK payment webhook event: {}", payload.getEvent());
 
-        if (!"transaction.updated".equals(payload.getEvent()) || payload.getData() == null) {
-            return;
-        }
-
-        var data = payload.getData();
-        if (!"APPROVED".equals(data.getStatus()) || data.getUserId() == null) {
-            return;
-        }
-
-        String txId = data.getTransactionId();
-        if (processedWebhookRepository.existsById(txId)) {
-            log.info("Mock transaction {} already processed. Ignoring.", txId);
-            return;
-        }
-
-        DepositRequest request = new DepositRequest();
-        request.setAmount(data.getAmount());
-        request.setMethod("PSE_MOCK_" + txId);
-
-        depositUseCase.execute(data.getUserId(), request);
-
-        processedWebhookRepository.save(ProcessedWebhookJpaEntity.builder()
-                .transactionId(txId)
-                .gateway("MOCK_GATEWAY")
-                .processedAt(Instant.now())
-                .build());
-    }
 
     /**
      * Verifica la firma real de Wompi (header: x-wompi-signature-v1).

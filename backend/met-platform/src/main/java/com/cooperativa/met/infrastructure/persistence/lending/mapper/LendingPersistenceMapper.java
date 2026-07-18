@@ -15,7 +15,9 @@ public class LendingPersistenceMapper {
                 .termMonths(e.getTermMonths()).annualInterestRate(e.getAnnualInterestRate())
                 .monthlyPayment(e.getMonthlyPayment()).totalInterest(e.getTotalInterest())
                 .totalPayment(e.getTotalPayment()).purpose(e.getPurpose()).status(e.getStatus())
-                .rejectionReason(e.getRejectionReason()).submittedAt(e.getSubmittedAt())
+                .rejectionReason(e.getRejectionReason())
+                .creditScore(e.getCreditScore()).creditBureauRef(e.getCreditBureauRef())
+                .submittedAt(e.getSubmittedAt())
                 .reviewedAt(e.getReviewedAt()).createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt())
                 .build();
     }
@@ -26,7 +28,9 @@ public class LendingPersistenceMapper {
         e.setTermMonths(a.getTermMonths()); e.setAnnualInterestRate(a.getAnnualInterestRate());
         e.setMonthlyPayment(a.getMonthlyPayment()); e.setTotalInterest(a.getTotalInterest());
         e.setTotalPayment(a.getTotalPayment()); e.setPurpose(a.getPurpose()); e.setStatus(a.getStatus());
-        e.setRejectionReason(a.getRejectionReason()); e.setSubmittedAt(a.getSubmittedAt());
+        e.setRejectionReason(a.getRejectionReason()); 
+        e.setCreditScore(a.getCreditScore()); e.setCreditBureauRef(a.getCreditBureauRef());
+        e.setSubmittedAt(a.getSubmittedAt());
         e.setReviewedAt(a.getReviewedAt()); e.setCreatedAt(a.getCreatedAt()); e.setUpdatedAt(a.getUpdatedAt());
         return e;
     }

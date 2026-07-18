@@ -29,7 +29,14 @@ public class ResetPinWithOtpUseCase {
             throw new BusinessRuleException("INVALID_OTP", "El código de verificación es incorrecto o ha expirado");
         }
 
-        String newPinHash = encryptionPort.hashPin(request.getNewPin());
+        String plainNewPin;
+        try {
+            plainNewPin = encryptionPort.decryptRsa(request.getNewPin());
+        } catch (Exception e) {
+            throw new BusinessRuleException("SECURITY_ERROR", "Error de seguridad en la encriptación de extremo a extremo");
+        }
+
+        String newPinHash = encryptionPort.hashPin(plainNewPin);
         User updatedUser = user.withPinHash(newPinHash);
         userRepository.save(updatedUser);
     }

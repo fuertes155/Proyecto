@@ -48,5 +48,17 @@ public class TransferLimitService {
                     String.format("La transferencia excede tu límite diario de $%s. Ya has transferido $%s hoy.", 
                             sourceAccount.getDailyTransferLimit(), sumToday));
         }
+
+        // 3. Bloqueo Nocturno Anti-Secuestro Exprés (Bóveda de Tiempo)
+        // Ejemplo: Entre las 00:00 y las 06:00, las transferencias mayores a $200,000 están bloqueadas
+        int currentHour = now.getHour();
+        if (currentHour >= 0 && currentHour < 6) {
+            BigDecimal vaultLimit = new BigDecimal("200000");
+            if (amountToTransfer.compareTo(vaultLimit) > 0) {
+                log.warn("Transferencia bloqueada por Bóveda de Tiempo. Cuenta: {}, Monto: {}", sourceAccount.getId(), amountToTransfer);
+                throw new BusinessRuleException("TIME_VAULT_ACTIVE", 
+                        "Por tu seguridad, el 'Modo Bóveda' está activo entre 12:00 AM y 6:00 AM. No se permiten transferencias mayores a $200,000 en este horario.");
+            }
+        }
     }
 }

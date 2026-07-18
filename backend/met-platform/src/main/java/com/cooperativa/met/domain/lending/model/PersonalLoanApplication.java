@@ -22,6 +22,11 @@ public class PersonalLoanApplication {
     private final String purpose;
     private final LoanApplicationStatus status;
     private final String rejectionReason;
+    
+    // Integración de Central de Riesgo
+    private final Integer creditScore;
+    private final String creditBureauRef;
+    
     private final Instant submittedAt;
     private final Instant reviewedAt;
     private final Instant createdAt;

@@ -18,6 +18,7 @@ import com.cooperativa.met.application.identity.dto.BiometricRegistrationRequest
 import com.cooperativa.met.application.identity.dto.LoginRequest;
 import com.cooperativa.met.application.identity.dto.RegisterUserRequest;
 import com.cooperativa.met.application.identity.dto.UserResponse;
+import com.cooperativa.met.application.identity.usecase.GetPublicKeyUseCase;
 import com.cooperativa.met.application.identity.usecase.GetUserProfileUseCase;
 import com.cooperativa.met.application.identity.usecase.LoginUseCase;
 import com.cooperativa.met.application.identity.usecase.RefreshTokenUseCase;
@@ -50,6 +51,7 @@ public class AuthController {
 
     private final RegisterUserUseCase registerUserUseCase;
     private final RegisterBiometricUseCase registerBiometricUseCase;
+    private final GetPublicKeyUseCase getPublicKeyUseCase;
     private final LoginUseCase loginUseCase;
     private final GetUserProfileUseCase getUserProfileUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
@@ -61,6 +63,11 @@ public class AuthController {
     private final VerifyEmailUseCase verifyEmailUseCase;
     private final ResendEmailOtpUseCase resendEmailOtpUseCase;
     private final LogoutUseCase logoutUseCase;
+
+    @GetMapping("/public-key")
+    public ResponseEntity<Map<String, String>> getPublicKey() {
+        return ResponseEntity.ok(getPublicKeyUseCase.execute());
+    }
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
@@ -81,8 +88,10 @@ public class AuthController {
 
     @PostMapping("/biometric")
     public ResponseEntity<Map<String, String>> registerBiometric(
+            Authentication authentication,
             @Valid @RequestBody BiometricRegistrationRequest request) {
-        registerBiometricUseCase.execute(request);
+        UUID userId = (UUID) authentication.getPrincipal();
+        registerBiometricUseCase.execute(userId, request);
         return ResponseEntity.ok(Map.of("message", "Registro biométrico completado"));
     }
 

@@ -33,17 +33,23 @@ public class SecurityConfig {
     private final RateLimitProperties rateLimitProperties;
     private final ObjectMapper objectMapper;
     private final RedisRateLimiter redisRateLimiter;
+    private final HmacSignatureFilter hmacSignatureFilter;
+    private final GeoBlockingFilter geoBlockingFilter;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           MetCorsProperties corsProperties,
                           RateLimitProperties rateLimitProperties,
                           ObjectMapper objectMapper,
-                          RedisRateLimiter redisRateLimiter) {
+                          RedisRateLimiter redisRateLimiter,
+                          HmacSignatureFilter hmacSignatureFilter,
+                          GeoBlockingFilter geoBlockingFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.corsProperties = corsProperties;
         this.rateLimitProperties = rateLimitProperties;
         this.objectMapper = objectMapper;
         this.redisRateLimiter = redisRateLimiter;
+        this.hmacSignatureFilter = hmacSignatureFilter;
+        this.geoBlockingFilter = geoBlockingFilter;
     }
 
     @Bean
@@ -78,11 +84,11 @@ public class SecurityConfig {
                         // Permitir preflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Rutas públicas de usuarios
+                        .requestMatchers(HttpMethod.GET, "/v1/auth/public-key").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/register", "/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/pin-recovery/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/verify-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/resend-email-otp").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/v1/auth/biometric").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/loans/simulate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/support/chat").permitAll()
@@ -100,7 +106,9 @@ public class SecurityConfig {
                         .requestMatchers("/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(geoBlockingFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthenticationFilter, GeoBlockingFilter.class)
+                .addFilterAfter(hmacSignatureFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
@@ -113,7 +121,7 @@ public class SecurityConfig {
     public FilterRegistrationBean<AuthRateLimitFilter> rateLimitFilterRegistration() {
         FilterRegistrationBean<AuthRateLimitFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new AuthRateLimitFilter(rateLimitProperties, objectMapper, redisRateLimiter));
-        registration.addUrlPatterns("/api/v1/auth/*");
+        registration.addUrlPatterns("/v1/*");
         registration.setOrder(1);
         registration.setName("authRateLimitFilter");
         return registration;

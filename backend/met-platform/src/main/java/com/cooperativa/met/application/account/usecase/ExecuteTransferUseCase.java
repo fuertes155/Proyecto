@@ -11,10 +11,10 @@ import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
 import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.port.EncryptionPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.infrastructure.audit.AuditLogService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,7 @@ public class ExecuteTransferUseCase {
     private final CoreAccountRepositoryPort accountRepository;
     private final CoreTransactionRepositoryPort transactionRepository;
     private final UserRepositoryPort userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final EncryptionPort encryptionPort;
     private final OtpService otpService;
     private final AuditLogService auditLogService;
     private final IdempotencyService idempotencyService;
@@ -64,7 +64,19 @@ public class ExecuteTransferUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
-        if (!passwordEncoder.matches(request.pin(), user.getPinHash())) {
+        if (user.getKycStatus() != com.cooperativa.met.domain.identity.model.KycStatus.APPROVED) {
+            throw new BusinessRuleException("KYC_REQUIRED", "Debe completar la validación de identidad biométrica para transferir");
+        }
+        
+        boolean pinValid = false;
+        try {
+            String plainPin = encryptionPort.decryptRsa(request.pin());
+            pinValid = encryptionPort.verifyPin(plainPin, user.getPinHash());
+        } catch (Exception e) {
+            // E2EE decryption failed
+        }
+
+        if (!pinValid) {
             auditLogService.logFailure(userId, AuditLogService.TRANSFER_FAILED,
                     "TRANSFER", null, "{\"reason\":\"INVALID_PIN\"}");
             pinAttemptService.checkAndRecordFailure(userId); // This throws exception

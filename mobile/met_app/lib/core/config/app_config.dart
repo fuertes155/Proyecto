@@ -15,4 +15,11 @@ class AppConfig {
     // Para compilar la app usa: flutter build apk --dart-define=API_BASE_URL=https://api.tudominio.com
     return 'http://localhost:8080/api'; // Fallback solo para desarrollo local (Emulator)
   }
+
+  static String get hmacSecret {
+    const fromEnv = String.fromEnvironment('HMAC_SECRET');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    // Fallback para dev. DEBE cambiarse en prod usando --dart-define
+    return 'D3vHmacS3cr3tKey123!@#'; 
+  }
 }

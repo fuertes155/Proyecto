@@ -11,4 +11,8 @@ public interface EncryptionPort {
     boolean verifyPin(String pin, String hash);
 
     String hashBiometric(String biometricPayload);
+
+    // RSA E2EE
+    String decryptRsa(String encryptedBase64);
+    String getRsaPublicKeyBase64();
 }

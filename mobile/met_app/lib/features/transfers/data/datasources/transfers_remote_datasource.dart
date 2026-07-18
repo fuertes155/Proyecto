@@ -1,13 +1,24 @@
 import 'package:dio/dio.dart';
+import '../../../../core/network/api_client_provider.dart';
+import '../../../../core/security/rsa_encryption_service.dart';
 import '../models/core_account_model.dart';
 import '../models/transfer_request_model.dart';
 import '../models/deposit_request_model.dart';
 import '../models/verify_recipient_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final transfersRemoteDataSourceProvider = Provider<TransfersRemoteDataSource>((ref) {
+  return TransfersRemoteDataSource(
+    ref.watch(apiClientProvider),
+    ref.watch(rsaEncryptionServiceProvider),
+  );
+});
 
 class TransfersRemoteDataSource {
-  TransfersRemoteDataSource(this._dio);
+  TransfersRemoteDataSource(this._dio, this._rsaEncryptionService);
 
   final Dio _dio;
+  final RsaEncryptionService _rsaEncryptionService;
 
   Future<CoreAccountModel> getMyAccount() async {
     final response = await _dio.get('/v1/accounts/me');
@@ -22,7 +33,11 @@ class TransfersRemoteDataSource {
   }
 
   Future<void> executeTransfer(TransferRequestModel request) async {
-    await _dio.post('/v1/accounts/transactions/transfer', data: request.toJson());
+    final payload = request.toJson();
+    if (payload['pin'] != null) {
+      payload['pin'] = await _rsaEncryptionService.encryptPin(payload['pin'] as String);
+    }
+    await _dio.post('/v1/accounts/transactions/transfer', data: payload);
   }
 
   Future<void> requestTransferOtp() async {
