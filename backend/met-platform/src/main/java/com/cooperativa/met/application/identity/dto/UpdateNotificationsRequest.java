@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class UpdateNotificationsRequest {
-    private boolean emailNotificationsEnabled;
-    private boolean pushNotificationsEnabled;
+    private Boolean emailNotificationsEnabled;
+    private Boolean pushNotificationsEnabled;
 }

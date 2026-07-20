@@ -37,14 +37,13 @@ services:
       context: ./backend
       dockerfile: met-platform/Dockerfile
     container_name: met-backend
-    ports:
-      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${POSTGRES_DB}

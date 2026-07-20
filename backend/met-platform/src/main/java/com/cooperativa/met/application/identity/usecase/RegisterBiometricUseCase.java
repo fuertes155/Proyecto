@@ -76,7 +76,7 @@ public class RegisterBiometricUseCase {
                 .withStatus(UserStatus.ACTIVE));
                 
         // 🛡️ Create CoreAccount for the user so they can operate financially
-        String accountNumber = "10" + String.format("%08d", new java.util.Random().nextInt(100000000));
+        String accountNumber = "10" + String.format("%08d", new java.security.SecureRandom().nextInt(100000000));
         CoreAccount account = CoreAccount.builder()
                 .id(UUID.randomUUID())
                 .userId(user.getId())

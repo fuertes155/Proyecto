@@ -55,6 +55,13 @@ public class AdminLoanUseCase {
             CoreAccount account = accountRepository.findByUserId(loan.getUserId())
                     .orElseThrow(() -> new BusinessRuleException("NO_ACCOUNT", "El usuario no tiene billetera virtual para desembolsar"));
             
+            // Fix: Re-validate the 10x collateral rule at the time of approval
+            BigDecimal maxLoanAmount = account.getPrincipalBalance().multiply(new BigDecimal("10"));
+            if (loan.getAmount().compareTo(maxLoanAmount) > 0) {
+                throw new BusinessRuleException("MAX_LOAN_EXCEEDED", 
+                        "El usuario ya no tiene saldo suficiente para respaldar este préstamo. Saldo actual: $" + account.getPrincipalBalance());
+            }
+
             CoreAccount updatedAccount = account.creditPrincipal(netDisbursement);
             accountRepository.save(updatedAccount);
 

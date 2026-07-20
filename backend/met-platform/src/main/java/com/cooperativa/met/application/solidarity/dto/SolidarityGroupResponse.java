@@ -17,8 +17,8 @@ public record SolidarityGroupResponse(
         BigDecimal interestRate,
         BigDecimal poolBalance,
         BigDecimal maxLoanAmount,
-        int memberCount,
-        int maxMembers,
+        Integer memberCount,
+        Integer maxMembers,
         GroupStatus status,
         MemberRole myRole,
         Instant createdAt

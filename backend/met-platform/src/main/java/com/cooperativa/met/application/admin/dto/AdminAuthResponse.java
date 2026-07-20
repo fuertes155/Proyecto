@@ -8,10 +8,10 @@ public record AdminAuthResponse(
         String fullName,
         String role,
         String accessToken,
-        long expiresInMs
+        Long expiresInMs
 ) {
     public static AdminAuthResponse of(UUID adminId, String username, String fullName,
-                                       String role, String accessToken, long expiresInMs) {
+                                       String role, String accessToken, Long expiresInMs) {
         return new AdminAuthResponse(adminId, username, fullName, role, accessToken, expiresInMs);
     }
 }

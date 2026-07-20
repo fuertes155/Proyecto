@@ -13,7 +13,7 @@ public class NotificationResponse {
     private UUID id;
     private String title;
     private String message;
-    private boolean read;
+    private Boolean read;
     private LocalDateTime createdAt;
 
     public static NotificationResponse fromDomain(Notification notification) {

@@ -12,7 +12,7 @@ public record MicroLoanResponse(
         UUID borrowerId,
         BigDecimal amount,
         String purpose,
-        int termMonths,
+        Integer termMonths,
         BigDecimal interestRate,
         MicroLoanStatus status,
         Instant requestedAt,

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 public class DepositRequest {
     @NotNull(message = "El monto es obligatorio")
     @DecimalMin(value = "1.0", message = "El monto debe ser mayor a 0")
+    @jakarta.validation.constraints.DecimalMax(value = "100000000.00", message = "El monto máximo por recarga es de $100.000.000 COP")
     private BigDecimal amount;
 
     @NotBlank(message = "El método de recarga es obligatorio")

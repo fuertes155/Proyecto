@@ -1,5 +1,7 @@
 package com.cooperativa.met.infrastructure.persistence.solidarity.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.cooperativa.met.domain.solidarity.model.InstallmentStatus;
 import com.cooperativa.met.infrastructure.persistence.solidarity.entity.LoanInstallmentJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

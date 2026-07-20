@@ -1,7 +1,7 @@
 package com.cooperativa.met.infrastructure.web.webhook;
 
 import com.cooperativa.met.application.account.dto.DepositRequest;
-import com.cooperativa.met.application.account.usecase.DepositUseCase;
+import com.cooperativa.met.application.account.usecase.ProcessWebhookUseCase;
 import com.cooperativa.met.infrastructure.persistence.webhook.entity.ProcessedWebhookJpaEntity;
 import com.cooperativa.met.infrastructure.persistence.webhook.repository.ProcessedWebhookJpaRepository;
 import com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload;
@@ -27,7 +27,7 @@ import java.time.Instant;
 @Slf4j
 public class MockPaymentGatewayController {
 
-    private final DepositUseCase depositUseCase;
+    private final ProcessWebhookUseCase processWebhookUseCase;
     private final ProcessedWebhookJpaRepository processedWebhookRepository;
     private final ObjectMapper objectMapper;
 
@@ -52,17 +52,8 @@ public class MockPaymentGatewayController {
                 return ResponseEntity.ok().build();
             }
 
-            DepositRequest request = new DepositRequest();
-            request.setAmount(data.getAmount());
-            request.setMethod("PSE_MOCK_" + txId);
-
-            depositUseCase.execute(data.getUserId(), request);
-
-            processedWebhookRepository.save(ProcessedWebhookJpaEntity.builder()
-                    .transactionId(txId)
-                    .gateway("MOCK_GATEWAY")
-                    .processedAt(Instant.now())
-                    .build());
+            String method = "PSE_MOCK_" + txId;
+            processWebhookUseCase.execute(txId, "MOCK_GATEWAY", data.getUserId(), data.getAmount(), method);
 
             return ResponseEntity.ok().build();
         } catch (Exception e) {

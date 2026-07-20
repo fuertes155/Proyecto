@@ -24,7 +24,7 @@ public class UpdateNotificationsUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
                 
-        User updatedUser = user.withNotifications(request.isEmailNotificationsEnabled(), request.isPushNotificationsEnabled());
+        User updatedUser = user.withNotifications(request.getEmailNotificationsEnabled(), request.getPushNotificationsEnabled());
         User savedUser = userRepository.save(updatedUser);
         
         return userMapper.toResponse(savedUser);

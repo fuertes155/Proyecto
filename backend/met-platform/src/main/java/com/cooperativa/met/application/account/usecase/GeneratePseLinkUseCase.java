@@ -62,9 +62,8 @@ public class GeneratePseLinkUseCase {
         // Para COP: monto * 100 (Wompi trata todos los montos como la unidad mínima)
         long amountInCents = request.getAmount().multiply(BigDecimal.valueOf(100)).longValue();
 
-        // Referencia única por transacción — incluye userId para el webhook
-        String reference = "MET-" + userId.toString().replace("-", "").substring(0, 12).toUpperCase()
-                + "-" + System.currentTimeMillis();
+        // Referencia única por transacción — incluye userId COMPLETO para el webhook
+        String reference = "MET-" + userId.toString() + "-" + System.currentTimeMillis();
 
         // Firma de integridad SHA-256: reference + amountInCents + currency + integritySecret
         String currency = "COP";
@@ -115,7 +114,11 @@ public class GeneratePseLinkUseCase {
      */
     private String buildRedirectUrl(UUID userId, String returnUrl) {
         if (returnUrl != null && !returnUrl.isBlank()) {
-            return returnUrl;
+            if (returnUrl.startsWith("https://met-platform.com") || returnUrl.startsWith("metapp://")) {
+                return returnUrl;
+            } else {
+                log.warn("Blocked unvalidated redirect attempt to: {}", returnUrl);
+            }
         }
         // URL de retorno por defecto: app móvil deep link
         return "metapp://deposit/success?userId=" + userId;

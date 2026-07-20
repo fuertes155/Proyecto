@@ -9,13 +9,13 @@ import java.util.UUID;
 public record RegulatoryReportResponse(
         UUID id,
         SupersolidariaReportType reportType,
-        int periodYear,
-        int periodMonth,
+        Integer periodYear,
+        Integer periodMonth,
         String entityCode,
         ReportStatus status,
         String fileName,
         Long fileSizeBytes,
-        int recordCount,
+        Integer recordCount,
         String checksumSha256,
         Instant generatedAt,
         String downloadUrl

@@ -1,5 +1,7 @@
 package com.cooperativa.met.infrastructure.persistence.savings.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.cooperativa.met.domain.savings.model.ScheduledSavingsStatus;
 import com.cooperativa.met.infrastructure.persistence.savings.entity.ScheduledSavingsAccountJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

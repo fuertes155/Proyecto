@@ -5,7 +5,7 @@ import java.util.List;
 
 public record LoanSimulationResponse(
         BigDecimal amount,
-        int termMonths,
+        Integer termMonths,
         BigDecimal annualInterestRate,
         BigDecimal monthlyInterestRate,
         BigDecimal monthlyPayment,

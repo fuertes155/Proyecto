@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,13 +39,20 @@ public class AiChatService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            String requestBody = """
-                {
-                    "contents": [{
-                        "parts":[{"text": "Actúa como un asesor financiero amigable de una cooperativa llamada MET Platform. REGLA CRÍTICA: Responde SIEMPRE de forma MUY corta y concisa (máximo 2 oraciones). NO uses ningún formato markdown (NADA de asteriscos, negritas ni viñetas). El usuario te dice: %s"}]
-                    }]
-                }
-                """.formatted(userMessage.replace("\"", "\\\""));
+            String prompt = "Actúa como un asesor financiero amigable de una cooperativa llamada MET Platform. REGLA CRÍTICA: Responde SIEMPRE de forma MUY corta y concisa (máximo 2 oraciones). NO uses ningún formato markdown (NADA de asteriscos, negritas ni viñetas). El usuario te dice: " + userMessage;
+            
+            java.util.Map<String, Object> requestMap = java.util.Map.of(
+                "contents", java.util.List.of(
+                    java.util.Map.of(
+                        "parts", java.util.List.of(
+                            java.util.Map.of("text", prompt)
+                        )
+                    )
+                )
+            );
+
+            ObjectMapper mapper = new ObjectMapper();
+            String requestBody = mapper.writeValueAsString(requestMap);
 
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
             ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);

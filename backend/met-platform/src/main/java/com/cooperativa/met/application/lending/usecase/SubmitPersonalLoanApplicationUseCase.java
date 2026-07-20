@@ -103,10 +103,12 @@ public class SubmitPersonalLoanApplicationUseCase {
                     "El monto solicitado excede tu límite. Puedes pedir máximo 10 veces tu saldo actual.");
         }
 
+        BigDecimal baseInterestRate = new BigDecimal("0.15"); // 15% annual rate
+        
         LoanSimulationResult simulation = FrenchAmortizationCalculator.simulate(
                 request.amount(),
                 request.termMonths(),
-                request.annualInterestRate(),
+                baseInterestRate,
                 LocalDate.now()
         );
 

@@ -10,7 +10,7 @@ import java.util.UUID;
 public record LoanInstallmentResponse(
         UUID id,
         UUID loanId,
-        int installmentNumber,
+        Integer installmentNumber,
         BigDecimal principalAmount,
         BigDecimal interestAmount,
         BigDecimal totalAmount,

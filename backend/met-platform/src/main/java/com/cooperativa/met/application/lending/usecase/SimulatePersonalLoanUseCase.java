@@ -8,6 +8,7 @@ import com.cooperativa.met.domain.lending.service.FrenchAmortizationCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Service
@@ -17,10 +18,12 @@ public class SimulatePersonalLoanUseCase {
     private final LendingMapper mapper;
 
     public LoanSimulationResponse execute(SimulateLoanRequest request) {
+        BigDecimal baseInterestRate = new BigDecimal("0.15");
+        
         LoanSimulationResult result = FrenchAmortizationCalculator.simulate(
                 request.amount(),
                 request.termMonths(),
-                request.annualInterestRate(),
+                baseInterestRate,
                 LocalDate.now()
         );
         return mapper.toResponse(result);

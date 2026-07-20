@@ -17,7 +17,7 @@ public record MicroInvestmentResponse(
         String instrumentNombre,
         BigDecimal montoInvertido,
         BigDecimal tasaAplicada,
-        int plazoDias,
+        Integer plazoDias,
         LocalDate fechaInicio,
         LocalDate fechaVencimiento,
         BigDecimal rendimientoProyectado,

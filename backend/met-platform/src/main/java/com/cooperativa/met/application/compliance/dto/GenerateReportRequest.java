@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record GenerateReportRequest(
         @NotNull SupersolidariaReportType reportType,
-        @Min(2020) @Max(2100) int periodYear,
-        @Min(1) @Max(12) int periodMonth
+        @Min(2020) @Max(2100) Integer periodYear,
+        @Min(1) @Max(12) Integer periodMonth
 ) {
 }

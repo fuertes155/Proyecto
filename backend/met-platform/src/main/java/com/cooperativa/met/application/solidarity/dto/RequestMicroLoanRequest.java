@@ -12,6 +12,6 @@ import java.math.BigDecimal;
 public record RequestMicroLoanRequest(
         @NotNull @DecimalMin(value = "10000.00", message = "Monto mínimo: $10.000") BigDecimal amount,
         @NotBlank @Size(max = 255) String purpose,
-        @Min(1) @Max(24) int termMonths
+        @Min(1) @Max(24) Integer termMonths
 ) {
 }

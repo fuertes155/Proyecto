@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 public class GeneratePseLinkRequest {
     @NotNull(message = "El monto es obligatorio")
     @DecimalMin(value = "10000.0", message = "El monto mínimo de depósito es de $10.000 COP")
+    @jakarta.validation.constraints.DecimalMax(value = "100000000.00", message = "El monto máximo por recarga es de $100.000.000 COP")
     private BigDecimal amount;
     
     private String returnUrl;

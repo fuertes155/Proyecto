@@ -1,5 +1,7 @@
 package com.cooperativa.met.infrastructure.persistence.compliance.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.cooperativa.met.domain.compliance.model.SupersolidariaReportType;
 import com.cooperativa.met.infrastructure.persistence.compliance.entity.RegulatoryReportJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

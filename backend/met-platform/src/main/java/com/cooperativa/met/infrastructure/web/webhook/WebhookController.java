@@ -1,7 +1,7 @@
 package com.cooperativa.met.infrastructure.web.webhook;
 
 import com.cooperativa.met.application.account.dto.DepositRequest;
-import com.cooperativa.met.application.account.usecase.DepositUseCase;
+import com.cooperativa.met.application.account.usecase.ProcessWebhookUseCase;
 import com.cooperativa.met.infrastructure.persistence.webhook.entity.ProcessedWebhookJpaEntity;
 import com.cooperativa.met.infrastructure.persistence.webhook.repository.ProcessedWebhookJpaRepository;
 import com.cooperativa.met.infrastructure.web.webhook.dto.WompiWebhookPayload;
@@ -40,7 +40,7 @@ import java.util.UUID;
 @Slf4j
 public class WebhookController {
 
-    private final DepositUseCase depositUseCase;
+    private final ProcessWebhookUseCase processWebhookUseCase;
     private final ProcessedWebhookJpaRepository processedWebhookRepository;
     private final ObjectMapper objectMapper;
 
@@ -118,11 +118,11 @@ public class WebhookController {
 
         // Idempotencia: no procesar la misma transacción dos veces
         if (processedWebhookRepository.existsById(txId)) {
-            log.info("Transaction {} already processed (Idempotency). Ignoring.", txId);
+            log.info("Transaction {} already processed (Idempotency check).", txId);
             return;
         }
 
-        // Extraer userId de la referencia (formato: MET-{userId12chars}-{timestamp})
+        // Extraer userId de la referencia (formato: MET-{userIdUUID}-{timestamp})
         UUID userId = extractUserIdFromReference(reference);
         if (userId == null) {
             log.error("Could not extract userId from Wompi reference: {}", reference);
@@ -135,19 +135,10 @@ public class WebhookController {
         log.info("Processing approved Wompi transaction {} for user {} amount={} COP",
                 txId, userId, amountInPesos);
 
-        DepositRequest request = new DepositRequest();
-        request.setAmount(amountInPesos);
-        request.setMethod("WOMPI_" + tx.getPaymentMethodType());
-
-        depositUseCase.execute(userId, request);
-
-        processedWebhookRepository.save(ProcessedWebhookJpaEntity.builder()
-                .transactionId(txId)
-                .gateway("WOMPI")
-                .processedAt(Instant.now())
-                .build());
-
-        log.info("Successfully deposited {} COP for user {} via Wompi", amountInPesos, userId);
+        String method = "WOMPI_" + tx.getPaymentMethodType();
+        processWebhookUseCase.execute(txId, "WOMPI", userId, amountInPesos, method);
+        
+        log.info("Successfully queued deposit of {} COP for user {} via Wompi", amountInPesos, userId);
     }
 
 
@@ -206,22 +197,20 @@ public class WebhookController {
         }
     }
 
-    /**
-     * Extrae el UUID del usuario a partir de la referencia de pago.
-     * Formato esperado: "MET-{userId12chars}-{timestamp}"
-     * Ejemplo: "MET-A1B2C3D4E5F6-1735000000000"
-     */
     private UUID extractUserIdFromReference(String reference) {
         try {
-            // Buscar el userId en la base de datos a partir de la referencia no es posible aquí
-            // sin acceso al repositorio de usuarios. En su lugar, el userId queda embebido
-            // en la referencia como los primeros 12 chars del UUID sin guiones.
-            // Para producción real: guardar la referencia+userId en una tabla de intenciones de pago.
-            log.warn("Real Wompi webhook received. Reference: {}. " +
-                     "Para producción, implementar tabla de intenciones de pago para mapear reference -> userId.",
-                     reference);
+            // Formato esperado: MET-{userIdUUID}-{timestamp}
+            // Ejemplo: MET-550e8400-e29b-41d4-a716-446655440000-1735000000000
+            String[] parts = reference.split("-");
+            if (parts.length >= 6 && "MET".equals(parts[0])) {
+                // Reconstruir el UUID
+                String uuidString = parts[1] + "-" + parts[2] + "-" + parts[3] + "-" + parts[4] + "-" + parts[5];
+                return UUID.fromString(uuidString);
+            }
+            log.error("Reference format is invalid: {}", reference);
             return null;
         } catch (Exception e) {
+            log.error("Error extracting UUID from reference: {}", reference, e);
             return null;
         }
     }

@@ -21,5 +21,5 @@ public record RiskRuleRequest(
         @NotBlank(message = "La acción es requerida")
         String accion,
 
-        boolean activo
+        Boolean activo
 ) {}

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record AmortizationInstallmentResponse(
-        int installmentNumber,
+        Integer installmentNumber,
         BigDecimal paymentAmount,
         BigDecimal principalAmount,
         BigDecimal interestAmount,

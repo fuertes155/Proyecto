@@ -8,8 +8,8 @@ public record OperationLimitRequest(
         String tipoOperacion,
 
         @Min(value = 1, message = "El monto diario debe ser mayor a 0")
-        long montoDiarioMax,
+        Long montoDiarioMax,
 
         @Min(value = 1, message = "El monto por transacción debe ser mayor a 0")
-        long montoPorTransaccionMax
+        Long montoPorTransaccionMax
 ) {}

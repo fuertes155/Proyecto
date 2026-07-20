@@ -1,5 +1,7 @@
 package com.cooperativa.met.infrastructure.persistence.notification.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.cooperativa.met.infrastructure.persistence.notification.entity.NotificationJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

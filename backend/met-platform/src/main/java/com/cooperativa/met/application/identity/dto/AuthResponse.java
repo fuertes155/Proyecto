@@ -7,9 +7,9 @@ public record AuthResponse(
         String accessToken,
         String refreshToken,
         String tokenType,
-        long expiresInMs
+        Long expiresInMs
 ) {
-    public static AuthResponse of(UUID userId, String accessToken, String refreshToken, long expiresInMs) {
+    public static AuthResponse of(UUID userId, String accessToken, String refreshToken, Long expiresInMs) {
         return new AuthResponse(userId, accessToken, refreshToken, "Bearer", expiresInMs);
     }
 }

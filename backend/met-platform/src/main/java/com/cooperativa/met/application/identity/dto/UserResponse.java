@@ -17,8 +17,8 @@ public record UserResponse(
         String lastName,
         UserStatus status,
         KycStatus kycStatus,
-        boolean emailNotificationsEnabled,
-        boolean pushNotificationsEnabled,
+        Boolean emailNotificationsEnabled,
+        Boolean pushNotificationsEnabled,
         Instant createdAt
 ) {
 }
