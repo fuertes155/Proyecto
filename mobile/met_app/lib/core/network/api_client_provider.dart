@@ -72,8 +72,8 @@ final apiClientProvider = Provider<Dio>((ref) {
         final client = HttpClient(context: context);
         
         // Huella dactilar (SHA-256) del certificado público de nuestro servidor en Producción.
-        // TODO: Reemplazar con el hash real del certificado de tu dominio.
-        const String expectedFingerprint = 'A1:B2:C3:D4:E5:F6:78:90:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF';
+        // Se obtiene desde la configuración de entorno (--dart-define)
+        final String expectedFingerprint = AppConfig.sslFingerprint;
 
         client.badCertificateCallback = (X509Certificate cert, String host, int port) {
           // Excepción para desarrollo local

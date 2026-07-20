@@ -22,4 +22,12 @@ class AppConfig {
     // Fallback para dev. DEBE cambiarse en prod usando --dart-define
     return 'D3vHmacS3cr3tKey123!@#'; 
   }
+
+  static String get sslFingerprint {
+    const fromEnv = String.fromEnvironment('SSL_FINGERPRINT');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    // Placeholder para desarrollo. 
+    // Compilar con: --dart-define=SSL_FINGERPRINT=A1:B2...
+    return 'A1:B2:C3:D4:E5:F6:78:90:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF';
+  }
 }

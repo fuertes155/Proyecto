@@ -1,16 +1,18 @@
-# Met
+# Met App
 
-A new Flutter project.
+Aplicación móvil de la plataforma financiera Met.
 
-## Getting Started
+## 🔒 Compilación de Producción (Seguridad y Ofuscación)
 
-This project is a starting point for a Flutter application.
+Para garantizar que la aplicación esté protegida contra ingeniería inversa y ataques Man-In-The-Middle, es **obligatorio** compilar la versión de producción (Release) utilizando ofuscación de código y proveyendo las variables de entorno necesarias (como el fingerprint del SSL).
 
-A few resources to get you started if this is your first Flutter project:
+### Android (APK / AppBundle)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```powershell
+flutter build apk --release --obfuscate --split-debug-info=out/debug_info --dart-define=API_BASE_URL=https://api.tu-dominio.com --dart-define=SSL_FINGERPRINT=A1:B2:C3:D4:E5:F6:78:90:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Para mayor comodidad en Windows, puedes ejecutar el script de compilación seguro:
+`.\build_prod_android.bat`
+
+> **Nota:** Guarda siempre la carpeta `out/debug_info`. Si ocurre un crash en producción, necesitarás esos archivos para desofuscar el log de errores (stacktrace).
