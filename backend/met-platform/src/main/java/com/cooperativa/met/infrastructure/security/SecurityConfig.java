@@ -35,6 +35,8 @@ public class SecurityConfig {
     private final RedisRateLimiter redisRateLimiter;
     private final HmacSignatureFilter hmacSignatureFilter;
     private final GeoBlockingFilter geoBlockingFilter;
+    private final TurnstileValidationService turnstileValidationService;
+    private final DeviceAttestationService attestationService;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           MetCorsProperties corsProperties,
@@ -42,7 +44,9 @@ public class SecurityConfig {
                           ObjectMapper objectMapper,
                           RedisRateLimiter redisRateLimiter,
                           HmacSignatureFilter hmacSignatureFilter,
-                          GeoBlockingFilter geoBlockingFilter) {
+                          GeoBlockingFilter geoBlockingFilter,
+                          TurnstileValidationService turnstileValidationService,
+                          DeviceAttestationService attestationService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.corsProperties = corsProperties;
         this.rateLimitProperties = rateLimitProperties;
@@ -50,6 +54,8 @@ public class SecurityConfig {
         this.redisRateLimiter = redisRateLimiter;
         this.hmacSignatureFilter = hmacSignatureFilter;
         this.geoBlockingFilter = geoBlockingFilter;
+        this.turnstileValidationService = turnstileValidationService;
+        this.attestationService = attestationService;
     }
 
     @Bean
@@ -122,8 +128,28 @@ public class SecurityConfig {
         FilterRegistrationBean<AuthRateLimitFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new AuthRateLimitFilter(rateLimitProperties, objectMapper, redisRateLimiter));
         registration.addUrlPatterns("/v1/*");
-        registration.setOrder(1);
+        registration.setOrder(2); // Despues de Turnstile
         registration.setName("authRateLimitFilter");
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<TurnstileFilter> turnstileFilterRegistration() {
+        FilterRegistrationBean<TurnstileFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new TurnstileFilter(turnstileValidationService, objectMapper));
+        registration.addUrlPatterns("/v1/*");
+        registration.setOrder(1); // Antes del Rate Limit
+        registration.setName("turnstileFilter");
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<DeviceAttestationFilter> deviceAttestationFilterRegistration() {
+        FilterRegistrationBean<DeviceAttestationFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new DeviceAttestationFilter(attestationService, objectMapper));
+        registration.addUrlPatterns("/v1/*");
+        registration.setOrder(3); // Despues de Autenticacion/RateLimit
+        registration.setName("deviceAttestationFilter");
         return registration;
     }
 

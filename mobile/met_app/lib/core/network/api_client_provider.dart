@@ -37,9 +37,7 @@ final apiClientProvider = Provider<Dio>((ref) {
       if (['POST', 'PUT', 'PATCH', 'DELETE'].contains(method)) {
         final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
         
-        // El body puede ser un Map o String (Json). Dio por defecto usa Map.
         final bodyString = options.data != null ? jsonEncode(options.data) : '';
-        // Path relativo, Ej: /v1/auth/login. En Dio, options.path ya suele ser relativo.
         final path = options.path.startsWith('http') 
             ? Uri.parse(options.path).path 
             : options.path;
@@ -55,6 +53,31 @@ final apiClientProvider = Provider<Dio>((ref) {
 
         options.headers['X-Timestamp'] = timestamp;
         options.headers['X-Signature'] = signature;
+      }
+
+      // 🛡️ Cloudflare Turnstile CAPTCHA para endpoints publicos críticos
+      final protectedPaths = ['/v1/auth/login', '/v1/auth/register', '/v1/auth/pin-recovery/request'];
+      final pathToCheck = options.path.startsWith('http') ? Uri.parse(options.path).path : options.path;
+      
+      if (protectedPaths.any((p) => pathToCheck.endsWith(p))) {
+        final captchaToken = await storage.read(key: 'temp_captcha_token');
+        if (captchaToken != null && captchaToken.isNotEmpty) {
+           options.headers['X-Captcha-Token'] = captchaToken;
+           await storage.delete(key: 'temp_captcha_token');
+        }
+      }
+
+      // 📱 Integridad del Dispositivo (Play Integrity / App Attest)
+      // En un entorno real, este token se renueva periódicamente usando las APIs nativas
+      // (ej. paquete `device_check` en iOS o `play_integrity` en Android).
+      final attestationToken = await storage.read(key: 'device_attestation_token');
+      if (attestationToken != null && attestationToken.isNotEmpty) {
+        options.headers['X-Device-Attestation'] = attestationToken;
+        options.headers['X-Platform'] = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'unknown');
+      } else if (kDebugMode) {
+        // Mock para desarrollo local
+        options.headers['X-Device-Attestation'] = 'dev-attestation-token-123';
+        options.headers['X-Platform'] = Platform.isAndroid ? 'android' : 'ios';
       }
 
       return handler.next(options);
