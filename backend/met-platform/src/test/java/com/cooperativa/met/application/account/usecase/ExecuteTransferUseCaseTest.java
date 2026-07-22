@@ -11,6 +11,11 @@ import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
+import com.cooperativa.met.domain.identity.port.EncryptionPort;
+import com.cooperativa.met.infrastructure.audit.AuditLogService;
+import com.cooperativa.met.infrastructure.security.IdempotencyService;
+import com.cooperativa.met.application.account.service.TransferLimitService;
+import com.cooperativa.met.infrastructure.security.PinAttemptService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +23,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -38,9 +42,17 @@ class ExecuteTransferUseCaseTest {
     @Mock
     private UserRepositoryPort userRepository;
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private EncryptionPort encryptionPort;
     @Mock
     private OtpService otpService;
+    @Mock
+    private AuditLogService auditLogService;
+    @Mock
+    private IdempotencyService idempotencyService;
+    @Mock
+    private TransferLimitService transferLimitService;
+    @Mock
+    private PinAttemptService pinAttemptService;
     @Mock
     private FraudDetectionService fraudDetectionService;
 
@@ -72,6 +84,7 @@ class ExecuteTransferUseCaseTest {
                 .id(userId)
                 .documentNumber("123456789")
                 .pinHash("hashed_pin")
+                .kycStatus(com.cooperativa.met.domain.identity.model.KycStatus.APPROVED)
                 .build();
 
         sourceAccount = CoreAccount.builder()
@@ -92,8 +105,10 @@ class ExecuteTransferUseCaseTest {
     @Test
     void execute_successfulTransfer() {
         // Arrange
+        when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(true);
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(true);
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
         when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(destAccount));
         when(otpService.validateOtp("123456789", "000000")).thenReturn(true);
@@ -112,12 +127,16 @@ class ExecuteTransferUseCaseTest {
         assertEquals(new BigDecimal("200.00"), savedDest.getPrincipalBalance());
         
         verify(transactionRepository).save(any(CoreTransaction.class));
+        verify(auditLogService).logSuccess(eq(userId), any(), any(), any(), any());
     }
 
     @Test
     void execute_failsWhenPinIsInvalid() {
+        when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(false);
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(false);
+        doThrow(new BusinessRuleException("INVALID_PIN", "Invalid pin")).when(pinAttemptService).checkAndRecordFailure(userId);
 
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, 
             () -> executeTransferUseCase.execute(userId, transferRequest, "127.0.0.1"));
@@ -128,8 +147,10 @@ class ExecuteTransferUseCaseTest {
 
     @Test
     void execute_failsWhenOtpIsInvalid() {
+        when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(true);
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(true);
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
         when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(destAccount));
         when(otpService.validateOtp("123456789", "000000")).thenReturn(false);
@@ -149,8 +170,10 @@ class ExecuteTransferUseCaseTest {
                 .status(AccountStatus.BLOCKED)
                 .build();
                 
+        when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(true);
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(true);
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
 
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, 
@@ -162,8 +185,10 @@ class ExecuteTransferUseCaseTest {
     @Test
     void execute_failsWhenTransferringToSameAccount() {
         // Arrange: El destino es la misma cuenta origen
+        when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(true);
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(true);
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
         when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(sourceAccount)); // Devuelve la misma cuenta
 
@@ -187,8 +212,10 @@ class ExecuteTransferUseCaseTest {
             "idem-5678"
         );
         
+        when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(true);
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(true);
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
         when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(destAccount));
         when(otpService.validateOtp("123456789", "000000")).thenReturn(true);
