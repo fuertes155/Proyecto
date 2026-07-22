@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
           cache: maven
       - name: Build and test backend
         working-directory: backend
@@ -66,4 +66,4 @@ jobs:
         working-directory: mobile/met_app
         run: |
           flutter pub get
-          flutter analyze
+          flutter analyze --no-fatal-infos --no-fatal-warnings

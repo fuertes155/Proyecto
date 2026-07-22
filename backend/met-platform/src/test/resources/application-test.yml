@@ -13,6 +13,11 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  config:
+    import: ""
+  cloud:
+    vault:
+      enabled: false
 
 met:
   security:
@@ -25,6 +30,11 @@ met:
   ai:
     gemini:
       api-key: test-gemini-key
+  wompi:
+    public-key: test-pub-key
+    private-key: test-priv-key
+    integrity-secret: test-int-secret
+    webhook-secret: test-webhook-secret
   cors:
     allowed-origins:
       - http://localhost:3000

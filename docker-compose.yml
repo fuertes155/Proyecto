@@ -64,6 +64,8 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       CORS_ORIGINS: ${CORS_ORIGINS}
       COMPLIANCE_ENTITY_CODE: ${COMPLIANCE_ENTITY_CODE:-COOP001}
+      DB_HOST: postgres
+      REDIS_HOST: redis
     networks:
       - met-secure-net
     healthcheck:
