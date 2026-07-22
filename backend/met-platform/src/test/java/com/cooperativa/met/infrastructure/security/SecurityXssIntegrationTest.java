@@ -55,7 +55,7 @@ class SecurityXssIntegrationTest {
 
         // Assert: Capturamos el objeto java (TransferRequest) que Spring construyó a partir del JSON
         ArgumentCaptor<TransferRequest> captor = ArgumentCaptor.forClass(TransferRequest.class);
-        Mockito.verify(executeTransferUseCase).execute(Mockito.any(UUID.class), captor.capture());
+        Mockito.verify(executeTransferUseCase).execute(Mockito.any(UUID.class), captor.capture(), Mockito.anyString());
 
         TransferRequest capturedRequest = captor.getValue();
         
