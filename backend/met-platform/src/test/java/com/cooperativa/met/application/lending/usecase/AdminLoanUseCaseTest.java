@@ -68,7 +68,7 @@ class AdminLoanUseCaseTest {
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .status(AccountStatus.ACTIVE)
-                .principalBalance(new BigDecimal("50000.00"))
+                .principalBalance(new BigDecimal("100000.00"))
                 .build();
                 
         fee = FeeSchedule.builder()
@@ -97,8 +97,8 @@ class AdminLoanUseCaseTest {
         verify(accountRepository).save(accountCaptor.capture());
         
         CoreAccount savedAccount = accountCaptor.getValue();
-        // 50,000 + (1,000,000 - 20,000) = 1,030,000
-        assertEquals(new BigDecimal("1030000.00"), savedAccount.getPrincipalBalance());
+        // 100,000 + (1,000,000 - 20,000) = 1,080,000
+        assertEquals(new BigDecimal("1080000.00"), savedAccount.getPrincipalBalance());
         
         verify(transactionRepository).save(any(CoreTransaction.class));
         
