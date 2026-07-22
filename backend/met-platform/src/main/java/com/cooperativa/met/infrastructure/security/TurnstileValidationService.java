@@ -2,8 +2,10 @@ package com.cooperativa.met.infrastructure.security;
 
 import java.util.Map;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -51,14 +53,23 @@ public class TurnstileValidationService {
 
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
             
-            ResponseEntity<Map> response = restTemplate.postForEntity(TURNSTILE_VERIFY_URL, request, Map.class);
+            ParameterizedTypeReference<Map<String, Object>> responseType = 
+                new ParameterizedTypeReference<Map<String, Object>>() {};
             
-            if (response.getBody() != null) {
-                Boolean success = (Boolean) response.getBody().get("success");
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                TURNSTILE_VERIFY_URL, 
+                HttpMethod.POST, 
+                request, 
+                responseType
+            );
+            
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody != null) {
+                Boolean success = (Boolean) responseBody.get("success");
                 if (Boolean.TRUE.equals(success)) {
                     return true;
                 } else {
-                    log.warn("Fallo validacion Turnstile: {}", response.getBody());
+                    log.warn("Fallo validacion Turnstile: {}", responseBody);
                     return false;
                 }
             }

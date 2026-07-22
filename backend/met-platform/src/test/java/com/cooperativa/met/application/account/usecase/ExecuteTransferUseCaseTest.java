@@ -2,6 +2,7 @@ package com.cooperativa.met.application.account.usecase;
 
 import com.cooperativa.met.application.account.dto.TransferRequest;
 import com.cooperativa.met.application.identity.service.OtpService;
+import com.cooperativa.met.application.security.FraudDetectionService;
 import com.cooperativa.met.domain.account.model.AccountStatus;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.model.CoreTransaction;
