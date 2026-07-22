@@ -31,6 +31,7 @@ dependencies:
   crypto: ^3.0.7
   flutter_windowmanager: ^0.2.0
   freerasp: ^8.0.0
+  sensors_plus: ^7.1.0
 
 dev_dependencies:
   flutter_test:

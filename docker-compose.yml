@@ -1,4 +1,17 @@
 services:
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: met-vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN:-root}
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    ports:
+      - "8200:8200"
+    networks:
+      - met-secure-net
+    cap_add:
+      - IPC_LOCK
+
   postgres:
     image: postgres:16-alpine
     container_name: met-postgres
@@ -42,28 +55,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      vault:
+        condition: service_started
     environment:
       JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB}
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      AES_KEY: ${AES_KEY}
+      VAULT_URI: "http://vault:8200"
+      VAULT_TOKEN: ${VAULT_TOKEN:-root}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       CORS_ORIGINS: ${CORS_ORIGINS}
       COMPLIANCE_ENTITY_CODE: ${COMPLIANCE_ENTITY_CODE:-COOP001}
-      WOMPI_PUBLIC_KEY: ${WOMPI_PUBLIC_KEY}
-      WOMPI_PRIVATE_KEY: ${WOMPI_PRIVATE_KEY}
-      WOMPI_INTEGRITY_SECRET: ${WOMPI_INTEGRITY_SECRET}
-      WOMPI_WEBHOOK_SECRET: ${WOMPI_WEBHOOK_SECRET}
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      MAIL_USERNAME: ${MAIL_USERNAME:-your-email@gmail.com}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-your-app-password}
     networks:
       - met-secure-net
     healthcheck:

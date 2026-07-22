@@ -64,7 +64,7 @@ class CoreAccountControllerTest {
     void shouldReturnBadRequestWhenTransferFailsBusinessRule() throws Exception {
         // Arrange
         Mockito.doThrow(new BusinessRuleException("INSUFFICIENT_FUNDS", "Fondos insuficientes"))
-                .when(executeTransferUseCase).execute(any(), any(TransferRequest.class));
+                .when(executeTransferUseCase).execute(any(), any(TransferRequest.class), any());
 
         // Act & Assert
         mockMvc.perform(post("/v1/accounts/transactions/transfer")

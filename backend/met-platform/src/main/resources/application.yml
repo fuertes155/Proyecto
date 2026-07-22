@@ -35,6 +35,18 @@ spring:
           starttls:
             enable: true
 
+  # --- Configuracion de Vault (Secret Manager) ---
+  config:
+    import: "vault://"
+  cloud:
+    vault:
+      uri: ${VAULT_URI:http://localhost:8200}
+      token: ${VAULT_TOKEN:root}
+      kv:
+        enabled: true
+        backend: secret
+        default-context: met-platform
+
 server:
   port: ${SERVER_PORT:8080}
   forward-headers-strategy: framework
@@ -45,15 +57,10 @@ server:
     max-http-form-post-size: 1MB
     max-swallow-size: 2MB
 
-spring:
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
-  mvc:
-    # Límite para peticiones no-multipart (JSON, etc.)
-    async:
-      request-timeout: 30000
+spring.servlet.multipart:
+  max-file-size: 5MB
+  max-request-size: 5MB
+spring.mvc.async.request-timeout: 30000
 
 management:
   endpoints:
@@ -107,7 +114,6 @@ met:
     # Secret para validar firmas de webhooks entrantes de Wompi
     webhook-secret: ${WOMPI_WEBHOOK_SECRET}
     api-url: ${WOMPI_API_URL:https://sandbox.wompi.co/v1}
-    checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
     # URL base del checkout Wompi (donde el usuario completa el pago)
     checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
 

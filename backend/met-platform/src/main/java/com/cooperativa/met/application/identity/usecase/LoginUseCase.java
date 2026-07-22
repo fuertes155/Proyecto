@@ -13,6 +13,7 @@ import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
 import com.cooperativa.met.application.identity.service.OtpService;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+import com.cooperativa.met.application.security.FraudDetectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class LoginUseCase {
     private final MetSecurityProperties securityProperties;
     private final NotificationPort notificationPort;
     private final OtpService otpService;
+    private final FraudDetectionService fraudDetectionService;
 
     @Transactional
     public AuthResponse execute(LoginRequest request, String ip) {
@@ -43,6 +45,9 @@ public class LoginUseCase {
                     log.warn("Login failed - user not found for documentType={}", request.documentType());
                     return new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
                 });
+
+        // 🔥 Fraude: Regla 1 (Bloqueo de VPN/Tor)
+        fraudDetectionService.checkIpReputation(ip);
 
         if (user.getStatus() == UserStatus.BLOCKED) {
             throw new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta está bloqueada temporalmente");
@@ -92,6 +97,9 @@ public class LoginUseCase {
             }
             userRepository.save(user.withFailedLoginAttempts(0).withLastKnownIp(ip));
         }
+
+        // 🔥 Fraude: Registrar ubicación de login exitoso para el motor de "Viaje Imposible"
+        fraudDetectionService.recordLoginLocation(user.getId(), ip);
 
         String accessToken = tokenPort.generateAccessToken(user.getId(), user.getEmail());
         String refreshToken = tokenPort.generateRefreshToken(user.getId());

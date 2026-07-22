@@ -27,6 +27,7 @@ import com.cooperativa.met.application.identity.service.OtpService;
 import com.cooperativa.met.infrastructure.security.IdempotencyService;
 import com.cooperativa.met.application.account.service.TransferLimitService;
 import com.cooperativa.met.infrastructure.security.PinAttemptService;
+import com.cooperativa.met.application.security.FraudDetectionService;
 
 @Service
 @RequiredArgsConstructor
@@ -41,9 +42,10 @@ public class ExecuteTransferUseCase {
     private final IdempotencyService idempotencyService;
     private final TransferLimitService transferLimitService;
     private final PinAttemptService pinAttemptService;
+    private final FraudDetectionService fraudDetectionService;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void execute(UUID userId, TransferRequest request) {
+    public void execute(UUID userId, TransferRequest request, String ip) {
         // 0. Idempotency Check
         if (request.idempotencyKey() != null) {
             if (!idempotencyService.tryAcquire(request.idempotencyKey())) {
@@ -60,6 +62,10 @@ public class ExecuteTransferUseCase {
 
         // 1. Verify User PIN & Status
         pinAttemptService.checkBlocked(userId);
+        
+        // 🔥 Fraude: Viaje Imposible y Controles de Velocidad
+        fraudDetectionService.checkImpossibleTravel(userId, ip);
+        fraudDetectionService.checkTransferVelocity(userId, request.destinationAccountId());
         
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

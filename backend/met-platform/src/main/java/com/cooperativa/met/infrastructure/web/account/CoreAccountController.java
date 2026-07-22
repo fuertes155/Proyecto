@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.UUID;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/v1/accounts")
@@ -60,8 +61,12 @@ public class CoreAccountController {
     }
 
     @PostMapping("/transactions/transfer")
-    public ResponseEntity<Map<String, String>> transfer(@Valid @RequestBody TransferRequest request) {
-        executeTransferUseCase.execute(getAuthenticatedUserId(), request);
+    public ResponseEntity<Map<String, String>> transfer(@Valid @RequestBody TransferRequest request, HttpServletRequest httpRequest) {
+        String ip = httpRequest.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isBlank()) {
+            ip = httpRequest.getRemoteAddr();
+        }
+        executeTransferUseCase.execute(getAuthenticatedUserId(), request, ip);
         return ResponseEntity.ok(Map.of("message", "Transferencia realizada con éxito"));
     }
 

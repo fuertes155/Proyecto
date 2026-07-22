@@ -4,10 +4,7 @@ import '../../data/datasources/transfers_remote_datasource.dart';
 import '../../data/models/core_account_model.dart';
 import '../../data/repositories/transfers_repository_impl.dart';
 
-final transfersRemoteDataSourceProvider = Provider<TransfersRemoteDataSource>((ref) {
-  final dio = ref.watch(apiClientProvider);
-  return TransfersRemoteDataSource(dio);
-});
+
 
 final transfersRepositoryProvider = Provider<TransfersRepositoryImpl>((ref) {
   final remoteDataSource = ref.watch(transfersRemoteDataSourceProvider);

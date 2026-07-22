@@ -40,6 +40,8 @@ class ExecuteTransferUseCaseTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private OtpService otpService;
+    @Mock
+    private FraudDetectionService fraudDetectionService;
 
     @InjectMocks
     private ExecuteTransferUseCase executeTransferUseCase;
@@ -61,7 +63,8 @@ class ExecuteTransferUseCaseTest {
             new BigDecimal("100.00"), 
             "Test transfer", 
             "1234", 
-            "000000"
+            "000000",
+            "idem-1234"
         );
 
         user = User.builder()
@@ -95,7 +98,7 @@ class ExecuteTransferUseCaseTest {
         when(otpService.validateOtp("123456789", "000000")).thenReturn(true);
 
         // Act
-        executeTransferUseCase.execute(userId, transferRequest);
+        executeTransferUseCase.execute(userId, transferRequest, "127.0.0.1");
 
         // Assert
         ArgumentCaptor<CoreAccount> accountCaptor = ArgumentCaptor.forClass(CoreAccount.class);
@@ -116,7 +119,7 @@ class ExecuteTransferUseCaseTest {
         when(passwordEncoder.matches("1234", "hashed_pin")).thenReturn(false);
 
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, 
-            () -> executeTransferUseCase.execute(userId, transferRequest));
+            () -> executeTransferUseCase.execute(userId, transferRequest, "127.0.0.1"));
             
         assertEquals("INVALID_PIN", exception.getCode());
         verifyNoInteractions(accountRepository);
@@ -131,7 +134,7 @@ class ExecuteTransferUseCaseTest {
         when(otpService.validateOtp("123456789", "000000")).thenReturn(false);
 
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, 
-            () -> executeTransferUseCase.execute(userId, transferRequest));
+            () -> executeTransferUseCase.execute(userId, transferRequest, "127.0.0.1"));
             
         assertEquals("INVALID_OTP", exception.getCode());
         verify(accountRepository, never()).save(any());
@@ -150,7 +153,7 @@ class ExecuteTransferUseCaseTest {
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
 
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, 
-            () -> executeTransferUseCase.execute(userId, transferRequest));
+            () -> executeTransferUseCase.execute(userId, transferRequest, "127.0.0.1"));
             
         assertEquals("INACTIVE_ACCOUNT", exception.getCode());
     }
@@ -165,7 +168,7 @@ class ExecuteTransferUseCaseTest {
 
         // Act & Assert
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, 
-            () -> executeTransferUseCase.execute(userId, transferRequest));
+            () -> executeTransferUseCase.execute(userId, transferRequest, "127.0.0.1"));
             
         assertEquals("SAME_ACCOUNT", exception.getCode());
         verify(accountRepository, never()).save(any());
@@ -179,7 +182,8 @@ class ExecuteTransferUseCaseTest {
             new BigDecimal("-5000.00"), 
             "Pago", 
             "1234", 
-            "000000"
+            "000000",
+            "idem-5678"
         );
         
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -190,7 +194,7 @@ class ExecuteTransferUseCaseTest {
 
         // Act & Assert: Debe fallar al hacer debitPrincipal
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-            () -> executeTransferUseCase.execute(userId, negativeRequest));
+            () -> executeTransferUseCase.execute(userId, negativeRequest, "127.0.0.1"));
             
         assertEquals("Amount must be greater than zero", exception.getMessage());
         verify(accountRepository, never()).save(any());

@@ -23,18 +23,24 @@ import java.util.Base64;
 public class AesEncryptionAdapter implements EncryptionPort {
 
     private static final String AES_ALGORITHM = "AES/GCM/NoPadding";
+    private static final String AES_DETERMINISTIC_ALGORITHM = "AES/CBC/PKCS5Padding";
     private static final int GCM_IV_LENGTH = 12;
+    private static final int CBC_IV_LENGTH = 16;
     private static final int GCM_TAG_LENGTH = 128;
     private static final String RSA_ALGORITHM = "RSA/ECB/PKCS1Padding";
 
     private final MetSecurityProperties securityProperties;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
+    // Instancia estática para acceso desde JPA Converters (que no son manejados por Spring DI fácilmente)
+    public static EncryptionPort INSTANCE;
+
     private PrivateKey rsaPrivateKey;
     private String rsaPublicKeyBase64;
 
     @PostConstruct
-    public void initRsaKeys() {
+    public void init() {
+        INSTANCE = this;
         try {
             String b64Priv = securityProperties.getEncryption().getRsaPrivateKey();
             String b64Pub = securityProperties.getEncryption().getRsaPublicKey();
@@ -91,6 +97,46 @@ public class AesEncryptionAdapter implements EncryptionPort {
             return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
         } catch (Exception ex) {
             throw new IllegalStateException("Error al descifrar datos sensibles", ex);
+        }
+    }
+
+    @Override
+    public String encryptDeterministic(String plainText) {
+        try {
+            if (plainText == null) return null;
+            // Generar IV determinista basado en el hash del texto plano (16 bytes para CBC)
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] iv = md.digest(plainText.getBytes(StandardCharsets.UTF_8));
+            
+            Cipher cipher = Cipher.getInstance(AES_DETERMINISTIC_ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey(), new javax.crypto.spec.IvParameterSpec(iv));
+            byte[] cipherText = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+
+            ByteBuffer buffer = ByteBuffer.allocate(iv.length + cipherText.length);
+            buffer.put(iv);
+            buffer.put(cipherText);
+            return Base64.getEncoder().encodeToString(buffer.array());
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al cifrar datos buscables", ex);
+        }
+    }
+
+    @Override
+    public String decryptDeterministic(String cipherText) {
+        try {
+            if (cipherText == null) return null;
+            byte[] decoded = Base64.getDecoder().decode(cipherText);
+            ByteBuffer buffer = ByteBuffer.wrap(decoded);
+            byte[] iv = new byte[CBC_IV_LENGTH];
+            buffer.get(iv);
+            byte[] encrypted = new byte[buffer.remaining()];
+            buffer.get(encrypted);
+
+            Cipher cipher = Cipher.getInstance(AES_DETERMINISTIC_ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey(), new javax.crypto.spec.IvParameterSpec(iv));
+            return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al descifrar datos buscables", ex);
         }
     }
 

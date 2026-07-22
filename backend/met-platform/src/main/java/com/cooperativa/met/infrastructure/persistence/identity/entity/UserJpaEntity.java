@@ -3,7 +3,10 @@ package com.cooperativa.met.infrastructure.persistence.identity.entity;
 import com.cooperativa.met.domain.identity.model.DocumentType;
 import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.UserStatus;
+import com.cooperativa.met.infrastructure.security.converter.SearchableCryptoConverter;
+import com.cooperativa.met.infrastructure.security.converter.StandardCryptoConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,19 +31,23 @@ public class UserJpaEntity {
     @Column(name = "document_type", nullable = false, length = 10)
     private DocumentType documentType;
 
-    @Column(name = "document_number", nullable = false, length = 20)
+    @Convert(converter = SearchableCryptoConverter.class)
+    @Column(name = "document_number", nullable = false, length = 255)
     private String documentNumber;
 
     @Column(nullable = false)
     private String email;
 
-    @Column(length = 20)
+    @Convert(converter = SearchableCryptoConverter.class)
+    @Column(length = 255)
     private String phone;
 
-    @Column(name = "first_name", nullable = false, length = 100)
+    @Convert(converter = StandardCryptoConverter.class)
+    @Column(name = "first_name", nullable = false, length = 255)
     private String firstName;
 
-    @Column(name = "last_name", nullable = false, length = 100)
+    @Convert(converter = StandardCryptoConverter.class)
+    @Column(name = "last_name", nullable = false, length = 255)
     private String lastName;
 
     @Column(name = "pin_hash")
@@ -84,6 +91,7 @@ public class UserJpaEntity {
     @Column(name = "last_known_device_id")
     private String lastKnownDeviceId;
 
+    @Convert(converter = StandardCryptoConverter.class)
     @Column(name = "payment_card_token", length = 255)
     private String paymentCardToken;
 }

@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/auth_models.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/security/behavioral_biometrics_service.dart';
 
 // MEJORA 7 — Código reusable
 class _AnimatedEntrance extends StatelessWidget {
@@ -317,6 +318,9 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
       _canCheckBiometrics = false;
     }
     _loadSavedDocument();
+    
+    // Iniciar telemetría conductual
+    BehavioralBiometricsService().startSession();
   }
 
   Future<void> _loadSavedDocument() async {
@@ -337,6 +341,9 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
 
   void _onKeypadPressed(String value) {
     if (_pinController.text.length < 4) {
+      // Registrar cadencia de tecleo
+      BehavioralBiometricsService().recordKeystroke();
+      
       setState(() {
         _pinController.text += value;
         _isPinError = false;
@@ -378,6 +385,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
 
   @override
   void dispose() {
+    BehavioralBiometricsService().stopSession();
     _documentController.dispose();
     _pinController.dispose();
     _shakeController.dispose();
@@ -445,6 +453,14 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
     if (!_formKey.currentState!.validate()) return;
     if (_pinController.text.length != 4) {
        _triggerError();
+       return;
+    }
+
+    // Análisis de Biometría Conductual local antes de enviar
+    if (BehavioralBiometricsService().analyzeAndDetectFraud()) {
+       _showFriendlyErrorFromErrorObject('FRAUD_DETECTED: Patrón de comportamiento anómalo detectado. Por su seguridad, el acceso ha sido bloqueado.');
+       // Reiniciar la sesión por si fue un falso positivo y quiere reintentar
+       BehavioralBiometricsService().startSession();
        return;
     }
 
@@ -636,8 +652,11 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
       data: AppTheme.darkTheme,
       child: Builder(
         builder: (context) => Scaffold(
-      body: Stack(
-        children: [
+      body: Listener(
+        onPointerDown: (event) => BehavioralBiometricsService().recordPointerEvent(event),
+        onPointerMove: (event) => BehavioralBiometricsService().recordPointerEvent(event),
+        child: Stack(
+          children: [
           // MEJORA 6 — Background Cinemático (siempre oscuro)
           Container(
             decoration: const BoxDecoration(
@@ -946,6 +965,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
             ),
           ),
         ],
+      ),
       ),
       ),
       ),

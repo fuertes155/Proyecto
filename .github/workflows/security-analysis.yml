@@ -1,0 +1,58 @@
+name: Security Analysis (SAST & SCA)
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  schedule:
+    # Ejecutar escaneo diario a la medianoche para atrapar CVEs recientes de NVD
+    - cron: '0 0 * * *'
+
+jobs:
+  sast-sca-analysis:
+    name: SonarQube SAST and OWASP SCA
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necesario para que SonarQube analice el historial de git correctamente
+          
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+          cache: true
+          
+      - name: Flutter - Get Dependencies
+        working-directory: ./mobile/met_app
+        run: flutter pub get
+        
+      - name: Flutter - SCA (Outdated Packages Check)
+        working-directory: ./mobile/met_app
+        run: dart pub outdated --no-dev-dependencies --json > flutter_outdated.json
+        # En una integración avanzada, se parsea este JSON para romper el build si hay paquetes con severidad alta.
+
+      - name: Backend - OWASP Dependency Check (SCA)
+        working-directory: ./backend/met-platform
+        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
+        
+      - name: Backend & Frontend - SonarQube (SAST)
+        # Se requiere configurar SONAR_TOKEN en los Secrets de GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./backend/met-platform
+        # mvn sonar:sonar usa las propiedades configuradas en el archivo raíz sonar-project.properties si se le indica
+        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=met-platform -Dsonar.projectName="Met Platform"
+        continue-on-error: true # Continúa en rojo si Sonar_TOKEN no está configurado, para no bloquear tu CI mientras pruebas.
