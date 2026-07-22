@@ -16,7 +16,7 @@ import java.util.UUID;
 
 /**
  * Adaptador Real para DataCrédito Experian Colombia.
- * Se activa cuando met.credit-bureau.provider=datacredito
+ * Se activa cuando met.credit-bureau.provider=datacredito ssssas
  */
 @Slf4j
 @Component
@@ -27,28 +27,28 @@ public class DatacreditoCreditBureauAdapter implements CreditBureauPort {
     private final WebClient datacreditoWebClient;
 
     @Override
-    public CreditScoreResult checkScore(UUID userId, String nationalId, String firstName, String lastName, LocalDate dateOfBirth) {
+    public CreditScoreResult checkScore(UUID userId, String nationalId, String firstName, String lastName,
+            LocalDate dateOfBirth) {
         log.info("Realizando consulta a DataCrédito Experian para usuario {}", userId);
-        
+
         try {
-            // Ejemplo de Payload, la estructura exacta depende del contrato y API (Open Finance o Decisioning).
+            // Ejemplo de Payload, la estructura exacta depende del contrato y API (Open
+            // Finance o Decisioning).
             Map<String, Object> requestBody = Map.of(
                     "identification", Map.of(
                             "type", "CC", // Cédula de ciudadanía
-                            "number", nationalId
-                    ),
+                            "number", nationalId),
                     "personalData", Map.of(
                             "firstName", firstName,
                             "lastName", lastName,
-                            "dateOfBirth", dateOfBirth.toString()
-                    )
-            );
+                            "dateOfBirth", dateOfBirth.toString()));
 
             // Llamada síncrona usando block()
             Map<String, Object> response = datacreditoWebClient.post()
                     .uri("/v1/credit-score/consult")
                     .bodyValue(requestBody)
-                    // TODO: Aquí iría la inyección del Token OAuth o certificados requeridos por Experian
+                    // TODO: Aquí iría la inyección del Token OAuth o certificados requeridos por
+                    // Experian
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
@@ -67,10 +67,11 @@ public class DatacreditoCreditBureauAdapter implements CreditBureauPort {
                     .referenceId(referenceId)
                     .queriedAt(Instant.now())
                     .build();
-                    
+
         } catch (Exception e) {
             log.error("Error consultando a DataCrédito Experian para usuario {}: {}", userId, e.getMessage());
-            throw new BusinessRuleException("CREDIT_BUREAU_UNAVAILABLE", "No fue posible consultar la central de riesgo en este momento.");
+            throw new BusinessRuleException("CREDIT_BUREAU_UNAVAILABLE",
+                    "No fue posible consultar la central de riesgo en este momento.");
         }
     }
 }
