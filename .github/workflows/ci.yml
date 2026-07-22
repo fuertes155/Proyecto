@@ -43,6 +43,8 @@ jobs:
           DB_NAME: met
           DB_USER: met
           DB_PASSWORD: met_secret
+          SPRING_CLOUD_VAULT_ENABLED: false
+          SPRING_CONFIG_IMPORT: ""
 
   notification-service:
     runs-on: ubuntu-latest
