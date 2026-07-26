@@ -4,7 +4,7 @@ import '../../data/models/auth_models.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-import '../../core/storage/secure_storage_service.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 
 final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<UserResponse?>>((ref) {
   return AuthNotifier(ref.watch(authRepositoryProvider), ref);

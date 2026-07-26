@@ -84,7 +84,9 @@ met:
       aes-key: ${AES_KEY}
   ai:
     gemini:
-      api-key: ${GEMINI_API_KEY}
+      # API Key de Google Gemini para el módulo de chat y soporte.
+      # Para habilitarlo, configura la variable de entorno GEMINI_API_KEY en tu sistema o en el archivo .env
+      api-key: ${GEMINI_API_KEY:tu_api_key}
   cors:
     allowed-origins: ${CORS_ORIGINS}
   compliance:
@@ -116,6 +118,15 @@ met:
     api-url: ${WOMPI_API_URL:https://sandbox.wompi.co/v1}
     # URL base del checkout Wompi (donde el usuario completa el pago)
     checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8090}
+    api-key: ${NOTIFICATION_API_KEY}
+
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:mock-sid}
+    auth-token: ${TWILIO_AUTH_TOKEN:mock-token}
+    phone-number: ${TWILIO_PHONE_NUMBER:+1234567890}
+    whatsapp-number: ${TWILIO_WHATSAPP_NUMBER:+1234567890}
 
 logging:
   level:

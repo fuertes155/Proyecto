@@ -98,6 +98,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/loans/simulate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/support/chat").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/support/public/contact").permitAll()
                         // Simulador de pasarela de pagos (se abre en navegador sin token)
                         .requestMatchers("/v1/mock-payment-gateway").permitAll()
                         // Webhooks de Wompi — no llevan JWT, la seguridad es por firma HMAC

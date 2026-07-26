@@ -7,11 +7,24 @@ export default function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
-    setForm({ name: '', email: '', message: '' });
-    setTimeout(() => setSent(false), 5000);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/support/public/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      if (!res.ok) throw new Error('Error al enviar mensaje');
+      setSent(true);
+      setError(false);
+      setForm({ name: '', email: '', message: '' });
+      setTimeout(() => setSent(false), 5000);
+    } catch (err) {
+      setError(true);
+    }
   };
 
   return (
@@ -74,6 +87,11 @@ export default function ContactSection() {
               </div>
             ) : (
               <form className={styles.form} onSubmit={handleSubmit}>
+                {error && (
+                  <div style={{ color: 'red', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                    Hubo un problema al enviar el mensaje. Por favor, inténtalo de nuevo.
+                  </div>
+                )}
                 <div className={styles.field}>
                   <label>Nombre completo</label>
                   <input type="text" placeholder="Ej. Juan García" required

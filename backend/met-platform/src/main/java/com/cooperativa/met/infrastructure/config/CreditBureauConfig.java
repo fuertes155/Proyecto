@@ -1,11 +1,11 @@
 package com.cooperativa.met.infrastructure.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
+import org.springframework.web.client.RestClient;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.time.Duration;
 
@@ -14,13 +14,13 @@ import java.time.Duration;
 public class CreditBureauConfig {
 
     @Bean
-    public WebClient datacreditoWebClient(DatacreditoProperties properties, WebClient.Builder webClientBuilder) {
-        HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofMillis(properties.getReadTimeoutMs()));
-
-        return webClientBuilder
+    public RestClient datacreditoRestClient(DatacreditoProperties properties, RestClient.Builder restClientBuilder) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setReadTimeout(Duration.ofMillis(properties.getReadTimeoutMs()));
+        
+        return restClientBuilder
                 .baseUrl(properties.getBaseUrl())
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .requestFactory(factory)
                 .build();
     }
 }

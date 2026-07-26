@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
+import org.springframework.http.MediaType;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 /**
  * Adaptador Real para DataCrédito Experian Colombia.
- * Se activa cuando met.credit-bureau.provider=datacredito ssssas
+ * Se activa cuando met.credit-bureau.provider=datacredito
  */
 @Slf4j
 @Component
@@ -24,7 +25,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DatacreditoCreditBureauAdapter implements CreditBureauPort {
 
-    private final WebClient datacreditoWebClient;
+    private final RestClient datacreditoRestClient;
 
     @Override
     public CreditScoreResult checkScore(UUID userId, String nationalId, String firstName, String lastName,
@@ -43,15 +44,14 @@ public class DatacreditoCreditBureauAdapter implements CreditBureauPort {
                             "lastName", lastName,
                             "dateOfBirth", dateOfBirth.toString()));
 
-            // Llamada síncrona usando block()
-            Map<String, Object> response = datacreditoWebClient.post()
+            // Llamada síncrona usando RestClient
+            Map response = datacreditoRestClient.post()
                     .uri("/v1/credit-score/consult")
-                    .bodyValue(requestBody)
-                    // TODO: Aquí iría la inyección del Token OAuth o certificados requeridos por
-                    // Experian
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    // TODO: Aquí iría la inyección del Token OAuth o certificados requeridos por Experian
                     .retrieve()
-                    .bodyToMono(Map.class)
-                    .block();
+                    .body(Map.class);
 
             if (response == null || !response.containsKey("score")) {
                 throw new BusinessRuleException("CREDIT_BUREAU_ERROR", "Respuesta inválida desde DataCrédito");

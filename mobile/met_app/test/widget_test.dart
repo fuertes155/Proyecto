@@ -1,30 +1,58 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:met/main.dart';
+import 'package:met/features/auth/presentation/pages/splash_page.dart';
+
+// Definir los mocks de method channels antes del main
+typedef Callback = void Function(MethodCall call);
+
+void setupFirebaseAuthMocks([Callback? customHandlers]) {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/firebase_core'),
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'Firebase#initializeCore') {
+            return [
+              {
+                'name': '[DEFAULT]',
+                'options': {
+                  'apiKey': '123',
+                  'appId': '123',
+                  'messagingSenderId': '123',
+                  'projectId': '123',
+                },
+                'pluginConstants': {},
+              }
+            ];
+          }
+          if (methodCall.method == 'Firebase#initializeApp') {
+            return {
+              'name': methodCall.arguments['appName'],
+              'options': methodCall.arguments['options'],
+              'pluginConstants': {},
+            };
+          }
+          if (customHandlers != null) {
+            customHandlers(methodCall);
+          }
+          return null;
+        },
+      );
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  setupFirebaseAuthMocks();
+  
+  testWidgets('App starts and shows SplashPage', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MetApp());
+    // Envuelto en ProviderScope porque usamos Riverpod en toda la app.
+    await tester.pumpWidget(const ProviderScope(child: MetApp()));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the initial route resolves to SplashPage
+    expect(find.byType(SplashPage), findsOneWidget);
   });
 }

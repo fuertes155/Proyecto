@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/messaging"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/api/option"
 )
 
 type PushRequest struct {
@@ -23,6 +27,8 @@ type PushResponse struct {
 	LatencyMs int64  `json:"latencyMs"`
 }
 
+var fcmClient *messaging.Client
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -33,6 +39,31 @@ func main() {
 	if apiKey == "" {
 		log.Fatal("NOTIFICATION_API_KEY no está configurada. El servicio no puede iniciarse sin una API Key.")
 	}
+	
+	// Inicializar Firebase App (usando Application Default Credentials o un service_account.json)
+	ctx := context.Background()
+	var app *firebase.App
+	var err error
+
+	credentialsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if credentialsFile != "" {
+		log.Printf("Inicializando Firebase con credenciales locales: %s", credentialsFile)
+		opt := option.WithCredentialsFile(credentialsFile)
+		app, err = firebase.NewApp(ctx, nil, opt)
+	} else {
+		log.Println("Inicializando Firebase usando Application Default Credentials (ADC)")
+		app, err = firebase.NewApp(ctx, nil)
+	}
+
+	if err != nil {
+		log.Fatalf("Error al inicializar Firebase App: %v", err)
+	}
+
+	fcmClient, err = app.Messaging(ctx)
+	if err != nil {
+		log.Fatalf("Error al obtener el cliente FCM: %v", err)
+	}
+	log.Println("Cliente FCM inicializado correctamente")
 
 	router := gin.New()
 	router.Use(gin.Recovery(), gin.Logger())
@@ -104,14 +135,34 @@ func sendPushHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: Integrar con FCM (Firebase Cloud Messaging) para Android
-	// TODO: Integrar con APNs para iOS
-	// TODO: Integrar con AWS SNS como alternativa
-	messageID := "msg-" + time.Now().Format("20060102150405")
+	// 1. Construir el mensaje para Firebase (FCM)
+	// Para este ejemplo, asumimos que UserID que nos envía el backend de Java
+	// es directamente el FCM Token del dispositivo, o usar un Topic si es broadcast.
+	// En un escenario real, tendríamos una DB aquí en Go (o un cache) mapeando UserID -> FCM Tokens.
+	message := &messaging.Message{
+		Notification: &messaging.Notification{
+			Title: req.Title,
+			Body:  req.Body,
+		},
+		Data:  req.Data,
+		Token: req.UserID, // Asumiendo Token directo por simplicidad de la integración
+	}
 
-	c.JSON(http.StatusAccepted, PushResponse{
-		MessageID: messageID,
-		Status:    "QUEUED",
+	// 2. Enviar el mensaje a través del cliente FCM
+	response, err := fcmClient.Send(c.Request.Context(), message)
+	if err != nil {
+		log.Printf("Error al enviar notificación push: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    "FCM_ERROR",
+			"message": "Fallo al enviar notificación a través de Firebase",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, PushResponse{
+		MessageID: response,
+		Status:    "SENT",
 		LatencyMs: time.Since(start).Milliseconds(),
 	})
 }

@@ -21,7 +21,9 @@ spec:
             - containerPort: 8080
           envFrom:
             - secretRef:
-                name: met-backend-secrets
+                name: met-secrets          # Ver infrastructure/k8s/secrets.yaml
+            - configMapRef:
+                name: met-backend-config   # Ver infrastructure/k8s/backend-configmap.yaml
           readinessProbe:
             httpGet:
               path: /api/actuator/health

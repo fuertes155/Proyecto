@@ -42,6 +42,11 @@ class SecureStorageService {
   Future<String?> readUserId() => _storage.read(key: _userIdKey);
 
   Future<void> clear() => _storage.deleteAll();
+  
+  // Proxy methods para acceso genérico
+  Future<String?> read({required String key}) => _storage.read(key: key);
+  Future<void> write({required String key, required String value}) => _storage.write(key: key, value: value);
+  Future<void> delete({required String key}) => _storage.delete(key: key);
 
   /// Guarda el timestamp de la última actividad del usuario
   Future<void> saveLastActivity() async {

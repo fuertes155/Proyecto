@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,13 +9,20 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:freerasp/freerasp.dart';
 
 import 'core/config/app_config.dart';
+import 'core/notifications/push_notification_service.dart';
 import 'core/router/app_router.dart';
 import 'core/session/inactivity_detector.dart';
 import 'core/theme/app_theme.dart';
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicialización de Firebase
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint("Firebase init error: $e");
+  }
   
   if (!kIsWeb && Platform.isAndroid) {
     try {
@@ -26,17 +34,53 @@ Future<void> main() async {
 
   // Configuración de freeRASP (Detección de Emuladores, Debuggers y Hooks)
   if (!kIsWeb) {
+    // ─────────────────────────────────────────────────────────────────────────
+    // CONFIGURACIÓN freeRASP — VALORES REQUERIDOS ANTES DE PUBLICAR
+    //
+    // 1. ANDROID — signingCertHashes:
+    //    Obtener con: keytool -printcert -jarfile app-release.apk | grep SHA256
+    //    Formato: "AA:BB:CC:..." en minúsculas sin los dos puntos → "aabbcc..."
+    //
+    // 2. iOS — teamId:
+    //    Obtener en: https://developer.apple.com/account → Membership → Team ID
+    //
+    // Los valores deben guardarse en variables de entorno del CI/CD
+    // o en un archivo de configuración NO versionado (e.g., .env.local)
+    // ─────────────────────────────────────────────────────────────────────────
+    const androidSigningHash = String.fromEnvironment(
+      'ANDROID_SIGNING_HASH',
+      defaultValue: '', // Vacío en debug; debe pasarse en release build
+    );
+    const iosTeamId = String.fromEnvironment(
+      'IOS_TEAM_ID',
+      defaultValue: '', // Vacío en debug; debe pasarse en release build
+    );
+
+    // Guard: falla explícitamente en debug si los valores no están configurados
+    assert(
+      kDebugMode || androidSigningHash.isNotEmpty,
+      '🔴 ANDROID_SIGNING_HASH no está configurado. '
+      'Pasa --dart-define=ANDROID_SIGNING_HASH=<sha256> en el build de release.',
+    );
+    assert(
+      kDebugMode || iosTeamId.isNotEmpty,
+      '🔴 IOS_TEAM_ID no está configurado. '
+      'Pasa --dart-define=IOS_TEAM_ID=<teamId> en el build de release.',
+    );
+
     final config = TalsecConfig(
       androidConfig: AndroidConfig(
-        packageName: 'com.cooperativa.met', // Reemplazar con real
-        signingCertHashes: ['REPLACE_WITH_SHA256_HASH'],
+        packageName: 'com.cooperativa.met',
+        signingCertHashes: androidSigningHash.isNotEmpty
+            ? [androidSigningHash]
+            : ['__DEBUG_PLACEHOLDER__'], // Solo válido en dev local
       ),
       iosConfig: IOSConfig(
         bundleIds: ['com.cooperativa.met'],
-        teamId: 'REPLACE_TEAM_ID',
+        teamId: iosTeamId.isNotEmpty ? iosTeamId : '__DEBUG_PLACEHOLDER__',
       ),
       watcherMail: 'security@cooperativa.met.com',
-      isProd: true,
+      isProd: !kDebugMode,
     );
 
     final callback = ThreatCallback(
@@ -114,11 +158,32 @@ class SecurityAlertApp extends StatelessWidget {
   }
 }
 
-class MetApp extends ConsumerWidget {
+class MetApp extends ConsumerStatefulWidget {
   const MetApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MetApp> createState() => _MetAppState();
+}
+
+class _MetAppState extends ConsumerState<MetApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar notificaciones después del frame (cuando Riverpod está listo)
+    // Se omite en modo test para evitar llamadas a Platform channels no mockeados
+    if (!Platform.environment.containsKey('FLUTTER_TEST')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          ref.read(pushNotificationServiceProvider).initialize();
+        } catch (e) {
+          debugPrint("Push notification init error (likely test env): $e");
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(

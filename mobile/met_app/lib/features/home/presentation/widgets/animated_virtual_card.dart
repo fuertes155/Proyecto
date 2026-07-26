@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../transfers/presentation/providers/transfers_provider.dart';
+import '../providers/home_provider.dart';
 
 class AnimatedVirtualCard extends ConsumerStatefulWidget {
   const AnimatedVirtualCard({super.key, required this.obscureBalance, required this.onToggleObscure});
@@ -150,11 +150,11 @@ class _AnimatedVirtualCardState extends ConsumerState<AnimatedVirtualCard> with 
           const SizedBox(height: 8),
           Consumer(
             builder: (context, ref, child) {
-              final accountState = ref.watch(myAccountProvider);
-              return accountState.when(
-                data: (account) {
-                  final formattedPrincipal = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(account.principalBalance);
-                  final formattedInterest = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(account.interestBalance);
+              final homeState = ref.watch(homeProvider);
+              return homeState.when(
+                data: (summary) {
+                  final formattedPrincipal = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(summary.principalBalance);
+                  final formattedInterest = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(summary.interestBalance);
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

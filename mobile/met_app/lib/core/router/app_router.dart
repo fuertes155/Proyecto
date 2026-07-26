@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/pages/home_page.dart';
+import '../../features/home/presentation/pages/home_screen.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/biometric_registration_page.dart';
@@ -52,7 +52,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
       GoRoute(path: '/profile/personal-data', builder: (context, state) => const PersonalDataPage()),
       GoRoute(path: '/profile/security', builder: (context, state) => const SecuritySettingsPage()),

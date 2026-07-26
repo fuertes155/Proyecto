@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './SimulatorSection.module.css';
 
 function formatCOP(value: number) {
@@ -11,20 +11,53 @@ export default function SimulatorSection() {
   // Crédito
   const [monto, setMonto] = useState(5000000);
   const [plazo, setPlazo] = useState(24);
-  const [tasa] = useState(1.5); // mensual
+  const [creditoResult, setCreditoResult] = useState({
+    cuota: 0,
+    totalPagar: 0,
+    totalIntereses: 0,
+    tasa: 0,
+    loading: false
+  });
 
   // Ahorro
   const [aporte, setAporte] = useState(500000);
   const [meses, setMeses] = useState(12);
   const [tasaAhorro] = useState(0.8);
 
-  const cuota = monto * (tasa / 100) / (1 - Math.pow(1 + tasa / 100, -plazo));
-  const totalPagar = cuota * plazo;
-  const totalIntereses = totalPagar - monto;
-
   const totalAhorro = aporte * meses;
   const interesesAhorro = totalAhorro * (tasaAhorro / 100) * meses;
   const totalFinal = totalAhorro + interesesAhorro;
+
+  useEffect(() => {
+    if (tab !== 'credito') return;
+    
+    const fetchSimulation = async () => {
+      setCreditoResult(prev => ({ ...prev, loading: true }));
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/v1/loans/simulate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: monto, termMonths: plazo })
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setCreditoResult({
+            cuota: data.monthlyPayment,
+            totalPagar: data.totalPayment,
+            totalIntereses: data.totalInterest,
+            tasa: data.monthlyInterestRate, // El backend retorna la tasa mensual
+            loading: false
+          });
+        }
+      } catch (err) {
+        setCreditoResult(prev => ({ ...prev, loading: false }));
+      }
+    };
+    
+    const timeout = setTimeout(fetchSimulation, 300); // debounce
+    return () => clearTimeout(timeout);
+  }, [monto, plazo, tab]);
 
   return (
     <section id="simulador" className={`section ${styles.sim}`}>
@@ -76,20 +109,24 @@ export default function SimulatorSection() {
               <div className={styles.result}>
                 <div className={styles.resultMain}>
                   <span className={styles.resultLabel}>Cuota mensual estimada</span>
-                  <span className={styles.resultValue}>{formatCOP(Math.round(cuota))}</span>
+                  <span className={styles.resultValue}>
+                    {creditoResult.loading ? 'Calculando...' : formatCOP(Math.round(creditoResult.cuota))}
+                  </span>
                 </div>
                 <div className={styles.resultDetails}>
                   <div className={styles.resultItem}>
                     <span>Total a pagar</span>
-                    <strong>{formatCOP(Math.round(totalPagar))}</strong>
+                    <strong>{creditoResult.loading ? '...' : formatCOP(Math.round(creditoResult.totalPagar))}</strong>
                   </div>
                   <div className={styles.resultItem}>
                     <span>Total intereses</span>
-                    <strong style={{ color: '#F59E0B' }}>{formatCOP(Math.round(totalIntereses))}</strong>
+                    <strong style={{ color: '#F59E0B' }}>
+                      {creditoResult.loading ? '...' : formatCOP(Math.round(creditoResult.totalIntereses))}
+                    </strong>
                   </div>
                   <div className={styles.resultItem}>
                     <span>Tasa mensual</span>
-                    <strong>{tasa}%</strong>
+                    <strong>{creditoResult.loading ? '...' : `${(creditoResult.tasa * 100).toFixed(2)}%`}</strong>
                   </div>
                 </div>
                 <p className={styles.disclaimer}>* Simulación referencial. La tasa final depende del estudio de crédito.</p>

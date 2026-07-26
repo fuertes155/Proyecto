@@ -1,11 +1,35 @@
-import { TrendingUp, Share2, Users, MessageCircle, Link, PlayCircle } from 'lucide-react';
+import Link from 'next/link';
+import { TrendingUp, Share2, Users, MessageCircle, Link as LinkIcon, PlayCircle } from 'lucide-react';
 import styles from './Footer.module.css';
 
-const links = {
-  Productos: ['Cuenta Digital', 'Créditos', 'Inversiones', 'Transferencias'],
-  Empresa: ['Quiénes Somos', 'Blog', 'Prensa', 'Trabaja con Nosotros'],
-  Legal: ['Términos y Condiciones', 'Política de Privacidad', 'Protección de Datos', 'Tarifas'],
-  Soporte: ['Centro de Ayuda', 'Contacto', 'App Móvil', 'Sucursales'],
+// Links con rutas reales para los items legales
+const legalLinks = [
+  { label: 'Términos y Condiciones', href: '/terminos' },
+  { label: 'Política de Privacidad', href: '/privacidad' },
+  { label: 'Protección de Datos', href: '/privacidad#habeas-data' },
+  { label: 'Tarifas', href: '/#productos' },
+];
+
+const links: Record<string, { label: string; href: string }[]> = {
+  Productos: [
+    { label: 'Cuenta Digital', href: '/#productos' },
+    { label: 'Créditos', href: '/#productos' },
+    { label: 'Inversiones', href: '/#productos' },
+    { label: 'Transferencias', href: '/#productos' },
+  ],
+  Empresa: [
+    { label: 'Quiénes Somos', href: '/#nosotros' },
+    { label: 'Blog', href: '/#blog' },
+    { label: 'Prensa', href: '#' },
+    { label: 'Trabaja con Nosotros', href: '#' },
+  ],
+  Legal: legalLinks,
+  Soporte: [
+    { label: 'Centro de Ayuda', href: '/#faq' },
+    { label: 'Contacto', href: '/#contacto' },
+    { label: 'App Móvil', href: '#' },
+    { label: 'Sucursales', href: '#' },
+  ],
 };
 
 const socials = [
@@ -50,8 +74,8 @@ export default function Footer() {
                 <h4 className={styles.linkTitle}>{section}</h4>
                 <ul>
                   {items.map((item) => (
-                    <li key={item}>
-                      <a href="#" className={styles.link}>{item}</a>
+                    <li key={item.label}>
+                      <Link href={item.href} className={styles.link}>{item.label}</Link>
                     </li>
                   ))}
                 </ul>
