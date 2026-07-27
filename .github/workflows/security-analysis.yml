@@ -90,7 +90,7 @@ jobs:
           WOMPI_WEBHOOK_SECRET: dummy_webhook
           COMPLIANCE_ENTITY_CODE: COOP001
           GEMINI_API_KEY: ""
-          SPRING_FLYWAY_PLACEHOLDERS_SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
+          SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
         run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
         continue-on-error: true # Continúa incluso si la base de datos NVD falla al descargar por falta de API Key
         
@@ -118,7 +118,7 @@ jobs:
           WOMPI_WEBHOOK_SECRET: dummy_webhook
           COMPLIANCE_ENTITY_CODE: COOP001
           GEMINI_API_KEY: ""
-          SPRING_FLYWAY_PLACEHOLDERS_SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
+          SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
         working-directory: ./backend/met-platform
         # mvn sonar:sonar usa las propiedades configuradas en el archivo raíz sonar-project.properties si se le indica
         run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=met-platform -Dsonar.projectName="Met Platform"
