@@ -36,7 +36,7 @@ const socials = [
   { icon: Share2, label: 'Instagram' },
   { icon: Users, label: 'Facebook' },
   { icon: MessageCircle, label: 'Twitter' },
-  { icon: Link, label: 'LinkedIn' },
+  { icon: LinkIcon, label: 'LinkedIn' },
   { icon: PlayCircle, label: 'YouTube' },
 ];
 
