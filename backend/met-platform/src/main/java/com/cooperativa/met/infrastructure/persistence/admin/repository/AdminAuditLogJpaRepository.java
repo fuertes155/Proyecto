@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface AdminAuditLogJpaRepository extends JpaRepository<AdminAuditLogJpaEntity, UUID> {
     Page<AdminAuditLogJpaEntity> findByActorAdminId(UUID actorAdminId, Pageable pageable);
     Page<AdminAuditLogJpaEntity> findByEntidadAfectadaAndIdEntidad(String entidadAfectada, String idEntidad, Pageable pageable);
+    
+    void deleteByTimestampBefore(java.time.Instant threshold);
 }

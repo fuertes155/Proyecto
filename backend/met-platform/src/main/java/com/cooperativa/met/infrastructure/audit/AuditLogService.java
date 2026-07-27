@@ -77,6 +77,23 @@ public class AuditLogService {
         log(userId, action, entityType, entityId, details, "FAILURE");
     }
 
+    /**
+     * Purga los registros de auditoría que tengan más de 'days' días de antigüedad.
+     * @param days límite de días (ej. 90)
+     * @return cantidad de registros eliminados
+     */
+    public int purgeOldLogs(int days) {
+        try {
+            return jdbc.update(
+                    "DELETE FROM audit_log WHERE created_at < NOW() - CAST(? || ' days' AS INTERVAL)",
+                    days
+            );
+        } catch (Exception ex) {
+            log.error("Error al purgar audit_log antiguo: {}", ex.getMessage());
+            return 0;
+        }
+    }
+
     private String resolveClientIp() {
         try {
             ServletRequestAttributes attrs =

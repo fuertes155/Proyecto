@@ -1,0 +1,114 @@
+groups:
+  - name: met_platform_alerts
+    interval: 30s
+    rules:
+
+      # ─────────────────────────────────────────────
+      # 1. Transferencias Fallidas
+      # ─────────────────────────────────────────────
+      - alert: TransferenciasFallidasAltas
+        expr: |
+          sum(rate(met_transfers_failed_total[5m])) by (reason) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Tasa alta de transferencias fallidas ({{ $labels.reason }})"
+          description: >
+            La tasa de transferencias fallidas con razón '{{ $labels.reason }}' supera
+            0.1/s durante los últimos 2 minutos. Valor actual: {{ $value | printf "%.4f" }}/s.
+            Investiga posibles ataques de fuerza bruta o errores de integración.
+
+      - alert: TransferenciasFallidasCriticas
+        expr: |
+          sum(increase(met_transfers_failed_total[1m])) by (reason) > 20
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "CRÍTICO: Pico de transferencias fallidas ({{ $labels.reason }})"
+          description: >
+            Más de 20 transferencias fallidas por '{{ $labels.reason }}' en el último minuto.
+            Acción inmediata requerida. Valor: {{ $value }}.
+
+      # ─────────────────────────────────────────────
+      # 2. Alertas de Fraude
+      # ─────────────────────────────────────────────
+      - alert: AlertaFraudeDetectado
+        expr: |
+          sum(increase(met_fraud_alerts_total[5m])) by (rule) > 0
+        for: 0m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "FRAUDE detectado — regla: {{ $labels.rule }}"
+          description: >
+            Se detectaron {{ $value }} alertas de fraude en los últimos 5 minutos
+            para la regla '{{ $labels.rule }}'.
+            Reglas posibles: vpn_detected, impossible_travel, velocity_exceeded.
+
+      - alert: AlertaFraudeVolumenAlto
+        expr: |
+          sum(rate(met_fraud_alerts_total[10m])) by (rule) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "Volumen anormal de fraude sostenido ({{ $labels.rule }})"
+          description: >
+            La tasa de alertas de fraude para '{{ $labels.rule }}' supera 0.05/s
+            de forma sostenida por más de 5 minutos. Posible ataque coordinado.
+
+      # ─────────────────────────────────────────────
+      # 3. Salud del Backend (Actuator)
+      # ─────────────────────────────────────────────
+      - alert: BackendNoResponde
+        expr: |
+          up{job="met-platform"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Backend met-platform caído"
+          description: >
+            El servicio met-platform no responde al health check de Prometheus
+            desde hace 1 minuto.
+
+      - alert: LatenciaHTTPAlta
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{job="met-platform"}[5m]))
+            by (le, uri)
+          ) > 2
+        for: 3m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Latencia P95 alta en {{ $labels.uri }}"
+          description: >
+            El percentil 95 de latencia para '{{ $labels.uri }}' supera 2 segundos
+            durante los últimos 3 minutos. Valor: {{ $value | printf "%.2f" }}s.
+
+      # ─────────────────────────────────────────────
+      # 4. Tasa de Errores HTTP
+      # ─────────────────────────────────────────────
+      - alert: TasaErrores5xx
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="met-platform", status=~"5.."}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count{job="met-platform"}[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Tasa de errores 5xx supera el 5%"
+          description: >
+            Más del 5% de las solicitudes HTTP al backend están retornando errores 5xx.
+            Valor actual: {{ $value | humanizePercentage }}.

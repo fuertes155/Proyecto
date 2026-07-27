@@ -14,6 +14,9 @@ import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.EncryptionPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.infrastructure.audit.AuditLogService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -43,6 +46,28 @@ public class ExecuteTransferUseCase {
     private final TransferLimitService transferLimitService;
     private final PinAttemptService pinAttemptService;
     private final FraudDetectionService fraudDetectionService;
+    private final MeterRegistry meterRegistry;
+
+    // Métricas de negocio — transacciones fallidas por razón
+    private Counter transferFailedPinCounter;
+    private Counter transferFailedOtpCounter;
+    private Counter transferFailedFraudCounter;
+
+    @PostConstruct
+    void initMetrics() {
+        transferFailedPinCounter = Counter.builder("met.transfers.failed.total")
+                .tag("reason", "invalid_pin")
+                .description("Transferencias rechazadas por PIN inválido")
+                .register(meterRegistry);
+        transferFailedOtpCounter = Counter.builder("met.transfers.failed.total")
+                .tag("reason", "invalid_otp")
+                .description("Transferencias rechazadas por OTP inválido")
+                .register(meterRegistry);
+        transferFailedFraudCounter = Counter.builder("met.transfers.failed.total")
+                .tag("reason", "fraud_detected")
+                .description("Transferencias rechazadas por detección de fraude")
+                .register(meterRegistry);
+    }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void execute(UUID userId, TransferRequest request, String ip) {
@@ -64,8 +89,13 @@ public class ExecuteTransferUseCase {
         pinAttemptService.checkBlocked(userId);
         
         // 🔥 Fraude: Viaje Imposible y Controles de Velocidad
-        fraudDetectionService.checkImpossibleTravel(userId, ip);
-        fraudDetectionService.checkTransferVelocity(userId, request.destinationAccountId());
+        try {
+            fraudDetectionService.checkImpossibleTravel(userId, ip);
+            fraudDetectionService.checkTransferVelocity(userId, request.destinationAccountId());
+        } catch (Exception fraudEx) {
+            transferFailedFraudCounter.increment();
+            throw fraudEx;
+        }
         
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -85,6 +115,7 @@ public class ExecuteTransferUseCase {
         if (!pinValid) {
             auditLogService.logFailure(userId, AuditLogService.TRANSFER_FAILED,
                     "TRANSFER", null, "{\"reason\":\"INVALID_PIN\"}");
+            transferFailedPinCounter.increment();
             pinAttemptService.checkAndRecordFailure(userId); // This throws exception
         }
         pinAttemptService.resetAttempts(userId);
@@ -116,6 +147,7 @@ public class ExecuteTransferUseCase {
         if (!isOtpValid) {
             auditLogService.logFailure(userId, AuditLogService.TRANSFER_FAILED,
                     "TRANSFER", null, "{\"reason\":\"INVALID_OTP\"}");
+            transferFailedOtpCounter.increment();
             throw new BusinessRuleException("INVALID_OTP", "El código de seguridad es incorrecto o expiró");
         }
 

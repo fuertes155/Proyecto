@@ -24,4 +24,6 @@ public interface AdminAuditLogPort {
     List<AdminAuditEntry> findByEntidad(String entidadAfectada, String idEntidad, int page, int pageSize);
 
     long countAll();
+    
+    void purgeOldLogs(java.time.Instant threshold);
 }

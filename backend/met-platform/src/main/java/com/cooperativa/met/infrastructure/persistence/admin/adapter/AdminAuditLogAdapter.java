@@ -58,6 +58,12 @@ public class AdminAuditLogAdapter implements AdminAuditLogPort {
     public long countAll() {
         return jpaRepository.count();
     }
+    
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void purgeOldLogs(java.time.Instant threshold) {
+        jpaRepository.deleteByTimestampBefore(threshold);
+    }
 
     private AdminAuditEntry toDomain(AdminAuditLogJpaEntity e) {
         return AdminAuditEntry.builder()

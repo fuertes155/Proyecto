@@ -120,3 +120,25 @@ jobs:
         run: |
           npm run lint
           npm run build
+
+  web-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Enable Flutter Web
+        run: flutter config --enable-web
+      - name: Get dependencies
+        working-directory: web_admin
+        run: flutter pub get
+      - name: Analyze web_admin
+        working-directory: web_admin
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
+      - name: Run web_admin tests
+        working-directory: web_admin
+        run: flutter test
+      - name: Build web_admin (release)
+        working-directory: web_admin
+        run: flutter build web --release

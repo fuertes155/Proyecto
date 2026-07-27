@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.cooperativa.met.domain.common.exception.FraudDetectionException;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,14 +22,36 @@ public class FraudDetectionService {
 
     private final GeoLocationService geoLocationService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final MeterRegistry meterRegistry;
 
     private static final String LOGIN_LOC_KEY_PREFIX = "login_loc:";
     private static final String TRANSFER_VELOCITY_KEY_PREFIX = "transfer_vel:";
-    
+
     // Configuración heurística
     private static final int MAX_VELOCITY_ACCOUNTS = 5;
     private static final long VELOCITY_WINDOW_SECONDS = 60; // 1 minuto
     private static final double MAX_TRAVEL_SPEED_KMH = 1000.0; // Velocidad avión comercial aprox.
+
+    // Métricas de negocio — contadores de alertas de fraude por tipo de regla
+    private Counter fraudVpnCounter;
+    private Counter fraudImpossibleTravelCounter;
+    private Counter fraudVelocityCounter;
+
+    @PostConstruct
+    void initMetrics() {
+        fraudVpnCounter = Counter.builder("met.fraud.alerts.total")
+                .tag("rule", "vpn_detected")
+                .description("Alertas de fraude: acceso desde VPN/Proxy")
+                .register(meterRegistry);
+        fraudImpossibleTravelCounter = Counter.builder("met.fraud.alerts.total")
+                .tag("rule", "impossible_travel")
+                .description("Alertas de fraude: viaje imposible detectado")
+                .register(meterRegistry);
+        fraudVelocityCounter = Counter.builder("met.fraud.alerts.total")
+                .tag("rule", "velocity_exceeded")
+                .description("Alertas de fraude: velocidad de transferencia excedida")
+                .register(meterRegistry);
+    }
 
     /**
      * Regla 1: Bloqueo de VPN/Tor/Proxies
@@ -35,6 +60,7 @@ public class FraudDetectionService {
         GeoLocationService.GeoLocationResponse geo = geoLocationService.getLocationInfo(ip);
         if (geo != null && (geo.isProxy() || geo.isHosting())) {
             log.warn("Login bloqueado por IP sospechosa (VPN/Proxy): {}", ip);
+            fraudVpnCounter.increment();
             throw new FraudDetectionException("FRAUD_VPN_DETECTED", "No se permite el acceso desde VPNs o proxies anónimos por seguridad.");
         }
     }
@@ -75,11 +101,11 @@ public class FraudDetectionService {
         double speedKmh = distanceKm / hoursElapsed;
 
         if (speedKmh > MAX_TRAVEL_SPEED_KMH && distanceKm > 100) {
-            log.error("Viaje Imposible Detectado para userId={}. Distancia: {} km, Tiempo: {} h, Vel: {} km/h", 
+            log.error("Viaje Imposible Detectado para userId={}. Distancia: {} km, Tiempo: {} h, Vel: {} km/h",
                 userId, distanceKm, hoursElapsed, speedKmh);
-            
+            fraudImpossibleTravelCounter.increment();
             // Acción definida por defecto: Rechazar la transacción y obligar re-autenticación
-            throw new FraudDetectionException("FRAUD_IMPOSSIBLE_TRAVEL", 
+            throw new FraudDetectionException("FRAUD_IMPOSSIBLE_TRAVEL",
                 "Se ha detectado un acceso desde una ubicación físicamente imposible. Por seguridad, la operación fue rechazada.");
         }
     }
@@ -102,7 +128,8 @@ public class FraudDetectionService {
         Long uniqueAccounts = redisTemplate.opsForSet().size(key);
         if (uniqueAccounts != null && uniqueAccounts > MAX_VELOCITY_ACCOUNTS) {
             log.warn("Velocity Check fallido para userId={}. Intentó transferir a {} cuentas en 1 minuto.", userId, uniqueAccounts);
-            throw new FraudDetectionException("FRAUD_VELOCITY_EXCEEDED", 
+            fraudVelocityCounter.increment();
+            throw new FraudDetectionException("FRAUD_VELOCITY_EXCEEDED",
                 "Has excedido el límite de transferencias a múltiples cuentas en corto tiempo. Por favor intenta más tarde.");
         }
     }

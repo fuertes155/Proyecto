@@ -64,10 +64,22 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: when_authorized
+    prometheus:
+      # El endpoint de métricas solo es accesible internamente (scraping de Prometheus)
+      access: read_only
+  # Trazabilidad distribuida → Zipkin
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+  tracing:
+    # En producción reducir a 0.1 (10% de muestreo) para eficiencia
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:1.0}
+
 
 met:
   security:
