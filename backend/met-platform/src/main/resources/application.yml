@@ -23,6 +23,11 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    placeholders:
+      # Hash BCrypt de la contraseña del super administrador inicial.
+      # Obligatorio: Genera el hash y ponlo en la variable de entorno en tu servidor.
+      # Comando para generar: htpasswd -bnBC 12 "" <PASSWORD> | tr -d ':\n' | sed 's/$2y/$2a/'
+      superadmin_password_hash: ${SUPERADMIN_PASSWORD_HASH}
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}

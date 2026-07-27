@@ -73,6 +73,9 @@ jobs:
           COMPLIANCE_ENTITY_CODE: COOP001
           # Gemini AI (no requerido en tests unitarios)
           GEMINI_API_KEY: ""
+          # Flyway placeholder — hash BCrypt dummy para CI (no es un admin real)
+          # Se reemplaza con el valor real en producción via SUPERADMIN_PASSWORD_HASH
+          SPRING_FLYWAY_PLACEHOLDERS_SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
 
   notification-service:
     runs-on: ubuntu-latest

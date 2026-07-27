@@ -45,6 +45,27 @@ jobs:
 
       - name: Backend - OWASP Dependency Check (SCA)
         working-directory: ./backend/met-platform
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: met
+          DB_USER: met
+          DB_PASSWORD: met_secret
+          JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+          AES_KEY: ${{ secrets.CI_AES_KEY }}
+          VAULT_URI: http://localhost:8200
+          VAULT_TOKEN: root
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          CORS_ORIGINS: http://localhost:3000
+          WOMPI_PUBLIC_KEY: pub_stagtest_dummy
+          WOMPI_PRIVATE_KEY: prv_stagtest_dummy
+          WOMPI_INTEGRITY_SECRET: dummy_integrity
+          WOMPI_WEBHOOK_SECRET: dummy_webhook
+          COMPLIANCE_ENTITY_CODE: COOP001
+          GEMINI_API_KEY: ""
+          SPRING_FLYWAY_PLACEHOLDERS_SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
         run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
         continue-on-error: true # Continúa incluso si la base de datos NVD falla al descargar por falta de API Key
         
@@ -53,6 +74,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: met
+          DB_USER: met
+          DB_PASSWORD: met_secret
+          JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+          AES_KEY: ${{ secrets.CI_AES_KEY }}
+          VAULT_URI: http://localhost:8200
+          VAULT_TOKEN: root
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          CORS_ORIGINS: http://localhost:3000
+          WOMPI_PUBLIC_KEY: pub_stagtest_dummy
+          WOMPI_PRIVATE_KEY: prv_stagtest_dummy
+          WOMPI_INTEGRITY_SECRET: dummy_integrity
+          WOMPI_WEBHOOK_SECRET: dummy_webhook
+          COMPLIANCE_ENTITY_CODE: COOP001
+          GEMINI_API_KEY: ""
+          SPRING_FLYWAY_PLACEHOLDERS_SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
         working-directory: ./backend/met-platform
         # mvn sonar:sonar usa las propiedades configuradas en el archivo raíz sonar-project.properties si se le indica
         run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=met-platform -Dsonar.projectName="Met Platform"
