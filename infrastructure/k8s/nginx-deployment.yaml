@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: met-proxy
+  namespace: met
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: met-proxy
+  template:
+    metadata:
+      labels:
+        app: met-proxy
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          # volumeMounts:
+          #   - name: nginx-conf
+          #     mountPath: /etc/nginx/nginx.conf
+          #     subPath: nginx.conf
+          #   - name: nginx-certs
+          #     mountPath: /etc/nginx/certs
+      # volumes:
+      #   - name: nginx-conf
+      #     configMap:
+      #       name: nginx-config
+      #   - name: nginx-certs
+      #     secret:
+      #       secretName: nginx-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: met-proxy
+  namespace: met
+spec:
+  selector:
+    app: met-proxy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: https
+      port: 443
+      targetPort: 443
+  type: ClusterIP

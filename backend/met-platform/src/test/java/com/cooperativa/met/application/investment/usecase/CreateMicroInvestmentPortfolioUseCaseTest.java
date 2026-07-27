@@ -68,6 +68,7 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
                 .id(UUID.randomUUID()).userId(userId)
                 .montoTotal(request.montoTotal())
                 .estado(InvestmentStatus.ACTIVE)
+                .estrategia(com.cooperativa.met.domain.investment.model.InvestmentStrategy.EQUAL)
                 .createdAt(Instant.now()).updatedAt(Instant.now())
                 .build();
         MicroInvestment savedInvestment = MicroInvestment.builder()
@@ -107,10 +108,15 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
                 .tipoTarifa("INVESTMENT_FEE").valor(new BigDecimal("1")).esPorcentaje(true).build();
         MicroInvestmentPortfolio savedPortfolio = MicroInvestmentPortfolio.builder()
                 .id(UUID.randomUUID()).userId(userId).montoTotal(request.montoTotal())
+                .estrategia(com.cooperativa.met.domain.investment.model.InvestmentStrategy.EQUAL)
                 .estado(InvestmentStatus.ACTIVE).createdAt(Instant.now()).updatedAt(Instant.now())
                 .build();
         MicroInvestment savedInvestment = MicroInvestment.builder()
                 .id(UUID.randomUUID()).rendimientoGanado(BigDecimal.ZERO)
+                .montoInvertido(request.montoTotal())
+                .tasaAplicada(activeInstrument.getTasaAnual())
+                .plazoDias(activeInstrument.getPlazoDias())
+                .instrumentId(activeInstrument.getId())
                 .estado(InvestmentStatus.ACTIVE).createdAt(Instant.now()).build();
 
         when(instrumentPort.findActivos()).thenReturn(List.of(activeInstrument));
@@ -156,10 +162,15 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
         );
         MicroInvestmentPortfolio savedPortfolio = MicroInvestmentPortfolio.builder()
                 .id(UUID.randomUUID()).montoTotal(request.montoTotal())
+                .estrategia(com.cooperativa.met.domain.investment.model.InvestmentStrategy.EQUAL)
                 .estado(InvestmentStatus.ACTIVE).createdAt(Instant.now()).updatedAt(Instant.now())
                 .build();
         MicroInvestment savedInv = MicroInvestment.builder()
                 .id(UUID.randomUUID()).rendimientoGanado(BigDecimal.ZERO)
+                .montoInvertido(request.montoTotal())
+                .tasaAplicada(activeInstrument.getTasaAnual())
+                .plazoDias(activeInstrument.getPlazoDias())
+                .instrumentId(activeInstrument.getId())
                 .estado(InvestmentStatus.ACTIVE).createdAt(Instant.now()).build();
 
         when(instrumentPort.findActivos()).thenReturn(List.of(activeInstrument));

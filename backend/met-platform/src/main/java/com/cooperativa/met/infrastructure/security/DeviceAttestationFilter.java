@@ -31,7 +31,7 @@ public class DeviceAttestationFilter extends OncePerRequestFilter {
     private static final String[] CRITICAL_PATHS = {
         "/v1/auth/biometric/register",
         "/v1/loans/apply",
-        "/v1/accounts/transfer",
+        "/v1/accounts/transactions/transfer",
         "/v1/accounts/verify"
     };
 

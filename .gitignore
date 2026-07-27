@@ -74,3 +74,7 @@ build_log*.txt
 
 # Archivos de compilación sueltos
 /BOOT-INF/
+
+# K8s Secrets
+infrastructure/k8s/secrets-filled.yaml
+infrastructure/k8s/sealed-secrets.yaml

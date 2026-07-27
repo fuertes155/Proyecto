@@ -36,8 +36,6 @@ spring:
             enable: true
 
   # --- Configuracion de Vault (Secret Manager) ---
-  config:
-    import: "vault://"
   cloud:
     vault:
       uri: ${VAULT_URI:http://localhost:8200}
@@ -138,3 +136,13 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile:
+        - dev
+        - prod
+    import: "optional:vault://"
+

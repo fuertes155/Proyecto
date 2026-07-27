@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@org.springframework.test.context.ActiveProfiles("test")
 @org.springframework.context.annotation.Import(com.cooperativa.met.TestRedisConfig.class)
 @AutoConfigureMockMvc
 class RateLimitingIntegrationTest {

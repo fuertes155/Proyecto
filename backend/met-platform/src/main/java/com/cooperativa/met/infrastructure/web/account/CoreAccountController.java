@@ -39,7 +39,14 @@ public class CoreAccountController {
     private UUID getAuthenticatedUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof UsernamePasswordAuthenticationToken jwtToken) {
-            return (UUID) jwtToken.getPrincipal();
+            Object principal = jwtToken.getPrincipal();
+            if (principal instanceof UUID uuid) {
+                return uuid;
+            } else if (principal instanceof String str) {
+                return UUID.fromString(str);
+            } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+                return UUID.fromString(userDetails.getUsername());
+            }
         }
         throw new IllegalStateException("No se pudo obtener el ID del usuario autenticado");
     }

@@ -7,7 +7,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
-@TestConfiguration
+@org.springframework.context.annotation.Configuration
+@org.springframework.context.annotation.Profile("test")
 public class TestRedisConfig {
 
     @Bean

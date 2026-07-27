@@ -1,12 +1,15 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:met;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    url: 'jdbc:h2:mem:met;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;INIT=CREATE DOMAIN IF NOT EXISTS "TEXT" AS VARCHAR\;CREATE DOMAIN IF NOT EXISTS "BLOB" AS BYTEA\;CREATE DOMAIN IF NOT EXISTS jsonb AS JSON'
     username: sa
     password:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
     open-in-view: false
   flyway:
     enabled: false
@@ -38,3 +41,5 @@ met:
   cors:
     allowed-origins:
       - http://localhost:3000
+  notification-service:
+    api-key: test-notification-api-key

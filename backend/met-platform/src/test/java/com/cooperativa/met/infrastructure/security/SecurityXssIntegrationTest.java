@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@org.springframework.test.context.ActiveProfiles("test")
 @org.springframework.context.annotation.Import(com.cooperativa.met.TestRedisConfig.class)
 @AutoConfigureMockMvc
 class SecurityXssIntegrationTest {
@@ -30,12 +31,16 @@ class SecurityXssIntegrationTest {
     @MockBean
     private ExecuteTransferUseCase executeTransferUseCase;
 
+    @MockBean
+    private DeviceAttestationService attestationService;
+
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"USER"}) // ID de usuario mockeado
     void shouldSanitizeXssPayloadInTransferConcept() throws Exception {
         // Arrange
+        Mockito.when(attestationService.verifyIntegrity(Mockito.any(), Mockito.any())).thenReturn(true);
         String maliciousConcept = "Regalo <script>alert('hack')</script>";
-        String safeConcept = "Regalo &lt;script&gt;alert('hack')&lt;/script&gt;";
+        String safeConcept = "Regalo &lt;script&gt;alert(&#39;hack&#39;)&lt;/script&gt;";
         
         // Creamos el JSON con el ataque XSS crudo
         String jsonPayload = """
@@ -44,12 +49,15 @@ class SecurityXssIntegrationTest {
                     "amount": 500.00,
                     "concept": "%s",
                     "pin": "1234",
-                    "otp": "000000"
+                    "otp": "000000",
+                    "idempotencyKey": "key-123"
                 }
                 """.formatted(maliciousConcept);
 
         // Act
-        mockMvc.perform(post("/v1/accounts/transfers")
+        mockMvc.perform(post("/v1/accounts/transactions/transfer")
+                .header("X-Signature", "test-skip-hmac")
+                .header("X-Timestamp", String.valueOf(System.currentTimeMillis()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonPayload))
                 .andExpect(status().isOk());

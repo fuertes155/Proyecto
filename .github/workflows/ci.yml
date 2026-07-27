@@ -67,8 +67,8 @@ jobs:
           # Wompi (modo sandbox para CI — no hace transacciones reales)
           WOMPI_PUBLIC_KEY: pub_stagtest_dummy
           WOMPI_PRIVATE_KEY: prv_stagtest_dummy
-          WOMPI_INTEGRITY_SECRET: ${{ secrets.CI_WOMPI_INTEGRITY_SECRET || 'dummy_secret_for_ci' }}
-          WOMPI_WEBHOOK_SECRET: ${{ secrets.CI_WOMPI_WEBHOOK_SECRET || 'dummy_webhook_for_ci' }}
+          WOMPI_INTEGRITY_SECRET: ${{ secrets.CI_WOMPI_INTEGRITY_SECRET }}
+          WOMPI_WEBHOOK_SECRET: ${{ secrets.CI_WOMPI_WEBHOOK_SECRET }}
           # Compliance (modo mock para CI)
           COMPLIANCE_ENTITY_CODE: COOP001
           # Gemini AI (no requerido en tests unitarios)
@@ -86,6 +86,7 @@ jobs:
         run: |
           go build -o bin/server ./cmd/server
           go vet ./...
+          go test ./...
 
   mobile:
     runs-on: ubuntu-latest
@@ -104,3 +105,18 @@ jobs:
         working-directory: mobile/met_app
         run: flutter test
 
+  web-comercial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        working-directory: web_comercial
+        run: npm ci
+      - name: Lint and Build
+        working-directory: web_comercial
+        run: |
+          npm run lint
+          npm run build

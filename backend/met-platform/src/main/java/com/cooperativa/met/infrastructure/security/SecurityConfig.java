@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@org.springframework.boot.context.properties.EnableConfigurationProperties({MetCorsProperties.class, RateLimitProperties.class, com.cooperativa.met.infrastructure.config.MetSecurityProperties.class})
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -113,6 +114,9 @@ public class SecurityConfig {
                         .requestMatchers("/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                        new org.springframework.security.web.authentication.HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                ))
                 .addFilterBefore(geoBlockingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtAuthenticationFilter, GeoBlockingFilter.class)
                 .addFilterAfter(hmacSignatureFilter, JwtAuthenticationFilter.class);

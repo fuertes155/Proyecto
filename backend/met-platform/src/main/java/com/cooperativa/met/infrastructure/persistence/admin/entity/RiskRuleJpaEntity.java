@@ -22,11 +22,11 @@ public class RiskRuleJpaEntity {
     @Column(nullable = false, length = 100)
     private String nombre;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 4000)
     private String descripcion;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(nullable = false, columnDefinition = "jsonb")
+    @Column(nullable = false)
     private String condicion;
 
     @Enumerated(EnumType.STRING)

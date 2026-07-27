@@ -18,7 +18,7 @@ public class MaintenanceWindowJpaEntity {
     @Id
     private UUID id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 4000)
     private String descripcion;
 
     @Column(nullable = false)
@@ -31,7 +31,7 @@ public class MaintenanceWindowJpaEntity {
     private boolean activo;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "endpoints_activos", columnDefinition = "jsonb")
+    @Column(name = "endpoints_activos")
     private String endpointsActivos;
 
     @Column(name = "creado_por")

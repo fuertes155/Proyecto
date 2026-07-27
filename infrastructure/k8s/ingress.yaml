@@ -21,7 +21,29 @@ spec:
                 name: met-backend
                 port:
                   number: 80
+    - host: met.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-comercial
+                port:
+                  number: 80
+    - host: admin.met.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-admin
+                port:
+                  number: 80
   tls:
     - hosts:
         - api.met.com
+        - met.com
+        - admin.met.com
       secretName: met-tls-secret

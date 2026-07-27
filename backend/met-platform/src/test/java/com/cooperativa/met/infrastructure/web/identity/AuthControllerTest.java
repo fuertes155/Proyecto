@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@org.springframework.test.context.ActiveProfiles("test")
 @AutoConfigureMockMvc
 class AuthControllerTest {
 
@@ -38,11 +39,17 @@ class AuthControllerTest {
         // Act & Assert
         mockMvc.perform(post("/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"documentType\": \"CC\", \"documentNumber\": \"123456789\", \"pin\": \"1234\"}"))
+                .content("{\"documentType\": \"CC\", \"documentNumber\": \"123456789\", \"pin\": \"1234\", \"deviceId\": \"test-device-id\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("mocked-jwt-token"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"));
     }
+
+    @MockBean
+    private com.cooperativa.met.application.identity.usecase.RegisterUserUseCase registerUserUseCase;
+
+    @MockBean
+    private com.cooperativa.met.application.identity.usecase.LogoutUseCase logoutUseCase;
 
     @Test
     void shouldReturnBadRequestWhenLoginRequestIsInvalid() throws Exception {
@@ -54,5 +61,41 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidJson))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRegisterUser() throws Exception {
+        com.cooperativa.met.application.identity.dto.UserResponse mockResponse = new com.cooperativa.met.application.identity.dto.UserResponse(
+            UUID.randomUUID(),
+            "John",
+            "Doe",
+            "john@example.com",
+            "+1234567890",
+            "CC",
+            "1234567890",
+            "VERIFIED",
+            java.time.LocalDateTime.now()
+        );
+
+        Mockito.when(registerUserUseCase.execute(Mockito.any())).thenReturn(mockResponse);
+
+        String json = "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"john@example.com\", \"phone\": \"+1234567890\", \"documentType\": \"CC\", \"documentNumber\": \"1234567890\", \"pin\": \"1234\", \"deviceId\": \"test\"}";
+
+        mockMvc.perform(post("/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value("john@example.com"));
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
+    void shouldLogoutUser() throws Exception {
+        Mockito.doNothing().when(logoutUseCase).execute(Mockito.any(), Mockito.anyString());
+
+        mockMvc.perform(post("/v1/auth/logout")
+                .header("Authorization", "Bearer mock-token")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 }

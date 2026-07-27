@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-comercial
+  namespace: met
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-comercial
+  template:
+    metadata:
+      labels:
+        app: web-comercial
+    spec:
+      containers:
+        - name: web-comercial
+          image: met/web-comercial:1.0.0
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-comercial
+  namespace: met
+spec:
+  selector:
+    app: web-comercial
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP

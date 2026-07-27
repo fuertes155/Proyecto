@@ -31,14 +31,14 @@ public class AdminAuditLogJpaEntity {
     private String idEntidad;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "valores_anteriores", columnDefinition = "jsonb")
+    @Column(name = "valores_anteriores")
     private String valoresAnteriores;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "valores_nuevos", columnDefinition = "jsonb")
+    @Column(name = "valores_nuevos")
     private String valoresNuevos;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 4000)
     private String motivo;
 
     @Column(name = "ip_origen", length = 45)
