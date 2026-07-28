@@ -20,6 +20,7 @@ import org.springframework.data.redis.core.ValueOperations;
 
 import com.cooperativa.met.application.security.GeoLocationService.GeoLocationResponse;
 import com.cooperativa.met.domain.common.exception.FraudDetectionException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class FraudDetectionServiceTest {
@@ -39,6 +40,8 @@ class FraudDetectionServiceTest {
     @InjectMocks
     private FraudDetectionService fraudDetectionService;
 
+    private SimpleMeterRegistry meterRegistry;
+
     private UUID userId;
     private String colombiaIp;
     private String europeIp;
@@ -50,6 +53,17 @@ class FraudDetectionServiceTest {
         colombiaIp = "190.0.0.1";
         europeIp = "80.0.0.1";
         proxyIp = "104.0.0.1";
+
+        meterRegistry = new SimpleMeterRegistry();
+        fraudDetectionService = new FraudDetectionService(geoLocationService, redisTemplate, meterRegistry);
+        
+        try {
+            java.lang.reflect.Method initMethod = FraudDetectionService.class.getDeclaredMethod("initMetrics");
+            initMethod.setAccessible(true);
+            initMethod.invoke(fraudDetectionService);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         // Mocks for redis operations when accessed
         // Avoid lenient stubbing by only stubbing when needed in tests

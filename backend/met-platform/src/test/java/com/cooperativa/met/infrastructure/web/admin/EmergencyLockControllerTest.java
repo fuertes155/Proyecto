@@ -2,6 +2,7 @@ package com.cooperativa.met.infrastructure.web.admin;
 
 import com.cooperativa.met.application.admin.dto.EmergencyLockRequest;
 import com.cooperativa.met.application.admin.usecase.EmergencyLockUseCase;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ class EmergencyLockControllerTest {
 
         String json = "{\"scope\": \"USER\", \"targetId\": \"12345678-1234-1234-1234-123456789012\", \"reason\": \"Suspicious activity\"}";
 
-        mockMvc.perform(post("/v1/admin/emergency-lock")
+        mockMvc.perform(post("/v1/admin/emergency-lock").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())

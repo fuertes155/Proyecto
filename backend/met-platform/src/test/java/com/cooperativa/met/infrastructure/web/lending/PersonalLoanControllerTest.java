@@ -9,6 +9,7 @@ import com.cooperativa.met.application.lending.usecase.ListPersonalLoanApplicati
 import com.cooperativa.met.application.lending.usecase.SimulatePersonalLoanUseCase;
 import com.cooperativa.met.application.lending.usecase.SubmitPersonalLoanApplicationUseCase;
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,7 @@ class PersonalLoanControllerTest {
 
         String json = "{\"amount\": 1000000, \"termMonths\": 12, \"purpose\": \"EDUCATION\"}";
 
-        mockMvc.perform(post("/v1/loans/simulate")
+        mockMvc.perform(post("/v1/loans/simulate").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())
@@ -97,7 +98,7 @@ class PersonalLoanControllerTest {
 
         String json = "{\"amount\": 1000000, \"termMonths\": 12, \"purpose\": \"EDUCATION\"}";
 
-        mockMvc.perform(post("/v1/loans/applications")
+        mockMvc.perform(post("/v1/loans/applications").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())

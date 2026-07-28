@@ -50,7 +50,7 @@ public class RegulatoryReportController {
     public ResponseEntity<RegulatoryReportResponse> generate(
             Authentication authentication,
             @Valid @RequestBody GenerateReportRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(generateUseCase.execute(userId, request));
     }
 

@@ -8,6 +8,7 @@ import com.cooperativa.met.application.compliance.usecase.GetRegulatoryReportUse
 import com.cooperativa.met.application.compliance.usecase.ListRegulatoryReportsUseCase;
 import com.cooperativa.met.domain.compliance.model.ReportStatus;
 import com.cooperativa.met.domain.compliance.model.SupersolidariaReportType;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,7 @@ class RegulatoryReportControllerTest {
 
         String json = "{\"reportType\": \"ASOCIADOS\", \"year\": 2026, \"month\": 7}";
 
-        mockMvc.perform(post("/v1/compliance/reports/generate")
+        mockMvc.perform(post("/v1/compliance/reports/generate").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())

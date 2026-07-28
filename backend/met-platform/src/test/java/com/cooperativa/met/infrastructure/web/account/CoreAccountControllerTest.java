@@ -6,6 +6,7 @@ import com.cooperativa.met.application.account.usecase.ExecuteTransferUseCase;
 import com.cooperativa.met.application.account.usecase.GetMyAccountUseCase;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.infrastructure.security.DeviceAttestationService;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,7 @@ class CoreAccountControllerTest {
         String validJson = "{\"destinationAccountId\": \"550e8400-e29b-41d4-a716-446655440000\", \"amount\": 5000.00, \"concept\": \"pago\", \"pin\": \"1234\", \"otp\": \"123456\", \"idempotencyKey\": \"test-key\"}";
 
         // Act & Assert
-        mockMvc.perform(post("/v1/accounts/transactions/transfer")
+        mockMvc.perform(post("/v1/accounts/transactions/transfer").with(csrf())
                 .header("X-Signature", "test-skip-hmac")
                 .header("X-Timestamp", String.valueOf(System.currentTimeMillis()))
                 .contentType(MediaType.APPLICATION_JSON)

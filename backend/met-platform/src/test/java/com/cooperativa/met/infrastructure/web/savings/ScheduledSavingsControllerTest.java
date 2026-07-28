@@ -11,6 +11,7 @@ import com.cooperativa.met.application.savings.usecase.UpdateScheduledSavingsUse
 import com.cooperativa.met.application.savings.usecase.WithdrawSavingsUseCase;
 import com.cooperativa.met.domain.savings.model.ContributionFrequency;
 import com.cooperativa.met.domain.savings.model.ScheduledSavingsStatus;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ class ScheduledSavingsControllerTest {
 
         String json = "{\"name\": \"Vacaciones\", \"frequency\": \"MONTHLY\", \"contributionAmount\": 100000, \"targetAmount\": 1000000, \"debitDayOfMonth\": 1}";
 
-        mockMvc.perform(post("/v1/savings/scheduled")
+        mockMvc.perform(post("/v1/savings/scheduled").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())

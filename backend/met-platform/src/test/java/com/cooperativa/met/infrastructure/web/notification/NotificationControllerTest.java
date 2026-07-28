@@ -4,6 +4,7 @@ import com.cooperativa.met.application.notification.dto.NotificationResponse;
 import com.cooperativa.met.application.notification.usecase.GetNotificationsUseCase;
 import com.cooperativa.met.application.notification.usecase.GetUnreadNotificationsCountUseCase;
 import com.cooperativa.met.application.notification.usecase.MarkNotificationReadUseCase;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ class NotificationControllerTest {
 
         Mockito.doNothing().when(markNotificationReadUseCase).execute(any(UUID.class), any(UUID.class));
 
-        mockMvc.perform(put("/v1/notifications/" + notificationId + "/read")
+        mockMvc.perform(put("/v1/notifications/" + notificationId + "/read").with(csrf())
                 .with(authentication(getAuth()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());

@@ -5,6 +5,7 @@ import com.cooperativa.met.domain.identity.model.DocumentType;
 import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.model.UserStatus;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +103,7 @@ class AdminUserControllerTest {
 
         Mockito.when(adminUserUseCase.updateKycStatus(eq(userId), eq(KycStatus.APPROVED))).thenReturn(user);
 
-        mockMvc.perform(put("/v1/admin/users/" + userId + "/kyc?status=APPROVED")
+        mockMvc.perform(put("/v1/admin/users/" + userId + "/kyc?status=APPROVED").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.kycStatus").value("APPROVED"));

@@ -41,13 +41,13 @@ public class ScheduledSavingsController {
     public ResponseEntity<ScheduledSavingsResponse> create(
             Authentication authentication,
             @Valid @RequestBody CreateScheduledSavingsRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(createUseCase.execute(userId, request));
     }
 
     @GetMapping
     public ResponseEntity<List<ScheduledSavingsResponse>> list(Authentication authentication) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listUseCase.execute(userId));
     }
 
@@ -55,7 +55,7 @@ public class ScheduledSavingsController {
     public ResponseEntity<ScheduledSavingsResponse> get(
             Authentication authentication,
             @PathVariable UUID accountId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(getUseCase.execute(userId, accountId));
     }
 
@@ -64,7 +64,7 @@ public class ScheduledSavingsController {
             Authentication authentication,
             @PathVariable UUID accountId,
             @Valid @RequestBody UpdateScheduledSavingsRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(updateUseCase.execute(userId, accountId, request));
     }
 
@@ -72,7 +72,7 @@ public class ScheduledSavingsController {
     public ResponseEntity<List<ContributionResponse>> contributions(
             Authentication authentication,
             @PathVariable UUID accountId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(historyUseCase.execute(userId, accountId));
     }
 
@@ -81,7 +81,7 @@ public class ScheduledSavingsController {
             Authentication authentication,
             @PathVariable UUID accountId,
             @Valid @RequestBody com.cooperativa.met.application.savings.dto.WithdrawSavingsRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         request.setAccountId(accountId);
         withdrawUseCase.execute(userId, request);
         return ResponseEntity.noContent().build();

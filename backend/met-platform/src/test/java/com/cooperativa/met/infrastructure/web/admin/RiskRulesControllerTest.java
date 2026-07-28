@@ -4,6 +4,7 @@ import com.cooperativa.met.application.admin.dto.RiskRuleRequest;
 import com.cooperativa.met.application.admin.usecase.ManageRiskRulesUseCase;
 import com.cooperativa.met.domain.admin.model.RiskAction;
 import com.cooperativa.met.domain.admin.model.RiskRule;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,7 @@ class RiskRulesControllerTest {
 
         String json = "{\"nombre\": \"MAX_TX\", \"condicion\": \"amount > 5000000\", \"accion\": \"BLOCK\", \"descripcion\": \"Test\"}";
 
-        mockMvc.perform(post("/v1/admin/risk-rules")
+        mockMvc.perform(post("/v1/admin/risk-rules").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())

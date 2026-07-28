@@ -23,6 +23,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -56,8 +57,9 @@ class ExecuteTransferUseCaseTest {
     @Mock
     private FraudDetectionService fraudDetectionService;
 
-    @InjectMocks
     private ExecuteTransferUseCase executeTransferUseCase;
+
+    private SimpleMeterRegistry meterRegistry;
 
     private UUID userId;
     private UUID destAccountId;
@@ -100,6 +102,20 @@ class ExecuteTransferUseCaseTest {
                 .status(AccountStatus.ACTIVE)
                 .principalBalance(new BigDecimal("100.00"))
                 .build();
+
+        meterRegistry = new SimpleMeterRegistry();
+        executeTransferUseCase = new ExecuteTransferUseCase(
+            accountRepository, transactionRepository, userRepository,
+            encryptionPort, otpService, auditLogService, idempotencyService,
+            transferLimitService, pinAttemptService, fraudDetectionService, meterRegistry
+        );
+        try {
+            java.lang.reflect.Method initMethod = ExecuteTransferUseCase.class.getDeclaredMethod("initMetrics");
+            initMethod.setAccessible(true);
+            initMethod.invoke(executeTransferUseCase);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test

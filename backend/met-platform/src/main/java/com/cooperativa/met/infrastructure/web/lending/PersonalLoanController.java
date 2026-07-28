@@ -42,13 +42,13 @@ public class PersonalLoanController {
     public ResponseEntity<LoanApplicationResponse> submit(
             Authentication authentication,
             @Valid @RequestBody SubmitLoanApplicationRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(submitUseCase.execute(userId, request));
     }
 
     @GetMapping("/applications")
     public ResponseEntity<List<LoanApplicationResponse>> list(Authentication authentication) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listUseCase.execute(userId));
     }
 
@@ -56,7 +56,7 @@ public class PersonalLoanController {
     public ResponseEntity<LoanApplicationResponse> get(
             Authentication authentication,
             @PathVariable UUID applicationId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(getUseCase.execute(userId, applicationId));
     }
 }

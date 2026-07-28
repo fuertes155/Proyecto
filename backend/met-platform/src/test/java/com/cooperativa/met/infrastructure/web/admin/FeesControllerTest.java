@@ -3,6 +3,7 @@ package com.cooperativa.met.infrastructure.web.admin;
 import com.cooperativa.met.application.admin.dto.FeeScheduleRequest;
 import com.cooperativa.met.application.admin.usecase.ManageFeesUseCase;
 import com.cooperativa.met.domain.admin.model.FeeSchedule;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ class FeesControllerTest {
 
         String json = "{\"tipoTarifa\": \"TRANSFER\", \"valor\": 1500, \"descripcion\": \"Transfer fee\", \"esPorcentaje\": false}";
 
-        mockMvc.perform(post("/v1/admin/fees")
+        mockMvc.perform(post("/v1/admin/fees").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())

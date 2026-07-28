@@ -8,6 +8,7 @@ import com.cooperativa.met.application.investment.usecase.GetInvestmentPortfolio
 import com.cooperativa.met.application.investment.usecase.GetInvestmentReturnsUseCase;
 import com.cooperativa.met.application.investment.usecase.ListInvestmentInstrumentsUseCase;
 import com.cooperativa.met.domain.investment.model.InvestmentInstrument;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +98,7 @@ class MicroInvestmentControllerTest {
 
         String json = "{\"totalAmount\": 500000}";
 
-        mockMvc.perform(post("/v1/investments/portfolio")
+        mockMvc.perform(post("/v1/investments/portfolio").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -111,7 +112,7 @@ class MicroInvestmentControllerTest {
 
         Mockito.doNothing().when(cancelUseCase).execute(any(UUID.class), any(UUID.class));
 
-        mockMvc.perform(delete("/v1/investments/portfolio/" + portfolioId)
+        mockMvc.perform(delete("/v1/investments/portfolio/" + portfolioId).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").exists());

@@ -3,6 +3,7 @@ package com.cooperativa.met.infrastructure.web.admin;
 import com.cooperativa.met.application.lending.usecase.AdminLoanUseCase;
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ class AdminLoanControllerTest {
 
         Mockito.when(adminLoanUseCase.updateLoanStatus(eq(loanId), eq(LoanApplicationStatus.APPROVED))).thenReturn(loan);
 
-        mockMvc.perform(put("/v1/admin/loans/" + loanId + "/status?status=APPROVED")
+        mockMvc.perform(put("/v1/admin/loans/" + loanId + "/status?status=APPROVED").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"));

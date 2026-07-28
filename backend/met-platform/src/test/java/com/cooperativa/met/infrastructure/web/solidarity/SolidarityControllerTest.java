@@ -16,6 +16,7 @@ import com.cooperativa.met.application.solidarity.usecase.RequestMicroLoanUseCas
 import com.cooperativa.met.application.solidarity.usecase.ReviewMicroLoanUseCase;
 import com.cooperativa.met.domain.solidarity.model.GroupStatus;
 import com.cooperativa.met.domain.solidarity.model.MemberRole;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ class SolidarityControllerTest {
 
         String json = "{\"name\": \"Fondo de Vecinos\", \"description\": \"Fondo para emergencias del barrio\"}";
 
-        mockMvc.perform(post("/v1/solidarity/groups")
+        mockMvc.perform(post("/v1/solidarity/groups").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())

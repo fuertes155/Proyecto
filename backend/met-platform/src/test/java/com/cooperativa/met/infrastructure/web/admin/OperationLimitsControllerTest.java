@@ -3,6 +3,7 @@ package com.cooperativa.met.infrastructure.web.admin;
 import com.cooperativa.met.application.admin.dto.OperationLimitRequest;
 import com.cooperativa.met.application.admin.usecase.ManageOperationLimitsUseCase;
 import com.cooperativa.met.domain.admin.model.OperationLimit;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +74,7 @@ class OperationLimitsControllerTest {
 
         String json = "{\"tipoOperacion\": \"TRANSFER\", \"montoDiarioMax\": 2000000, \"montoPorTransaccionMax\": 1000000}";
 
-        mockMvc.perform(put("/v1/admin/limits")
+        mockMvc.perform(put("/v1/admin/limits").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())

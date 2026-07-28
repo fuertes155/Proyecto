@@ -90,7 +90,7 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> registerBiometric(
             Authentication authentication,
             @Valid @RequestBody BiometricRegistrationRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         registerBiometricUseCase.execute(userId, request);
         return ResponseEntity.ok(Map.of("message", "Registro biométrico completado"));
     }
@@ -123,7 +123,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(Authentication authentication) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(getUserProfileUseCase.execute(userId));
     }
 
@@ -131,7 +131,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> updateProfile(
             Authentication authentication,
             @Valid @RequestBody UpdateProfileRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(updateProfileUseCase.execute(userId, request));
     }
 
@@ -139,7 +139,7 @@ public class AuthController {
     public ResponseEntity<Void> updatePin(
             Authentication authentication,
             @Valid @RequestBody UpdatePinRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         updatePinUseCase.execute(userId, request);
         return ResponseEntity.ok().build();
     }
@@ -148,7 +148,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> updateNotifications(
             Authentication authentication,
             @Valid @RequestBody UpdateNotificationsRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(updateNotificationsUseCase.execute(userId, request));
     }
 
@@ -173,7 +173,7 @@ public class AuthController {
     public ResponseEntity<Void> logout(
             Authentication authentication,
             @org.springframework.web.bind.annotation.RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         String token = authorization.startsWith("Bearer ") ? authorization.substring(7) : authorization;
         logoutUseCase.execute(userId, token);
         return ResponseEntity.ok().build();

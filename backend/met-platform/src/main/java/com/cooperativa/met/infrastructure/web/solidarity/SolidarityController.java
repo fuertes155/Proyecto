@@ -59,7 +59,7 @@ public class SolidarityController {
     public ResponseEntity<SolidarityGroupResponse> createGroup(
             Authentication authentication,
             @Valid @RequestBody CreateSolidarityGroupRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(createGroupUseCase.execute(userId, request));
     }
 
@@ -67,13 +67,13 @@ public class SolidarityController {
     public ResponseEntity<SolidarityGroupResponse> joinGroup(
             Authentication authentication,
             @Valid @RequestBody JoinSolidarityGroupRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(joinGroupUseCase.execute(userId, request));
     }
 
     @GetMapping("/groups")
     public ResponseEntity<List<SolidarityGroupResponse>> listGroups(Authentication authentication) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listGroupsUseCase.execute(userId));
     }
 
@@ -81,7 +81,7 @@ public class SolidarityController {
     public ResponseEntity<SolidarityGroupResponse> getGroup(
             Authentication authentication,
             @PathVariable UUID groupId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(getGroupUseCase.execute(userId, groupId));
     }
 
@@ -89,7 +89,7 @@ public class SolidarityController {
     public ResponseEntity<List<SolidarityMemberResponse>> listMembers(
             Authentication authentication,
             @PathVariable UUID groupId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listMembersUseCase.execute(userId, groupId));
     }
 
@@ -98,7 +98,7 @@ public class SolidarityController {
             Authentication authentication,
             @PathVariable UUID groupId,
             @Valid @RequestBody ContributeToPoolRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(contributeUseCase.execute(userId, groupId, request));
     }
 
@@ -107,7 +107,7 @@ public class SolidarityController {
             Authentication authentication,
             @PathVariable UUID groupId,
             @Valid @RequestBody RequestMicroLoanRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(requestLoanUseCase.execute(userId, groupId, request));
     }
 
@@ -117,7 +117,7 @@ public class SolidarityController {
             @PathVariable UUID groupId,
             @PathVariable UUID loanId,
             @Valid @RequestBody ReviewMicroLoanRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(reviewLoanUseCase.execute(userId, groupId, loanId, request));
     }
 
@@ -127,7 +127,7 @@ public class SolidarityController {
             @PathVariable UUID groupId,
             @PathVariable UUID loanId,
             @PathVariable UUID installmentId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(repayInstallmentUseCase.execute(userId, groupId, loanId, installmentId));
     }
 
@@ -135,7 +135,7 @@ public class SolidarityController {
     public ResponseEntity<List<MicroLoanResponse>> listLoans(
             Authentication authentication,
             @PathVariable UUID groupId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listLoansUseCase.execute(userId, groupId));
     }
 
@@ -144,7 +144,7 @@ public class SolidarityController {
             Authentication authentication,
             @PathVariable UUID groupId,
             @PathVariable UUID loanId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listInstallmentsUseCase.execute(userId, groupId, loanId));
     }
 
@@ -152,7 +152,7 @@ public class SolidarityController {
     public ResponseEntity<List<PoolTransactionResponse>> listTransactions(
             Authentication authentication,
             @PathVariable UUID groupId) {
-        UUID userId = (UUID) authentication.getPrincipal();
+        UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listTransactionsUseCase.execute(userId, groupId));
     }
 }

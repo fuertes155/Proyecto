@@ -7,6 +7,7 @@ import com.cooperativa.met.application.identity.usecase.LoginUseCase;
 import com.cooperativa.met.domain.identity.model.DocumentType;
 import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.UserStatus;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ class AuthControllerTest {
 
         Mockito.when(loginUseCase.execute(Mockito.any(LoginRequest.class), Mockito.anyString())).thenReturn(mockResponse);
 
-        mockMvc.perform(post("/v1/auth/login")
+        mockMvc.perform(post("/v1/auth/login").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"documentType\": \"CC\", \"documentNumber\": \"123456789\", \"pin\": \"1234\", \"deviceId\": \"test-device-id\"}"))
                 .andExpect(status().isOk())
@@ -58,7 +59,7 @@ class AuthControllerTest {
     void shouldReturnBadRequestWhenLoginRequestIsInvalid() throws Exception {
         String invalidJson = "{\"password\": \"password123\"}";
 
-        mockMvc.perform(post("/v1/auth/login")
+        mockMvc.perform(post("/v1/auth/login").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidJson))
                 .andExpect(status().isBadRequest());
@@ -71,7 +72,7 @@ class AuthControllerTest {
             DocumentType.CC,
             "1234567890",
             "john@example.com",
-            "+1234567890",
+            "3001234567",
             "John",
             "Doe",
             UserStatus.ACTIVE,
@@ -85,7 +86,7 @@ class AuthControllerTest {
 
         String json = "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"john@example.com\", \"phone\": \"+1234567890\", \"documentType\": \"CC\", \"documentNumber\": \"1234567890\", \"pin\": \"1234\", \"deviceId\": \"test\"}";
 
-        mockMvc.perform(post("/v1/auth/register")
+        mockMvc.perform(post("/v1/auth/register").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -97,7 +98,7 @@ class AuthControllerTest {
     void shouldLogoutUser() throws Exception {
         Mockito.doNothing().when(logoutUseCase).execute(Mockito.any(), Mockito.anyString());
 
-        mockMvc.perform(post("/v1/auth/logout")
+        mockMvc.perform(post("/v1/auth/logout").with(csrf())
                 .header("Authorization", "Bearer mock-token")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

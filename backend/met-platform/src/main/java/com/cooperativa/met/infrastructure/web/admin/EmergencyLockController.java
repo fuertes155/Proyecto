@@ -27,7 +27,7 @@ public class EmergencyLockController {
             @Valid @RequestBody EmergencyLockRequest request,
             Authentication authentication,
             HttpServletRequest httpRequest) {
-        UUID adminId = (UUID) authentication.getPrincipal();
+        UUID adminId = UUID.fromString(authentication.getName());
         emergencyLockUseCase.execute(adminId, request, httpRequest.getRemoteAddr());
         return ResponseEntity.ok(Map.of(
                 "message", "Bloqueo de emergencia ejecutado correctamente",
