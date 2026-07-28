@@ -36,10 +36,12 @@ class SimulatePersonalLoanUseCaseTest {
 
         LoanSimulationResponse response = new LoanSimulationResponse(
                 new BigDecimal("1000000"),
-                new BigDecimal("1150000"),
-                new BigDecimal("0.15"),
-                new BigDecimal("95833.33"),
                 12,
+                new BigDecimal("0.15"),
+                new BigDecimal("0.0125"),
+                new BigDecimal("95833.33"),
+                new BigDecimal("150000"),
+                new BigDecimal("1150000"),
                 Collections.emptyList()
         );
 

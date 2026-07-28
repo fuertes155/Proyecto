@@ -1,11 +1,14 @@
 package com.cooperativa.met.application.account.usecase;
 
 import com.cooperativa.met.application.account.dto.VerifyRecipientResponse;
+import com.cooperativa.met.domain.account.model.AccountStatus;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
-import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
+import com.cooperativa.met.domain.identity.model.DocumentType;
+import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,14 +46,41 @@ class VerifyRecipientUseCaseTest {
         UUID recipientUserId = UUID.randomUUID();
         String accountNumber = "1234567890";
 
-        CoreAccount account = new CoreAccount();
-        account.setId(UUID.randomUUID());
-        account.setUserId(recipientUserId);
+        CoreAccount account = CoreAccount.builder()
+                .id(UUID.randomUUID())
+                .userId(recipientUserId)
+                .accountNumber(accountNumber)
+                .principalBalance(BigDecimal.ZERO)
+                .interestBalance(BigDecimal.ZERO)
+                .status(AccountStatus.ACTIVE)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .version(1L)
+                .build();
 
-        User owner = new User();
-        owner.setId(recipientUserId);
-        owner.setFirstName("John");
-        owner.setLastName("Doe");
+        User owner = User.builder()
+                .id(recipientUserId)
+                .documentType(DocumentType.CC)
+                .documentNumber("654321")
+                .email("owner@test.com")
+                .phone("3009876543")
+                .firstName("John")
+                .lastName("Doe")
+                .pinHash("hash")
+                .biometricHash("")
+                .failedLoginAttempts(0)
+                .status(UserStatus.ACTIVE)
+                .kycStatus(KycStatus.APPROVED)
+                .termsAccepted(true)
+                .termsAcceptedAt(Instant.now())
+                .emailNotificationsEnabled(true)
+                .pushNotificationsEnabled(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .lastKnownIp("")
+                .paymentCardToken("")
+                .lastKnownDeviceId("")
+                .build();
 
         when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.of(account));
         when(userRepository.findById(recipientUserId)).thenReturn(Optional.of(owner));
@@ -64,9 +96,17 @@ class VerifyRecipientUseCaseTest {
         UUID currentUserId = UUID.randomUUID();
         String accountNumber = "1234567890";
 
-        CoreAccount account = new CoreAccount();
-        account.setId(UUID.randomUUID());
-        account.setUserId(currentUserId);
+        CoreAccount account = CoreAccount.builder()
+                .id(UUID.randomUUID())
+                .userId(currentUserId)
+                .accountNumber(accountNumber)
+                .principalBalance(BigDecimal.ZERO)
+                .interestBalance(BigDecimal.ZERO)
+                .status(AccountStatus.ACTIVE)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .version(1L)
+                .build();
 
         when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.of(account));
 

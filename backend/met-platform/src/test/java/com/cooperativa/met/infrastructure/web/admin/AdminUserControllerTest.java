@@ -1,8 +1,10 @@
 package com.cooperativa.met.infrastructure.web.admin;
 
 import com.cooperativa.met.application.identity.usecase.AdminUserUseCase;
+import com.cooperativa.met.domain.identity.model.DocumentType;
 import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.model.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,9 +40,29 @@ class AdminUserControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void shouldGetAllUsers() throws Exception {
-        User user = new User();
-        user.setId(UUID.randomUUID());
-        user.setFirstName("AdminUser");
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .documentType(DocumentType.CC)
+                .documentNumber("123456")
+                .email("admin@test.com")
+                .phone("3001234567")
+                .firstName("AdminUser")
+                .lastName("Test")
+                .pinHash("hash")
+                .biometricHash("")
+                .failedLoginAttempts(0)
+                .status(UserStatus.ACTIVE)
+                .kycStatus(KycStatus.APPROVED)
+                .termsAccepted(true)
+                .termsAcceptedAt(Instant.now())
+                .emailNotificationsEnabled(true)
+                .pushNotificationsEnabled(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .lastKnownIp("")
+                .paymentCardToken("")
+                .lastKnownDeviceId("")
+                .build();
 
         Mockito.when(adminUserUseCase.getAllUsers()).thenReturn(List.of(user));
 
@@ -53,15 +76,35 @@ class AdminUserControllerTest {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void shouldUpdateKycStatus() throws Exception {
         UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-        user.setKycStatus(KycStatus.VERIFIED);
+        User user = User.builder()
+                .id(userId)
+                .documentType(DocumentType.CC)
+                .documentNumber("654321")
+                .email("user@test.com")
+                .phone("3009876543")
+                .firstName("Test")
+                .lastName("User")
+                .pinHash("hash")
+                .biometricHash("")
+                .failedLoginAttempts(0)
+                .status(UserStatus.ACTIVE)
+                .kycStatus(KycStatus.APPROVED)
+                .termsAccepted(true)
+                .termsAcceptedAt(Instant.now())
+                .emailNotificationsEnabled(true)
+                .pushNotificationsEnabled(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .lastKnownIp("")
+                .paymentCardToken("")
+                .lastKnownDeviceId("")
+                .build();
 
-        Mockito.when(adminUserUseCase.updateKycStatus(eq(userId), eq(KycStatus.VERIFIED))).thenReturn(user);
+        Mockito.when(adminUserUseCase.updateKycStatus(eq(userId), eq(KycStatus.APPROVED))).thenReturn(user);
 
-        mockMvc.perform(put("/v1/admin/users/" + userId + "/kyc?status=VERIFIED")
+        mockMvc.perform(put("/v1/admin/users/" + userId + "/kyc?status=APPROVED")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.kycStatus").value("VERIFIED"));
+                .andExpect(jsonPath("$.kycStatus").value("APPROVED"));
     }
 }

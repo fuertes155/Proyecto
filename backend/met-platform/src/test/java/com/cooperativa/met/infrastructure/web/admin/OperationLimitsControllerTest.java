@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,34 +38,45 @@ class OperationLimitsControllerTest {
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldGetAllLimits() throws Exception {
-        OperationLimit limit = new OperationLimit();
-        limit.setId(UUID.randomUUID());
-        limit.setOperationType("TRANSFER");
-        limit.setDailyLimit(new BigDecimal("1000000"));
+        OperationLimit limit = OperationLimit.builder()
+                .id(UUID.randomUUID())
+                .tipoOperacion("TRANSFER")
+                .montoDiarioMax(1_000_000L)
+                .montoPorTransaccionMax(500_000L)
+                .activo(true)
+                .creadoPor(UUID.randomUUID())
+                .updatedAt(Instant.now())
+                .build();
 
         Mockito.when(manageOperationLimitsUseCase.getAll()).thenReturn(List.of(limit));
 
         mockMvc.perform(get("/v1/admin/limits")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].operationType").value("TRANSFER"));
+                .andExpect(jsonPath("$[0].tipoOperacion").value("TRANSFER"));
     }
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldUpdateLimit() throws Exception {
-        OperationLimit limit = new OperationLimit();
-        limit.setId(UUID.randomUUID());
-        limit.setOperationType("TRANSFER");
+        OperationLimit limit = OperationLimit.builder()
+                .id(UUID.randomUUID())
+                .tipoOperacion("TRANSFER")
+                .montoDiarioMax(2_000_000L)
+                .montoPorTransaccionMax(1_000_000L)
+                .activo(true)
+                .creadoPor(UUID.randomUUID())
+                .updatedAt(Instant.now())
+                .build();
 
         Mockito.when(manageOperationLimitsUseCase.update(any(UUID.class), any(OperationLimitRequest.class), anyString())).thenReturn(limit);
 
-        String json = "{\"operationType\": \"TRANSFER\", \"dailyLimit\": 2000000, \"monthlyLimit\": 50000000}";
+        String json = "{\"tipoOperacion\": \"TRANSFER\", \"montoDiarioMax\": 2000000, \"montoPorTransaccionMax\": 1000000}";
 
         mockMvc.perform(put("/v1/admin/limits")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.operationType").value("TRANSFER"));
+                .andExpect(jsonPath("$.tipoOperacion").value("TRANSFER"));
     }
 }

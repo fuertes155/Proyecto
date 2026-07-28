@@ -9,6 +9,8 @@ import com.cooperativa.met.application.savings.usecase.GetScheduledSavingsUseCas
 import com.cooperativa.met.application.savings.usecase.ListScheduledSavingsUseCase;
 import com.cooperativa.met.application.savings.usecase.UpdateScheduledSavingsUseCase;
 import com.cooperativa.met.application.savings.usecase.WithdrawSavingsUseCase;
+import com.cooperativa.met.domain.savings.model.ContributionFrequency;
+import com.cooperativa.met.domain.savings.model.ScheduledSavingsStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,17 +60,21 @@ class ScheduledSavingsControllerTest {
         ScheduledSavingsResponse response = new ScheduledSavingsResponse(
                 UUID.randomUUID(),
                 "Vacaciones",
-                "ACTIVE",
-                "MONTHLY",
+                new BigDecimal("1000000"),
                 new BigDecimal("100000"),
+                ContributionFrequency.MONTHLY,
+                1,
+                1,
                 BigDecimal.ZERO,
-                LocalDateTime.now().plusMonths(1),
-                0.0
+                new BigDecimal("0.0"),
+                ScheduledSavingsStatus.ACTIVE,
+                LocalDate.now().plusMonths(1),
+                Instant.now()
         );
 
         Mockito.when(createUseCase.execute(any(UUID.class), any(CreateScheduledSavingsRequest.class))).thenReturn(response);
 
-        String json = "{\"name\": \"Vacaciones\", \"frequency\": \"MONTHLY\", \"contributionAmount\": 100000}";
+        String json = "{\"name\": \"Vacaciones\", \"frequency\": \"MONTHLY\", \"contributionAmount\": 100000, \"targetAmount\": 1000000, \"debitDayOfMonth\": 1}";
 
         mockMvc.perform(post("/v1/savings/scheduled")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -82,12 +89,16 @@ class ScheduledSavingsControllerTest {
         ScheduledSavingsResponse response = new ScheduledSavingsResponse(
                 UUID.randomUUID(),
                 "Vacaciones",
-                "ACTIVE",
-                "MONTHLY",
+                new BigDecimal("1000000"),
                 new BigDecimal("100000"),
+                ContributionFrequency.MONTHLY,
+                1,
+                1,
                 BigDecimal.ZERO,
-                LocalDateTime.now().plusMonths(1),
-                0.0
+                new BigDecimal("0.0"),
+                ScheduledSavingsStatus.ACTIVE,
+                LocalDate.now().plusMonths(1),
+                Instant.now()
         );
 
         Mockito.when(listUseCase.execute(any(UUID.class))).thenReturn(List.of(response));

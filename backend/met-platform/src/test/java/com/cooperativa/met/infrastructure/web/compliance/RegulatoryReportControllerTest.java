@@ -6,6 +6,7 @@ import com.cooperativa.met.application.compliance.usecase.DownloadRegulatoryRepo
 import com.cooperativa.met.application.compliance.usecase.GenerateSupersolidariaReportUseCase;
 import com.cooperativa.met.application.compliance.usecase.GetRegulatoryReportUseCase;
 import com.cooperativa.met.application.compliance.usecase.ListRegulatoryReportsUseCase;
+import com.cooperativa.met.domain.compliance.model.ReportStatus;
 import com.cooperativa.met.domain.compliance.model.SupersolidariaReportType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,11 +60,17 @@ class RegulatoryReportControllerTest {
     void shouldGenerateReport() throws Exception {
         RegulatoryReportResponse response = new RegulatoryReportResponse(
                 UUID.randomUUID(),
-                SupersolidariaReportType.ASOCIADOS.name(),
+                SupersolidariaReportType.ASOCIADOS,
                 2026,
                 7,
-                LocalDateTime.now(),
-                "PENDING"
+                "COOP001",
+                ReportStatus.PENDING,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                null
         );
 
         Mockito.when(generateUseCase.execute(any(UUID.class), any(GenerateReportRequest.class))).thenReturn(response);
@@ -82,11 +89,17 @@ class RegulatoryReportControllerTest {
     void shouldListReports() throws Exception {
         RegulatoryReportResponse response = new RegulatoryReportResponse(
                 UUID.randomUUID(),
-                SupersolidariaReportType.ASOCIADOS.name(),
+                SupersolidariaReportType.ASOCIADOS,
                 2026,
                 7,
-                LocalDateTime.now(),
-                "COMPLETED"
+                "COOP001",
+                ReportStatus.COMPLETED,
+                "report.csv",
+                1024L,
+                100,
+                "abc123",
+                Instant.now(),
+                "/download/report.csv"
         );
 
         Mockito.when(listUseCase.execute(eq(2026), eq(7))).thenReturn(List.of(response));

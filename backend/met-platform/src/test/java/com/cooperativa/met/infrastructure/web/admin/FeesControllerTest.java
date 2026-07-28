@@ -14,6 +14,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,35 +39,47 @@ class FeesControllerTest {
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldGetAllFees() throws Exception {
-        FeeSchedule fee = new FeeSchedule();
-        fee.setId(UUID.randomUUID());
-        fee.setFeeType("WITHDRAWAL");
-        fee.setAmount(new BigDecimal("5000"));
+        FeeSchedule fee = FeeSchedule.builder()
+                .id(UUID.randomUUID())
+                .tipoTarifa("WITHDRAWAL")
+                .descripcion("Tarifa de retiro")
+                .valor(new BigDecimal("5000"))
+                .esPorcentaje(false)
+                .vigentDesde(Instant.now())
+                .creadoPor(UUID.randomUUID())
+                .createdAt(Instant.now())
+                .build();
 
         Mockito.when(manageFeesUseCase.getAll()).thenReturn(List.of(fee));
 
         mockMvc.perform(get("/v1/admin/fees")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].feeType").value("WITHDRAWAL"));
+                .andExpect(jsonPath("$[0].tipoTarifa").value("WITHDRAWAL"));
     }
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldCreateFee() throws Exception {
-        FeeSchedule fee = new FeeSchedule();
-        fee.setId(UUID.randomUUID());
-        fee.setFeeType("TRANSFER");
-        fee.setAmount(new BigDecimal("1500"));
+        FeeSchedule fee = FeeSchedule.builder()
+                .id(UUID.randomUUID())
+                .tipoTarifa("TRANSFER")
+                .descripcion("Tarifa de transferencia")
+                .valor(new BigDecimal("1500"))
+                .esPorcentaje(false)
+                .vigentDesde(Instant.now())
+                .creadoPor(UUID.randomUUID())
+                .createdAt(Instant.now())
+                .build();
 
         Mockito.when(manageFeesUseCase.create(any(UUID.class), any(FeeScheduleRequest.class), anyString())).thenReturn(fee);
 
-        String json = "{\"feeType\": \"TRANSFER\", \"amount\": 1500, \"description\": \"Transfer fee\"}";
+        String json = "{\"tipoTarifa\": \"TRANSFER\", \"valor\": 1500, \"descripcion\": \"Transfer fee\", \"esPorcentaje\": false}";
 
         mockMvc.perform(post("/v1/admin/fees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.feeType").value("TRANSFER"));
+                .andExpect(jsonPath("$.tipoTarifa").value("TRANSFER"));
     }
 }

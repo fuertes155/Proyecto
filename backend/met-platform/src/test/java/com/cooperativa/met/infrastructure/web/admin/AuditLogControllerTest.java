@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,9 +36,18 @@ class AuditLogControllerTest {
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldGetAllAuditLogs() throws Exception {
-        AdminAuditEntry entry = new AdminAuditEntry();
-        entry.setId(UUID.randomUUID());
-        entry.setAction("CREATE_FEE");
+        AdminAuditEntry entry = AdminAuditEntry.builder()
+                .id(UUID.randomUUID())
+                .actorAdminId(UUID.randomUUID())
+                .accion("CREATE_FEE")
+                .entidadAfectada("FeeSchedule")
+                .idEntidad(UUID.randomUUID().toString())
+                .valoresAnteriores("{}")
+                .valoresNuevos("{\"valor\":5000}")
+                .motivo("Test")
+                .ipOrigen("127.0.0.1")
+                .timestamp(Instant.now())
+                .build();
 
         Mockito.when(getAuditLogUseCase.getAll(anyInt(), anyInt())).thenReturn(List.of(entry));
         Mockito.when(getAuditLogUseCase.count()).thenReturn(1L);
@@ -46,22 +55,31 @@ class AuditLogControllerTest {
         mockMvc.perform(get("/v1/admin/audit-log")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].action").value("CREATE_FEE"))
+                .andExpect(jsonPath("$.data[0].accion").value("CREATE_FEE"))
                 .andExpect(jsonPath("$.total").value(1));
     }
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldGetByAdmin() throws Exception {
-        AdminAuditEntry entry = new AdminAuditEntry();
-        entry.setId(UUID.randomUUID());
-        entry.setAction("UPDATE_LIMIT");
+        AdminAuditEntry entry = AdminAuditEntry.builder()
+                .id(UUID.randomUUID())
+                .actorAdminId(UUID.randomUUID())
+                .accion("UPDATE_LIMIT")
+                .entidadAfectada("OperationLimit")
+                .idEntidad(UUID.randomUUID().toString())
+                .valoresAnteriores("{}")
+                .valoresNuevos("{\"montoDiarioMax\":2000000}")
+                .motivo("Test")
+                .ipOrigen("127.0.0.1")
+                .timestamp(Instant.now())
+                .build();
 
         Mockito.when(getAuditLogUseCase.getByAdmin(anyString(), anyInt(), anyInt())).thenReturn(List.of(entry));
 
         mockMvc.perform(get("/v1/admin/audit-log/admin/123e4567-e89b-12d3-a456-426614174000")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].action").value("UPDATE_LIMIT"));
+                .andExpect(jsonPath("$[0].accion").value("UPDATE_LIMIT"));
     }
 }

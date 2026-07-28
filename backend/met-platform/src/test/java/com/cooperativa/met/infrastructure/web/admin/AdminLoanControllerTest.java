@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,25 +39,47 @@ class AdminLoanControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void shouldGetAllLoans() throws Exception {
-        PersonalLoanApplication loan = new PersonalLoanApplication();
-        loan.setId(UUID.randomUUID());
-        loan.setStatus(LoanApplicationStatus.PENDING);
+        PersonalLoanApplication loan = PersonalLoanApplication.builder()
+                .id(UUID.randomUUID())
+                .userId(UUID.randomUUID())
+                .amount(new BigDecimal("1000000"))
+                .termMonths(12)
+                .annualInterestRate(new BigDecimal("0.18"))
+                .monthlyPayment(new BigDecimal("100000"))
+                .totalInterest(new BigDecimal("200000"))
+                .totalPayment(new BigDecimal("1200000"))
+                .purpose("Personal")
+                .status(LoanApplicationStatus.SUBMITTED)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
         Mockito.when(adminLoanUseCase.getAllLoans()).thenReturn(List.of(loan));
 
         mockMvc.perform(get("/v1/admin/loans")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].status").value("PENDING"));
+                .andExpect(jsonPath("$[0].status").value("SUBMITTED"));
     }
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void shouldUpdateLoanStatus() throws Exception {
         UUID loanId = UUID.randomUUID();
-        PersonalLoanApplication loan = new PersonalLoanApplication();
-        loan.setId(loanId);
-        loan.setStatus(LoanApplicationStatus.APPROVED);
+        PersonalLoanApplication loan = PersonalLoanApplication.builder()
+                .id(loanId)
+                .userId(UUID.randomUUID())
+                .amount(new BigDecimal("1000000"))
+                .termMonths(12)
+                .annualInterestRate(new BigDecimal("0.18"))
+                .monthlyPayment(new BigDecimal("100000"))
+                .totalInterest(new BigDecimal("200000"))
+                .totalPayment(new BigDecimal("1200000"))
+                .purpose("Personal")
+                .status(LoanApplicationStatus.APPROVED)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
         Mockito.when(adminLoanUseCase.updateLoanStatus(eq(loanId), eq(LoanApplicationStatus.APPROVED))).thenReturn(loan);
 

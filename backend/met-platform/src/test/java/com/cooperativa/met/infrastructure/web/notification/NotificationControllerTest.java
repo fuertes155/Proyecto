@@ -11,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -49,15 +48,13 @@ class NotificationControllerTest {
 
     @Test
     void shouldGetNotifications() throws Exception {
-        NotificationResponse response = new NotificationResponse(
-                UUID.randomUUID(),
-                "TRANSFER",
-                "New Transfer",
-                "You received a transfer",
-                false,
-                LocalDateTime.now(),
-                null
-        );
+        NotificationResponse response = NotificationResponse.builder()
+                .id(UUID.randomUUID())
+                .title("New Transfer")
+                .message("You received a transfer")
+                .read(false)
+                .createdAt(LocalDateTime.now())
+                .build();
 
         Mockito.when(getNotificationsUseCase.execute(any(UUID.class))).thenReturn(List.of(response));
 

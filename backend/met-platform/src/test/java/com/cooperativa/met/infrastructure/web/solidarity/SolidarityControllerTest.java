@@ -14,6 +14,8 @@ import com.cooperativa.met.application.solidarity.usecase.ListPoolTransactionsUs
 import com.cooperativa.met.application.solidarity.usecase.RepayInstallmentUseCase;
 import com.cooperativa.met.application.solidarity.usecase.RequestMicroLoanUseCase;
 import com.cooperativa.met.application.solidarity.usecase.ReviewMicroLoanUseCase;
+import com.cooperativa.met.domain.solidarity.model.GroupStatus;
+import com.cooperativa.met.domain.solidarity.model.MemberRole;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,9 +65,17 @@ class SolidarityControllerTest {
                 UUID.randomUUID(),
                 "Fondo de Vecinos",
                 "Fondo para emergencias del barrio",
-                "ACTIVE",
+                "INVITECODE",
+                new BigDecimal("10000"),
+                new BigDecimal("50"),
+                new BigDecimal("0.05"),
                 new BigDecimal("1000000"),
-                LocalDateTime.now()
+                new BigDecimal("500000"),
+                10,
+                50,
+                GroupStatus.ACTIVE,
+                MemberRole.ADMIN,
+                Instant.now()
         );
 
         Mockito.when(createGroupUseCase.execute(any(UUID.class), any(CreateSolidarityGroupRequest.class))).thenReturn(response);
@@ -86,9 +96,17 @@ class SolidarityControllerTest {
                 UUID.randomUUID(),
                 "Fondo de Vecinos",
                 "Fondo para emergencias del barrio",
-                "ACTIVE",
+                "INVITECODE",
+                new BigDecimal("10000"),
+                new BigDecimal("50"),
+                new BigDecimal("0.05"),
                 new BigDecimal("1000000"),
-                LocalDateTime.now()
+                new BigDecimal("500000"),
+                10,
+                50,
+                GroupStatus.ACTIVE,
+                MemberRole.MEMBER,
+                Instant.now()
         );
 
         Mockito.when(listGroupsUseCase.execute(any(UUID.class))).thenReturn(List.of(response));

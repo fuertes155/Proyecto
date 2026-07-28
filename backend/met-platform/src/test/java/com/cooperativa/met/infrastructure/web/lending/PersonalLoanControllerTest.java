@@ -8,6 +8,7 @@ import com.cooperativa.met.application.lending.usecase.GetPersonalLoanApplicatio
 import com.cooperativa.met.application.lending.usecase.ListPersonalLoanApplicationsUseCase;
 import com.cooperativa.met.application.lending.usecase.SimulatePersonalLoanUseCase;
 import com.cooperativa.met.application.lending.usecase.SubmitPersonalLoanApplicationUseCase;
+import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,9 +56,12 @@ class PersonalLoanControllerTest {
         LoanSimulationResponse response = new LoanSimulationResponse(
                 new BigDecimal("1000000"),
                 12,
-                new BigDecimal("0.02"),
+                new BigDecimal("0.18"),
+                new BigDecimal("0.015"),
                 new BigDecimal("95000"),
-                new BigDecimal("1140000")
+                new BigDecimal("140000"),
+                new BigDecimal("1140000"),
+                List.of()
         );
 
         Mockito.when(simulateUseCase.execute(any(SimulateLoanRequest.class))).thenReturn(response);
@@ -67,7 +72,7 @@ class PersonalLoanControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.monthlyInstallment").value(95000));
+                .andExpect(jsonPath("$.monthlyPayment").value(95000));
     }
 
     @Test
@@ -75,10 +80,17 @@ class PersonalLoanControllerTest {
     void shouldSubmitApplication() throws Exception {
         LoanApplicationResponse response = new LoanApplicationResponse(
                 UUID.randomUUID(),
-                "PENDING",
                 new BigDecimal("1000000"),
                 12,
-                java.time.LocalDateTime.now()
+                new BigDecimal("0.18"),
+                new BigDecimal("95000"),
+                new BigDecimal("140000"),
+                new BigDecimal("1140000"),
+                "EDUCATION",
+                LoanApplicationStatus.SUBMITTED,
+                null,
+                Instant.now(),
+                List.of()
         );
 
         Mockito.when(submitUseCase.execute(any(UUID.class), any(SubmitLoanApplicationRequest.class))).thenReturn(response);
@@ -89,7 +101,7 @@ class PersonalLoanControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("PENDING"));
+                .andExpect(jsonPath("$.status").value("SUBMITTED"));
     }
 
     @Test
@@ -97,10 +109,17 @@ class PersonalLoanControllerTest {
     void shouldListApplications() throws Exception {
         LoanApplicationResponse response = new LoanApplicationResponse(
                 UUID.randomUUID(),
-                "APPROVED",
                 new BigDecimal("1000000"),
                 12,
-                java.time.LocalDateTime.now()
+                new BigDecimal("0.18"),
+                new BigDecimal("95000"),
+                new BigDecimal("140000"),
+                new BigDecimal("1140000"),
+                "EDUCATION",
+                LoanApplicationStatus.APPROVED,
+                null,
+                Instant.now(),
+                List.of()
         );
 
         Mockito.when(listUseCase.execute(any(UUID.class))).thenReturn(List.of(response));

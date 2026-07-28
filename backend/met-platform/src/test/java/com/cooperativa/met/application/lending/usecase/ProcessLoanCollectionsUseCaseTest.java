@@ -1,8 +1,12 @@
 package com.cooperativa.met.application.lending.usecase;
 
+import com.cooperativa.met.domain.identity.model.DocumentType;
+import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.lending.model.AmortizationInstallment;
+import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.AmortizationSchedulePort;
 import com.cooperativa.met.domain.lending.port.MessagingPort;
@@ -15,12 +19,16 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class ProcessLoanCollectionsUseCaseTest {
@@ -50,20 +58,57 @@ class ProcessLoanCollectionsUseCaseTest {
         UUID loanId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        AmortizationInstallment installment = new AmortizationInstallment();
-        installment.setId(UUID.randomUUID());
-        installment.setApplicationId(loanId);
-        installment.setDueDate(today);
-        installment.setPaymentAmount(new BigDecimal("100000"));
-        installment.setPrincipalAmount(new BigDecimal("80000"));
+        AmortizationInstallment installment = AmortizationInstallment.builder()
+                .id(UUID.randomUUID())
+                .applicationId(loanId)
+                .installmentNumber(1)
+                .paymentAmount(new BigDecimal("100000"))
+                .principalAmount(new BigDecimal("80000"))
+                .interestAmount(new BigDecimal("20000"))
+                .remainingBalance(new BigDecimal("500000"))
+                .dueDate(today)
+                .penaltyInterestAmount(BigDecimal.ZERO)
+                .status("PENDING")
+                .build();
 
-        PersonalLoanApplication loan = new PersonalLoanApplication();
-        loan.setId(loanId);
-        loan.setUserId(userId);
+        PersonalLoanApplication loan = PersonalLoanApplication.builder()
+                .id(loanId)
+                .userId(userId)
+                .amount(new BigDecimal("1000000"))
+                .termMonths(12)
+                .annualInterestRate(new BigDecimal("0.18"))
+                .monthlyPayment(new BigDecimal("100000"))
+                .totalInterest(new BigDecimal("200000"))
+                .totalPayment(new BigDecimal("1200000"))
+                .purpose("Personal")
+                .status(LoanApplicationStatus.DISBURSED)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
-        User user = new User();
-        user.setId(userId);
-        user.setPaymentCardToken("tok_12345");
+        User user = User.builder()
+                .id(userId)
+                .documentType(DocumentType.CC)
+                .documentNumber("123456")
+                .email("test@test.com")
+                .phone("3001234567")
+                .firstName("Test")
+                .lastName("User")
+                .pinHash("hash")
+                .biometricHash("")
+                .failedLoginAttempts(0)
+                .status(UserStatus.ACTIVE)
+                .kycStatus(KycStatus.APPROVED)
+                .termsAccepted(true)
+                .termsAcceptedAt(Instant.now())
+                .emailNotificationsEnabled(true)
+                .pushNotificationsEnabled(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .lastKnownIp("")
+                .paymentCardToken("tok_12345")
+                .lastKnownDeviceId("")
+                .build();
 
         when(schedulePort.findPendingInstallmentsByDueDateBeforeOrEqual(any(LocalDate.class))).thenReturn(List.of(installment));
         when(loanPort.findById(loanId)).thenReturn(Optional.of(loan));

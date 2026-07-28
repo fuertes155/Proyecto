@@ -2,7 +2,11 @@ package com.cooperativa.met.infrastructure.web.identity;
 
 import com.cooperativa.met.application.identity.dto.LoginRequest;
 import com.cooperativa.met.application.identity.dto.AuthResponse;
+import com.cooperativa.met.application.identity.dto.UserResponse;
 import com.cooperativa.met.application.identity.usecase.LoginUseCase;
+import com.cooperativa.met.domain.identity.model.DocumentType;
+import com.cooperativa.met.domain.identity.model.KycStatus;
+import com.cooperativa.met.domain.identity.model.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,14 +34,18 @@ class AuthControllerTest {
     @MockBean
     private LoginUseCase loginUseCase;
 
+    @MockBean
+    private com.cooperativa.met.application.identity.usecase.RegisterUserUseCase registerUserUseCase;
+
+    @MockBean
+    private com.cooperativa.met.application.identity.usecase.LogoutUseCase logoutUseCase;
+
     @Test
     void shouldReturnTokenOnSuccessfulLogin() throws Exception {
-        // Arrange
         AuthResponse mockResponse = AuthResponse.of(UUID.randomUUID(), "mocked-jwt-token", "refresh-token", 3600000L);
-        
+
         Mockito.when(loginUseCase.execute(Mockito.any(LoginRequest.class), Mockito.anyString())).thenReturn(mockResponse);
 
-        // Act & Assert
         mockMvc.perform(post("/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"documentType\": \"CC\", \"documentNumber\": \"123456789\", \"pin\": \"1234\", \"deviceId\": \"test-device-id\"}"))
@@ -45,18 +54,10 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.tokenType").value("Bearer"));
     }
 
-    @MockBean
-    private com.cooperativa.met.application.identity.usecase.RegisterUserUseCase registerUserUseCase;
-
-    @MockBean
-    private com.cooperativa.met.application.identity.usecase.LogoutUseCase logoutUseCase;
-
     @Test
     void shouldReturnBadRequestWhenLoginRequestIsInvalid() throws Exception {
-        // Arrange: Email is missing in the JSON
         String invalidJson = "{\"password\": \"password123\"}";
 
-        // Act & Assert
         mockMvc.perform(post("/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidJson))
@@ -65,16 +66,19 @@ class AuthControllerTest {
 
     @Test
     void shouldRegisterUser() throws Exception {
-        com.cooperativa.met.application.identity.dto.UserResponse mockResponse = new com.cooperativa.met.application.identity.dto.UserResponse(
+        UserResponse mockResponse = new UserResponse(
             UUID.randomUUID(),
-            "John",
-            "Doe",
+            DocumentType.CC,
+            "1234567890",
             "john@example.com",
             "+1234567890",
-            "CC",
-            "1234567890",
-            "VERIFIED",
-            java.time.LocalDateTime.now()
+            "John",
+            "Doe",
+            UserStatus.ACTIVE,
+            KycStatus.PENDING,
+            true,
+            true,
+            Instant.now()
         );
 
         Mockito.when(registerUserUseCase.execute(Mockito.any())).thenReturn(mockResponse);

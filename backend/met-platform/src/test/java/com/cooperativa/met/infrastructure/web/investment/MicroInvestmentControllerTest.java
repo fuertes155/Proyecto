@@ -8,7 +8,6 @@ import com.cooperativa.met.application.investment.usecase.GetInvestmentPortfolio
 import com.cooperativa.met.application.investment.usecase.GetInvestmentReturnsUseCase;
 import com.cooperativa.met.application.investment.usecase.ListInvestmentInstrumentsUseCase;
 import com.cooperativa.met.domain.investment.model.InvestmentInstrument;
-import com.cooperativa.met.domain.investment.model.InvestmentReturn;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,18 +56,25 @@ class MicroInvestmentControllerTest {
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
     void shouldListInstruments() throws Exception {
-        InvestmentInstrument instrument = new InvestmentInstrument();
-        instrument.setId(UUID.randomUUID());
-        instrument.setName("Agro-Inversión");
-        instrument.setRiskLevel("LOW");
-        instrument.setStatus("ACTIVE");
+        InvestmentInstrument instrument = InvestmentInstrument.builder()
+                .id(UUID.randomUUID())
+                .nombre("Agro-Inversión")
+                .descripcion("Inversión en sector agrícola")
+                .tasaAnual(new BigDecimal("0.085"))
+                .plazoDias(365)
+                .montoMinimo(new BigDecimal("100000"))
+                .activo(true)
+                .creadoPor(UUID.randomUUID())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
 
         Mockito.when(listInstrumentsUseCase.listActivos()).thenReturn(List.of(instrument));
 
         mockMvc.perform(get("/v1/investments/instruments")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Agro-Inversión"));
+                .andExpect(jsonPath("$[0].nombre").value("Agro-Inversión"));
     }
 
     @Test
@@ -76,10 +82,14 @@ class MicroInvestmentControllerTest {
     void shouldCreatePortfolio() throws Exception {
         PortfolioResponse response = new PortfolioResponse(
                 UUID.randomUUID(),
-                "ACTIVE",
+                UUID.randomUUID(),
                 new BigDecimal("500000"),
-                LocalDateTime.now(),
-                null
+                "CONSERVADORA",
+                "ACTIVO",
+                new BigDecimal("42500"),
+                new BigDecimal("542500"),
+                Instant.now(),
+                List.of()
         );
 
         Mockito.when(createPortfolioUseCase.execute(any(UUID.class), any(CreatePortfolioRequest.class)))
@@ -91,7 +101,7 @@ class MicroInvestmentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.estado").value("ACTIVO"));
     }
 
     @Test
