@@ -87,7 +87,7 @@ class VerifyRecipientUseCaseTest {
 
         VerifyRecipientResponse response = verifyRecipientUseCase.execute(accountNumber, currentUserId);
 
-        assertEquals("John Doe", response.name());
+        assertEquals("John Doe", response.ownerName());
         assertEquals(account.getId(), response.accountId());
     }
 
