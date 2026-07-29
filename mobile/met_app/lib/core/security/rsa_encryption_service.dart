@@ -22,10 +22,22 @@ class RsaEncryptionService {
     if (_encrypter != null) return;
     try {
       final response = await _dio.get('/v1/auth/public-key');
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Error HTTP ${response.statusCode} al obtener la llave pública.');
+      }
+
       final responseData = response.data;
       String publicKeyBase64;
 
       if (responseData is String) {
+        final trimmed = responseData.trim();
+        if (trimmed.startsWith('<!DOCTYPE html>') ||
+            trimmed.startsWith('<html')) {
+          throw Exception(
+              'La API devolvió HTML en lugar de la llave pública; revisa API_BASE_URL y que el backend esté funcionando correctamente.');
+        }
+
         // Some servers may return JSON as plain text, or directly return the key string.
         try {
           final decoded = jsonDecode(responseData);
