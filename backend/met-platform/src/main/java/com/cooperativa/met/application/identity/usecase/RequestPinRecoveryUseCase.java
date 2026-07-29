@@ -2,8 +2,6 @@ package com.cooperativa.met.application.identity.usecase;
 
 import com.cooperativa.met.application.identity.dto.PinRecoveryRequest;
 import com.cooperativa.met.application.identity.service.OtpService;
-import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
-import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,11 +16,9 @@ public class RequestPinRecoveryUseCase {
 
     @Transactional(readOnly = true)
     public void execute(PinRecoveryRequest request) {
-        // Find user to get the email
-        User user = userRepository.findByDocument(request.getDocumentType(), request.getDocumentNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con este documento"));
-
-        // Generate and send OTP via email
-        otpService.generateAndSendOtp(request.getDocumentNumber(), user.getEmail());
+        // Responde igual exista o no el documento, para no permitir enumerar usuarios
+        // registrados a través de este endpoint público. Solo se envía el OTP si hay match.
+        userRepository.findByDocument(request.getDocumentType(), request.getDocumentNumber())
+                .ifPresent(user -> otpService.generateAndSendOtp(request.getDocumentNumber(), user.getEmail()));
     }
 }

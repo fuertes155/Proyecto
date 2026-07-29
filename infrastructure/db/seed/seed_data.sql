@@ -18,6 +18,11 @@ VALUES (
 ON CONFLICT (username) DO NOTHING;
 
 -- 2. User
+-- document_number va cifrado (AES-CBC determinista, ver SearchableCryptoConverter /
+-- AesEncryptionAdapter#encryptDeterministic) porque la app siempre cifra el valor antes de
+-- comparar en el WHERE; un valor en texto plano aquí nunca haría match con la búsqueda por
+-- documento (login, recuperación de PIN, etc.). El valor de abajo es el cifrado de '123456'
+-- con la clave de desarrollo AES_KEY='AES_32_BYTES_KEY_FOR_DEV_LOCAL!!' (ver setup_vault_dev.sh).
 INSERT INTO users (
     document_type,
     document_number,
@@ -32,7 +37,7 @@ INSERT INTO users (
 )
 VALUES (
     'CC',
-    '123456',
+    '4QrcOUm6Wau+VuBX8g+IPhjK+oF3SZmIy71U/tNhaP4=',
     'user@test.com',
     'Usuario',
     'Test',
