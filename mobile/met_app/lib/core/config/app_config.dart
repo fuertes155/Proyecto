@@ -7,12 +7,16 @@ class AppConfig {
     const fromEnv = String.fromEnvironment('API_BASE_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
 
-    // En desarrollo web, el backend local se ejecuta en un servidor separado.
-    // Usa --dart-define=API_BASE_URL=https://api.tudominio.com para producción o si tu API está en otra URL.
+    // En desarrollo, el backend local corre en 8080.
+    // Ajusta esta URL con --dart-define=API_BASE_URL si tu API está en otro host.
     return 'http://localhost:8080/api';
+  }
+
+  static String get hmacSecret {
     const fromEnv = String.fromEnvironment('HMAC_SECRET');
     if (fromEnv.isNotEmpty) return fromEnv;
-    // Fallback para dev. DEBE cambiarse en prod usando --dart-define
+
+    // Fallback para desarrollo local.
     return 'D3vHmacS3cr3tKey123!@#';
   }
 

@@ -34,6 +34,12 @@ final apiClientProvider = Provider<Dio>((ref) {
         options.headers['Authorization'] = 'Bearer $token';
       }
 
+      // Normalize relative API paths so Dio appends them to baseUrl.
+      // If path starts with '/', Dio treats it as absolute origin path and drops the baseUrl path segment.
+      if (!options.path.startsWith('http') && options.path.startsWith('/')) {
+        options.path = options.path.replaceFirst(RegExp(r'^/+'), '');
+      }
+
       // HMAC Signature for state-modifying requests
       final method = options.method.toUpperCase();
       if (['POST', 'PUT', 'PATCH', 'DELETE'].contains(method)) {
