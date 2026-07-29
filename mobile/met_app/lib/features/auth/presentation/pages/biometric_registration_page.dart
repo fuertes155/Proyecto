@@ -52,7 +52,7 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
     try {
       final dio = ref.read(apiClientProvider);
       final authState = ref.read(authStateProvider);
-      final userId = authState.value?.id;
+      final userId = authState.valueOrNull?.id;
       
       if (userId == null) {
         throw Exception('Usuario no autenticado.');

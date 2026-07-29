@@ -17,7 +17,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
   @override
   void initState() {
     super.initState();
-    final user = ref.read(authStateProvider).value;
+    final user = ref.read(authStateProvider).valueOrNull;
     if (user != null) {
       _emailEnabled = user.emailNotificationsEnabled;
       _pushEnabled = user.pushNotificationsEnabled;

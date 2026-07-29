@@ -62,7 +62,7 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector>
 
   Future<void> _requireBiometrics() async {
     final authState = ref.read(authStateProvider);
-    if (authState.value == null || _isAuthenticating) return;
+    if (authState.valueOrNull == null || _isAuthenticating) return;
 
     _isAuthenticating = true;
     try {
@@ -104,8 +104,11 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector>
     final storage = ref.read(secureStorageProvider);
     final authState = ref.read(authStateProvider);
 
-    // Solo verificar si hay sesión activa
-    if (authState.value == null) return;
+    // Solo verificar si hay sesión activa. Se usa valueOrNull porque
+    // authStateProvider puede estar en estado de error (p.ej. un 401 al
+    // refrescar el perfil) y AsyncValue.value relanza ese error en vez de
+    // devolver null, lo que tumbaba este callback de ciclo de vida.
+    if (authState.valueOrNull == null) return;
 
     final expired = await storage.isSessionExpired();
     if (expired && mounted) {
@@ -120,7 +123,7 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector>
     final authState = ref.read(authStateProvider);
 
     // Solo actuar si hay sesión activa
-    if (authState.value == null) return;
+    if (authState.valueOrNull == null) return;
 
     ref.read(authStateProvider.notifier).logout();
 

@@ -8,7 +8,7 @@ class PersonalDataPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authStateProvider).value;
+    final user = ref.watch(authStateProvider).valueOrNull;
     if (user == null) return const Scaffold();
 
     return Scaffold(

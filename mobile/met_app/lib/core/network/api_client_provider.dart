@@ -34,11 +34,11 @@ final apiClientProvider = Provider<Dio>((ref) {
         options.headers['Authorization'] = 'Bearer $token';
       }
 
-      // Normalize relative API paths so Dio appends them to baseUrl.
-      // If path starts with '/', Dio treats it as absolute origin path and drops the baseUrl path segment.
-      if (!options.path.startsWith('http') && options.path.startsWith('/')) {
-        options.path = options.path.replaceFirst(RegExp(r'^/+'), '');
-      }
+      // NOTA: dio 5.x construye la URL final con concatenación simple
+      // (baseUrl + path, ver RequestOptions.uri en options.dart). NO usar
+      // aquí ninguna normalización que quite el '/' inicial del path: como
+      // AppConfig.apiBaseUrl no termina en '/', eso fusiona el segmento final
+      // de baseUrl con el path (p.ej. ".../api" + "v1/..." = ".../apiv1/...").
 
       // HMAC Signature for state-modifying requests
       final method = options.method.toUpperCase();
