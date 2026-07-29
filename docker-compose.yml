@@ -50,6 +50,10 @@ services:
       context: ./backend
       dockerfile: met-platform/Dockerfile
     container_name: met-backend
+    # Puerto publicado solo para desarrollo local: las apps Flutter (web/emulador)
+    # apuntan a http://localhost:8080/api. En producción el acceso es vía nginx.
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,6 +87,9 @@ services:
     environment:
       PORT: 8090
       NOTIFICATION_API_KEY: ${NOTIFICATION_API_KEY}
+      # Dev local: arranca sin credenciales de Firebase (los push devuelven error).
+      # En producción NO definir esta variable para que el fallo sea fatal.
+      FCM_OPTIONAL: ${FCM_OPTIONAL:-true}
     networks:
       - met-secure-net
     healthcheck:

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -41,6 +42,15 @@ type PushResponse struct {
 // inyección de dependencias y testing unitario sin conexión real a Firebase.
 type MessagingClient interface {
 	Send(ctx context.Context, message *messaging.Message) (string, error)
+}
+
+// disabledMessagingClient se usa en desarrollo local cuando no hay credenciales
+// de Firebase: el servicio arranca (para que el resto del stack funcione) pero
+// cada envío devuelve un error explícito en lugar de fallar silenciosamente.
+type disabledMessagingClient struct{}
+
+func (disabledMessagingClient) Send(_ context.Context, _ *messaging.Message) (string, error) {
+	return "", errors.New("FCM deshabilitado: no hay credenciales de Firebase configuradas")
 }
 
 // ---------------------------------------------------------------------------
@@ -180,6 +190,10 @@ func main() {
 	var app *firebase.App
 	var err error
 
+	// FCM_OPTIONAL=true solo en desarrollo local: permite arrancar sin credenciales
+	// de Firebase. En producción la variable no se define y el fallo es fatal.
+	fcmOptional := os.Getenv("FCM_OPTIONAL") == "true"
+
 	credentialsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if credentialsFile != "" {
 		log.Printf("Inicializando Firebase con credenciales locales: %s", credentialsFile)
@@ -190,17 +204,28 @@ func main() {
 		app, err = firebase.NewApp(ctx, nil)
 	}
 
+	var client MessagingClient
 	if err != nil {
-		log.Fatalf("Error al inicializar Firebase App: %v", err)
+		if !fcmOptional {
+			log.Fatalf("Error al inicializar Firebase App: %v", err)
+		}
+		log.Printf("⚠️  Firebase no disponible (%v). FCM_OPTIONAL=true: los envíos push devolverán error.", err)
+		client = disabledMessagingClient{}
+	} else {
+		fcmClient, mErr := app.Messaging(ctx)
+		if mErr != nil {
+			if !fcmOptional {
+				log.Fatalf("Error al obtener el cliente FCM: %v", mErr)
+			}
+			log.Printf("⚠️  Cliente FCM no disponible (%v). FCM_OPTIONAL=true: los envíos push devolverán error.", mErr)
+			client = disabledMessagingClient{}
+		} else {
+			log.Println("Cliente FCM inicializado correctamente")
+			client = fcmClient
+		}
 	}
 
-	fcmClient, err := app.Messaging(ctx)
-	if err != nil {
-		log.Fatalf("Error al obtener el cliente FCM: %v", err)
-	}
-	log.Println("Cliente FCM inicializado correctamente")
-
-	router := NewRouter(apiKey, fcmClient)
+	router := NewRouter(apiKey, client)
 
 	log.Printf("notification-service escuchando en :%s", port)
 	if err := router.Run(":" + port); err != nil {

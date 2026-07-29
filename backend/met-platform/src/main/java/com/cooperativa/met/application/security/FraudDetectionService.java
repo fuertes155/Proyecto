@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FraudDetectionService {
 
     private final GeoLocationService geoLocationService;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final MeterRegistry meterRegistry;
 
     private static final String LOGIN_LOC_KEY_PREFIX = "login_loc:";
@@ -80,7 +80,7 @@ public class FraudDetectionService {
      * Regla 2: Viaje Imposible (Impossible Travel)
      */
     public void checkImpossibleTravel(UUID userId, String currentIp) {
-        String lastLocData = (String) redisTemplate.opsForValue().get(LOGIN_LOC_KEY_PREFIX + userId);
+        String lastLocData = redisTemplate.opsForValue().get(LOGIN_LOC_KEY_PREFIX + userId);
         if (lastLocData == null) return;
 
         GeoLocationService.GeoLocationResponse currentGeo = geoLocationService.getLocationInfo(currentIp);
