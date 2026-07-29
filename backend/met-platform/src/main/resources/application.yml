@@ -95,6 +95,9 @@ met:
       expiration-ms: ${JWT_EXPIRATION_MS:1800000}
       refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
     encryption:
+      # Secreto compartido con el cliente (mobile) para firmar HMAC de requests que modifican estado.
+      # Obligatorio: no usar defaults en producción. Debe coincidir con AppConfig.hmacSecret del cliente.
+      hmac-secret: ${HMAC_SECRET}
       # Obligatorio: no usar defaults en producción
       aes-key: ${AES_KEY}
   ai:

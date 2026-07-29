@@ -54,7 +54,11 @@ public class HmacSignatureFilter extends OncePerRequestFilter {
         }
 
         // Skip Swagger o Webhooks o Auth que no tienen nuestra lógica de app o no requieren firma
-        String path = request.getRequestURI();
+        // NOTA: se usa getServletPath() (sin el context-path "/api") en vez de getRequestURI(),
+        // porque el cliente Dio firma el path SIN "/api" (su baseUrl ya lo incluye). Usar
+        // getRequestURI() aquí rompía tanto este skip-list (nunca matcheaba "/v1/auth") como
+        // la comparación de firma para el resto de endpoints protegidos.
+        String path = request.getServletPath();
         if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/v1/webhooks") || path.startsWith("/v1/auth")) {
             filterChain.doFilter(request, response);
             return;

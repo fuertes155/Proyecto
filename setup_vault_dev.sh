@@ -30,6 +30,7 @@ docker exec "${VAULT_ENV[@]}" met-vault vault kv put secret/met-platform \
   REDIS_PASSWORD='redis-dev-pass' \
   JWT_SECRET='SUPER_SECRET_JWT_KEY_FOR_DEV_MIN_256_BITS_!@#$' \
   AES_KEY='AES_32_BYTES_KEY_FOR_DEV_LOCAL!!' \
+  HMAC_SECRET='D3vHmacS3cr3tKey123!@#' \
   SUPERADMIN_PASSWORD_HASH='$2a$12$EOKeWz34L2tNqGOimqGBjeo1f3xzELkVtap.bo/qWRNWj05GtF/hq' \
   WOMPI_PUBLIC_KEY='pub_test_wompi_dev' \
   WOMPI_PRIVATE_KEY='prv_test_wompi_dev' \
