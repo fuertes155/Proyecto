@@ -16,14 +16,19 @@ import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inicialización de Firebase
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint("Firebase init error: $e");
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint("Firebase init error: $e");
+    }
+  } else {
+    debugPrint(
+        "Skipping Firebase.initializeApp() on web. Configure Firebase web options before enabling Firebase on web.");
   }
-  
+
   if (!kIsWeb && Platform.isAndroid) {
     try {
       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
@@ -99,7 +104,7 @@ Future<void> main() async {
       debugPrint("freeRASP start error: $e");
     }
   }
-  
+
   bool jailbroken = false;
   if (!kIsWeb) {
     try {
@@ -136,7 +141,10 @@ class SecurityAlertApp extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text(
                   'Alerta de Seguridad',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -170,8 +178,8 @@ class _MetAppState extends ConsumerState<MetApp> {
   void initState() {
     super.initState();
     // Inicializar notificaciones después del frame (cuando Riverpod está listo)
-    // Se omite en modo test para evitar llamadas a Platform channels no mockeados
-    if (!Platform.environment.containsKey('FLUTTER_TEST')) {
+    // Se omite en modo test y en web para evitar llamadas a Platform channels no soportadas.
+    if (!kIsWeb && !Platform.environment.containsKey('FLUTTER_TEST')) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
           ref.read(pushNotificationServiceProvider).initialize();
