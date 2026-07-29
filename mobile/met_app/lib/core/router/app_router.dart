@@ -26,7 +26,7 @@ import '../../features/solidarity/presentation/pages/solidarity_groups_list_page
 import '../../features/loans/presentation/pages/loan_application_detail_page.dart';
 import '../../features/loans/presentation/pages/loan_applications_list_page.dart';
 import '../../features/loans/presentation/pages/loan_simulation_page.dart';
-import '../../features/compliance/presentation/pages/regulatory_reports_page.dart';
+import '../../features/transfers/presentation/pages/account_statement_page.dart';
 // Investment Module
 import '../../features/investment/presentation/pages/investment_home_page.dart';
 import '../../features/investment/presentation/pages/create_portfolio_page.dart';
@@ -125,8 +125,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           applicationId: state.pathParameters['applicationId']!,
         ),
       ),
-      GoRoute(path: '/compliance/reports', builder: (context, state) => const RegulatoryReportsPage()),
-      GoRoute(path: '/admin/reports', builder: (context, state) => const RegulatoryReportsPage()),
+      // Nota: los reportes regulatorios institucionales (Supersolidaria) NO se exponen
+      // en la app de socios — agregan datos de TODOS los asociados y solo pueden verlos
+      // administradores (ver /v1/compliance/** en SecurityConfig). El extracto de
+      // transacciones del propio socio vive en /statement.
+      GoRoute(path: '/statement', builder: (context, state) => const AccountStatementPage()),
       // ── Investment Module ──────────────────────────────────────────────────
       GoRoute(path: '/investments', builder: (context, state) => const InvestmentHomePage()),
       GoRoute(path: '/investments/create', builder: (context, state) => const CreatePortfolioPage()),

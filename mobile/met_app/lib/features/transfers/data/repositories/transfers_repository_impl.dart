@@ -45,4 +45,9 @@ class TransfersRepositoryImpl implements TransfersRepository {
   Future<String> generatePseLink(double amount, String returnUrl) async {
     return _remoteDataSource.generatePseLink(amount, returnUrl);
   }
+
+  @override
+  Future<String> getStatementCsv({required int year, required int month}) {
+    return _remoteDataSource.getStatementCsv(year: year, month: month);
+  }
 }

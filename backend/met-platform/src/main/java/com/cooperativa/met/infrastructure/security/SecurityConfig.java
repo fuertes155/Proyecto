@@ -112,6 +112,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Rutas admin — requieren rol ADMIN o SUPER_ADMIN
                         .requestMatchers("/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        // Reportes regulatorios institucionales (Supersolidaria) — agregan datos de
+                        // TODOS los asociados (cartera, SARLAFT/OFAC, etc.), no son del socio individual.
+                        // Solo administrativo; el extracto personal del socio vive en /v1/accounts/statement.
+                        .requestMatchers("/v1/compliance/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(

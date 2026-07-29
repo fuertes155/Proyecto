@@ -298,8 +298,8 @@ class QuickActions extends StatelessWidget {
         ),
         _QuickAction(
           icon: Icons.description_outlined,
-          label: 'Reportes',
-          onTap: () => context.push('/compliance/reports'),
+          label: 'Movimientos',
+          onTap: () => context.push('/statement'),
         ),
       ],
     );

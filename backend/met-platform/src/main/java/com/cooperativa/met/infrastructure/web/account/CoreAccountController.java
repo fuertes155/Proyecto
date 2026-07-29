@@ -1,11 +1,13 @@
 package com.cooperativa.met.infrastructure.web.account;
 
+import com.cooperativa.met.application.account.dto.AccountStatementResult;
 import com.cooperativa.met.application.account.dto.CoreAccountResponse;
 import com.cooperativa.met.application.account.dto.RecentRecipientResponse;
 import com.cooperativa.met.application.account.dto.TransferRequest;
 import com.cooperativa.met.application.account.dto.VerifyRecipientResponse;
 import com.cooperativa.met.application.account.dto.DepositRequest;
 import com.cooperativa.met.application.account.usecase.ExecuteTransferUseCase;
+import com.cooperativa.met.application.account.usecase.GenerateAccountStatementUseCase;
 import com.cooperativa.met.application.account.usecase.GetMyAccountUseCase;
 import com.cooperativa.met.application.account.usecase.GetRecentRecipientsUseCase;
 import com.cooperativa.met.application.account.usecase.VerifyRecipientUseCase;
@@ -16,6 +18,8 @@ import com.cooperativa.met.application.account.dto.GeneratePseLinkRequest;
 import com.cooperativa.met.application.account.dto.GeneratePseLinkResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -39,6 +43,7 @@ public class CoreAccountController {
     private final DepositUseCase depositUseCase;
     private final GeneratePseLinkUseCase generatePseLinkUseCase;
     private final GetRecentRecipientsUseCase getRecentRecipientsUseCase;
+    private final GenerateAccountStatementUseCase generateAccountStatementUseCase;
 
     private UUID getAuthenticatedUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -68,6 +73,15 @@ public class CoreAccountController {
     @GetMapping("/recent-recipients")
     public ResponseEntity<List<RecentRecipientResponse>> getRecentRecipients() {
         return ResponseEntity.ok(getRecentRecipientsUseCase.execute(getAuthenticatedUserId()));
+    }
+
+    @GetMapping("/statement")
+    public ResponseEntity<byte[]> getStatement(@RequestParam int year, @RequestParam int month) {
+        AccountStatementResult result = generateAccountStatementUseCase.execute(getAuthenticatedUserId(), year, month);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + result.fileName() + "\"")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(result.content());
     }
 
     @PostMapping("/transactions/transfer/otp/request")

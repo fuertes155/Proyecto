@@ -56,6 +56,15 @@ class TransfersRemoteDataSource {
     await _dio.post('/v1/accounts/deposit', data: request.toJson());
   }
 
+  Future<String> getStatementCsv({required int year, required int month}) async {
+    final response = await _dio.get<String>(
+      '/v1/accounts/statement',
+      queryParameters: {'year': year, 'month': month},
+      options: Options(responseType: ResponseType.plain),
+    );
+    return response.data ?? '';
+  }
+
   Future<String> generatePseLink(double amount, String returnUrl) async {
     final response = await _dio.post('/v1/accounts/deposit-pse', data: {
       'amount': amount,

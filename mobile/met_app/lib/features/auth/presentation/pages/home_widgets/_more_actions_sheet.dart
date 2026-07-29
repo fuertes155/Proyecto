@@ -19,9 +19,9 @@ class MoreActionsSheet {
               children: [
                 SheetActionTile(
                   icon: Icons.description_outlined,
-                  title: 'Reportes',
-                  subtitle: 'Regulatorios',
-                  onTap: () => context.push('/compliance/reports'),
+                  title: 'Mis movimientos',
+                  subtitle: 'Extracto de transacciones',
+                  onTap: () => context.push('/statement'),
                 ),
               ],
             ),
