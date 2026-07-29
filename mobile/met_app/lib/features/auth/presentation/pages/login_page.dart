@@ -13,6 +13,7 @@ import '../../data/models/auth_models.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/security/behavioral_biometrics_service.dart';
+import '../../../../core/session/session_expired_provider.dart';
 
 // MEJORA 7 — Código reusable
 class _AnimatedEntrance extends StatelessWidget {
@@ -318,9 +319,24 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
       _canCheckBiometrics = false;
     }
     _loadSavedDocument();
-    
+
     // Iniciar telemetría conductual
     BehavioralBiometricsService().startSession();
+
+    // Si el interceptor de red nos trajo aquí por un 401 (sesión inválida/expirada),
+    // avisamos al usuario en vez de dejarlo adivinar por qué volvió al login.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (ref.read(sessionExpiredProvider)) {
+        ref.read(sessionExpiredProvider.notifier).state = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tu sesión expiró. Ingresa de nuevo con tu PIN.'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    });
   }
 
   Future<void> _loadSavedDocument() async {

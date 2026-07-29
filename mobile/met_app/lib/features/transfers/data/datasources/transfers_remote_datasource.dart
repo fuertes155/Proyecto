@@ -5,6 +5,7 @@ import '../models/core_account_model.dart';
 import '../models/transfer_request_model.dart';
 import '../models/deposit_request_model.dart';
 import '../models/verify_recipient_model.dart';
+import '../models/recent_recipient_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final transfersRemoteDataSourceProvider = Provider<TransfersRemoteDataSource>((ref) {
@@ -30,6 +31,13 @@ class TransfersRemoteDataSource {
       'identifier': identifier,
     });
     return VerifyRecipientModel.fromJson(response.data);
+  }
+
+  Future<List<RecentRecipientModel>> getRecentRecipients() async {
+    final response = await _dio.get('/v1/accounts/recent-recipients');
+    return (response.data as List<dynamic>)
+        .map((e) => RecentRecipientModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> executeTransfer(TransferRequestModel request) async {

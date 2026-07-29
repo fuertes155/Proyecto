@@ -125,13 +125,6 @@ class _TransferPageState extends ConsumerState<TransferPage> {
     }
   }
 
-  // Destinatarios recientes (mock visual — se puede conectar al historial real)
-  static const List<Map<String, String>> _recentRecipients = [
-    {'name': 'María García', 'id': '3001234567', 'initial': 'M'},
-    {'name': 'Carlos López', 'id': '3109876543', 'initial': 'C'},
-    {'name': 'Ana Martínez', 'id': '3205551234', 'initial': 'A'},
-  ];
-
   static const List<Color> _avatarColors = [
     Color(0xFF2E7D32),
     Color(0xFF1565C0),
@@ -209,38 +202,60 @@ class _TransferPageState extends ConsumerState<TransferPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ..._recentRecipients.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final r = entry.value;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _avatarColors[i % _avatarColors.length],
-                          child: Text(
-                            r['initial']!,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        title: Text(r['name']!, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: Text(r['id']!, style: const TextStyle(fontSize: 12)),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        onTap: () {
-                          _identifierController.text = r['id']!;
-                          notifier.updateIdentifier(r['id']!);
-                          setState(() {});
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final recentAsync = ref.watch(recentRecipientsProvider);
+                      return recentAsync.when(
+                        data: (recipients) {
+                          if (recipients.isEmpty) {
+                            return Text(
+                              'Aún no tienes destinatarios recientes',
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                            );
+                          }
+                          return Column(
+                            children: recipients.asMap().entries.map((entry) {
+                              final i = entry.key;
+                              final r = entry.value;
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: Theme.of(context).colorScheme.outlineVariant,
+                                  ),
+                                ),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: _avatarColors[i % _avatarColors.length],
+                                    child: Text(
+                                      r.ownerName.substring(0, 1).toUpperCase(),
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  title: Text(r.ownerName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  subtitle: Text(r.accountNumber, style: const TextStyle(fontSize: 12)),
+                                  trailing: const Icon(Icons.chevron_right_rounded),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  onTap: () {
+                                    _identifierController.text = r.accountNumber;
+                                    notifier.updateIdentifier(r.accountNumber);
+                                    setState(() {});
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          );
                         },
-                      ),
-                    );
-                  }),
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
+                        error: (err, stack) => const SizedBox(),
+                      );
+                    },
+                  ),
                 ],
               ],
             ),

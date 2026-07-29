@@ -21,9 +21,31 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
 
   String _getFriendlyError(Object error) {
     final msg = error.toString();
+    if (msg.contains('401')) return 'Tu sesión expiró. Vuelve a iniciar sesión.';
     if (msg.contains('403')) return 'No tienes permisos administrativos para acceder a los reportes.';
     if (msg.contains('SocketException') || msg.contains('Connection refused')) return 'No hay conexión con el servidor.';
     return 'Ocurrió un error inesperado. Intenta de nuevo.';
+  }
+
+  Widget _buildRetryableError(Object error, VoidCallback onRetry) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        children: [
+          Text(
+            _getFriendlyError(error),
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Reintentar'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _generate() async {
@@ -98,7 +120,7 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
             const SizedBox(height: 16),
             typesAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Center(child: Text(_getFriendlyError(e), style: const TextStyle(color: Colors.red))),
+              error: (e, _) => _buildRetryableError(e, () => ref.invalidate(reportTypesProvider)),
               data: (types) => DropdownButtonFormField<String>(
                 value: _selectedType,
                 isExpanded: true,
@@ -150,7 +172,7 @@ class _RegulatoryReportsPageState extends ConsumerState<RegulatoryReportsPage> {
             const SizedBox(height: 12),
             reportsAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Center(child: Text(_getFriendlyError(e), style: const TextStyle(color: Colors.red))),
+              error: (e, _) => _buildRetryableError(e, () => ref.invalidate(regulatoryReportsProvider)),
               data: (reports) {
                 if (reports.isEmpty) {
                   return const Text('No hay reportes generados');

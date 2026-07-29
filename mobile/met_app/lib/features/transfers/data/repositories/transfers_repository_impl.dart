@@ -4,6 +4,7 @@ import '../models/core_account_model.dart';
 import '../models/transfer_request_model.dart';
 import '../models/deposit_request_model.dart';
 import '../models/verify_recipient_model.dart';
+import '../models/recent_recipient_model.dart';
 
 class TransfersRepositoryImpl implements TransfersRepository {
   TransfersRepositoryImpl(this._remoteDataSource);
@@ -18,6 +19,11 @@ class TransfersRepositoryImpl implements TransfersRepository {
   @override
   Future<VerifyRecipientModel> verifyRecipient(String identifier) {
     return _remoteDataSource.verifyRecipient(identifier);
+  }
+
+  @override
+  Future<List<RecentRecipientModel>> getRecentRecipients() {
+    return _remoteDataSource.getRecentRecipients();
   }
 
   @override

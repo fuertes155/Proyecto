@@ -78,6 +78,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
     state = const AsyncValue.data(null);
   }
 
+  /// Limpia la sesión localmente sin llamar al backend. Se usa cuando el
+  /// propio backend ya rechazó el token (401) — llamar a /logout ahí solo
+  /// fallaría de nuevo con 401.
+  Future<void> forceLocalLogout() async {
+    await _ref.read(secureStorageProvider).clear();
+    state = const AsyncValue.data(null);
+  }
+
   Future<void> updateProfile({required String email, required String phone}) async {
     try {
       final updatedUser = await _repository.updateProfile(email: email, phone: phone);

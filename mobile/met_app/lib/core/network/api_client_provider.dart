@@ -9,8 +9,11 @@ import 'dart:convert';
 
 import '../config/app_config.dart';
 import '../storage/secure_storage_service.dart';
+import '../session/session_expired_provider.dart';
+import '../router/app_router.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 
-final apiClientProvider = Provider<Dio>((ref) {
+final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
     baseUrl: AppConfig.apiBaseUrl,
     connectTimeout: const Duration(seconds: 30),
@@ -102,6 +105,23 @@ final apiClientProvider = Provider<Dio>((ref) {
       }
 
       return handler.next(options);
+    },
+    onError: (error, handler) async {
+      final path = error.requestOptions.path;
+      // Un 401 en /v1/auth/login o /v1/auth/register es simplemente "credenciales
+      // inválidas" del propio intento de login, no una sesión que expiró — no
+      // debe forzar un logout/redirect global.
+      final isAuthEntryPoint = path.contains('/v1/auth/login') ||
+          path.contains('/v1/auth/register') ||
+          path.contains('/v1/auth/refresh');
+
+      if (error.response?.statusCode == 401 && !isAuthEntryPoint) {
+        await ref.read(authStateProvider.notifier).forceLocalLogout();
+        ref.read(sessionExpiredProvider.notifier).state = true;
+        ref.read(appRouterProvider).go('/login');
+      }
+
+      return handler.next(error);
     },
   ));
 

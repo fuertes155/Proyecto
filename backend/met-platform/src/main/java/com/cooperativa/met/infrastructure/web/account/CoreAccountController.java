@@ -1,11 +1,13 @@
 package com.cooperativa.met.infrastructure.web.account;
 
 import com.cooperativa.met.application.account.dto.CoreAccountResponse;
+import com.cooperativa.met.application.account.dto.RecentRecipientResponse;
 import com.cooperativa.met.application.account.dto.TransferRequest;
 import com.cooperativa.met.application.account.dto.VerifyRecipientResponse;
 import com.cooperativa.met.application.account.dto.DepositRequest;
 import com.cooperativa.met.application.account.usecase.ExecuteTransferUseCase;
 import com.cooperativa.met.application.account.usecase.GetMyAccountUseCase;
+import com.cooperativa.met.application.account.usecase.GetRecentRecipientsUseCase;
 import com.cooperativa.met.application.account.usecase.VerifyRecipientUseCase;
 import com.cooperativa.met.application.account.usecase.RequestTransferOtpUseCase;
 import com.cooperativa.met.application.account.usecase.DepositUseCase;
@@ -20,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +38,7 @@ public class CoreAccountController {
     private final RequestTransferOtpUseCase requestTransferOtpUseCase;
     private final DepositUseCase depositUseCase;
     private final GeneratePseLinkUseCase generatePseLinkUseCase;
+    private final GetRecentRecipientsUseCase getRecentRecipientsUseCase;
 
     private UUID getAuthenticatedUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -59,6 +63,11 @@ public class CoreAccountController {
     @GetMapping("/verify")
     public ResponseEntity<VerifyRecipientResponse> verifyRecipient(@RequestParam String identifier) {
         return ResponseEntity.ok(verifyRecipientUseCase.execute(identifier, getAuthenticatedUserId()));
+    }
+
+    @GetMapping("/recent-recipients")
+    public ResponseEntity<List<RecentRecipientResponse>> getRecentRecipients() {
+        return ResponseEntity.ok(getRecentRecipientsUseCase.execute(getAuthenticatedUserId()));
     }
 
     @PostMapping("/transactions/transfer/otp/request")
