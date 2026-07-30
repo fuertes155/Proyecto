@@ -5,12 +5,12 @@ import styles from './FAQSection.module.css';
 
 const faqs = [
   {
-    q: '¿Cómo me afilio a la Cooperativa MET?',
+    q: '¿Cómo me afilio a MET?',
     a: 'Puedes afiliarte directamente desde nuestra app móvil o en cualquiera de nuestras sucursales. Solo necesitas tu documento de identidad y un aporte de vinculación. El proceso toma menos de 10 minutos.'
   },
   {
     q: '¿Mis ahorros están protegidos en MET?',
-    a: 'Sí. La Cooperativa MET está vinculada a Fogacoop (Fondo de Garantías de Entidades Cooperativas), que protege tus depósitos hasta por 50 millones de pesos. Además, estamos vigilados por la Superfinanciera.'
+    a: 'Sí. MET está vinculada a Fogacoop (Fondo de Garantías de Entidades Cooperativas), que protege tus depósitos hasta por 50 millones de pesos. Además, estamos vigilados por la Superfinanciera.'
   },
   {
     q: '¿Qué tasas de interés ofrecen para créditos?',

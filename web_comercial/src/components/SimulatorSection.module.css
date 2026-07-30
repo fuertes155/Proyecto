@@ -6,7 +6,7 @@
   transform: translate(-50%, -50%);
   width: 800px;
   height: 800px;
-  background: radial-gradient(circle, rgba(0,192,111,0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(5, 150, 105,0.05) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -20,13 +20,14 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 36px;
+  box-shadow: var(--shadow-card);
 }
 
 .tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 36px;
-  background: var(--bg-deep);
+  background: var(--bg-surface);
   padding: 6px;
   border-radius: var(--radius-md);
 }
@@ -45,9 +46,9 @@
 .tab:hover { color: var(--text-primary); }
 
 .active {
-  background: var(--bg-surface);
+  background: var(--bg-card);
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.10);
 }
 
 .form { display: flex; flex-direction: column; gap: 28px; }
@@ -67,6 +68,7 @@
   font-size: 16px;
   font-weight: 700;
   color: var(--primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .range {
@@ -88,7 +90,7 @@
   background: var(--primary);
   cursor: pointer;
   border: 3px solid var(--bg-card);
-  box-shadow: 0 0 10px rgba(0,192,111,0.4);
+  box-shadow: 0 0 10px rgba(5, 150, 105,0.4);
   transition: transform 0.2s;
 }
 
@@ -125,10 +127,12 @@
 }
 
 .resultValue {
+  display: inline-block;
   font-size: clamp(28px, 5vw, 40px);
   font-weight: 800;
-  color: var(--primary);
+  color: var(--text-primary);
   letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
 }
 
 .resultDetails {
@@ -146,7 +150,23 @@
   color: var(--text-secondary);
 }
 
-.resultItem strong { color: var(--text-primary); font-weight: 600; }
+.resultItem strong { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.skeleton {
+  display: inline-block;
+  height: 1em;
+  width: 90px;
+  border-radius: 6px;
+  vertical-align: middle;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonLg {
+  height: clamp(28px, 5vw, 40px);
+  width: 180px;
+}
 
 .disclaimer {
   font-size: 11px;

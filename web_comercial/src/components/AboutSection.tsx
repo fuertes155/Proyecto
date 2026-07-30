@@ -17,8 +17,8 @@ export default function AboutSection() {
           <div className={styles.content}>
             <span className="section-label">Quiénes Somos</span>
             <h2 className="section-title">
-              Más que una cooperativa,<br />
-              <span className="gradient-text">somos tu familia financiera</span>
+              MET es<br />
+              <span className="gradient-text">tu familia financiera</span>
             </h2>
             <p className={styles.text}>
               MET nació con una convicción simple: que todos merecen acceso a servicios financieros dignos, 
@@ -27,7 +27,7 @@ export default function AboutSection() {
             </p>
             <p className={styles.text}>
               Cada socio que se une a MET no es un cliente — es un propietario. Participas en las 
-              decisiones, compartes los excedentes y construyes junto a nosotros la cooperativa del futuro.
+              decisiones, compartes los excedentes y construyes junto a nosotros el futuro de MET.
             </p>
             <div className={styles.mission}>
               <div className={styles.missionItem}>
@@ -36,7 +36,7 @@ export default function AboutSection() {
               </div>
               <div className={styles.missionItem}>
                 <h4>Nuestra Visión</h4>
-                <p>Ser la cooperativa financiera digital líder en Colombia, reconocida por innovación, solidez y compromiso social.</p>
+                <p>Ser la financiera digital líder en Colombia, reconocida por innovación, solidez y compromiso social.</p>
               </div>
             </div>
           </div>

@@ -1,34 +1,35 @@
 /* ========================================
-   MET Cooperativa — Global Styles
-   Design System: Dark Premium Fintech
+   MET — Global Styles
+   Design System: Light Professional Fintech
 ======================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --primary: #00C06F;
-  --primary-dark: #009A58;
-  --primary-light: #00E882;
-  --primary-glow: rgba(0, 192, 111, 0.15);
-  --bg-deep: #070B14;
-  --bg-card: #0F1623;
-  --bg-surface: #161D2E;
-  --bg-elevated: #1C2540;
-  --text-primary: #F0F4FF;
-  --text-secondary: #8892A4;
-  --text-muted: #4A5568;
-  --accent-blue: #4F8EF7;
-  --accent-purple: #8B5CF6;
-  --accent-gold: #F59E0B;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(0, 192, 111, 0.3);
+  --primary: #059669;
+  --primary-dark: #047857;
+  --primary-light: #10B981;
+  --primary-glow: rgba(5, 150, 105, 0.10);
+  --danger: #DC2626;
+  --danger-glow: rgba(220, 38, 38, 0.10);
+  --bg-deep: #F5F7FA;
+  --bg-card: #FFFFFF;
+  --bg-surface: #EEF1F5;
+  --bg-elevated: #E2E7ED;
+  --text-primary: #0F172A;
+  --text-secondary: #5B6472;
+  --text-muted: #94A0B2;
+  --accent-blue: #2563EB;
+  --border: #E6E9EE;
+  --border-hover: rgba(5, 150, 105, 0.35);
   --section-padding: 100px 0;
   --container-max: 1200px;
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
-  --shadow-card: 0 4px 40px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 4px 24px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 20px 60px rgba(15, 23, 42, 0.10);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -67,7 +68,7 @@ img, video { max-width: 100%; display: block; }
 }
 .btn-primary:hover {
   background: var(--primary-dark); transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 192, 111, 0.35);
+  box-shadow: 0 8px 30px rgba(5, 150, 105, 0.35);
 }
 
 .btn-secondary {
@@ -84,7 +85,7 @@ img, video { max-width: 100%; display: block; }
   display: inline-block; font-size: 12px; font-weight: 700;
   letter-spacing: 2px; text-transform: uppercase; color: var(--primary);
   padding: 6px 14px; background: var(--primary-glow);
-  border-radius: 100px; border: 1px solid rgba(0, 192, 111, 0.2); margin-bottom: 16px;
+  border-radius: 100px; border: 1px solid rgba(5, 150, 105, 0.2); margin-bottom: 16px;
 }
 
 .section-title {
@@ -96,10 +97,12 @@ img, video { max-width: 100%; display: block; }
   font-size: 17px; color: var(--text-secondary); max-width: 560px; line-height: 1.7;
 }
 
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
-@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(0,192,111,0.2); } 50% { box-shadow: 0 0 50px rgba(0,192,111,0.5); } }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(5, 150, 105,0.2); } 50% { box-shadow: 0 0 50px rgba(5, 150, 105,0.5); } }
 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
 
@@ -107,7 +110,7 @@ img, video { max-width: 100%; display: block; }
 ::-webkit-scrollbar-track { background: var(--bg-deep); }
 ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
-::selection { background: var(--primary-glow); color: var(--primary-light); }
+::selection { background: var(--primary-glow); color: var(--primary-dark); }
 
 @media (max-width: 768px) {
   :root { --section-padding: 70px 0; }

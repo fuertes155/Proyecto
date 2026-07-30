@@ -1,106 +1,3364 @@
 {
-	"info": {
-		"_postman_id": "b3e34b5c-43f9-4d69-a1b7-b08e5e1a1b1d",
-		"name": "MET Platform API",
-		"description": "Colección base para el backend de MET Platform (Cooperativa Financiera)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "1. Autenticación",
-			"item": [
-				{
-					"name": "Login Usuario",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456\",\n    \"pin\": \"1234\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"auth",
-								"login"
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "2. Perfil & Cuentas",
-			"item": [
-				{
-					"name": "Obtener Perfil",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/profile/me",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"profile",
-								"me"
-							]
-						}
-					}
-				},
-				{
-					"name": "Obtener Cuenta Principal",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/accounts/me",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"accounts",
-								"me"
-							]
-						}
-					}
-				}
-			]
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:8080"
-		},
-		{
-			"key": "accessToken",
-			"value": "TU_TOKEN_AQUI"
-		}
-	]
+  "info": {
+    "_postman_id": "b3e34b5c-43f9-4d69-a1b7-b08e5e1a1b1d",
+    "name": "MET Platform API",
+    "description": "Colección completa para el backend de MET Platform (met-platform). Cubre todos los controladores REST: autenticación, cuentas, transferencias, ahorro programado, solidaridad, créditos, inversiones, notificaciones, legal, soporte, webhooks de pago y el módulo administrativo completo.\n\n### Cómo usar\n1. Corre el backend localmente (`docker-compose up` o el perfil `dev`).\n2. Ejecuta **1. Autenticación > Login** (o **12.1 Autenticación > Login admin** para las rutas de Admin) — el token se guarda automáticamente en variables de colección, no hace falta copiarlo a mano.\n3. Todas las peticiones POST/PUT/PATCH/DELETE se firman automáticamente con HMAC-SHA256 vía el pre-request script a nivel de colección (ver pestaña 'Scripts' de la colección), replicando `HmacSignatureFilter.java`. Ajusta la variable `hmacSecret` si tu `HMAC_SECRET` local difiere del valor por defecto de desarrollo.\n4. El login (`documentType`/`documentNumber`/`pin`) requiere que el `pin` viaje cifrado con RSA-OAEP usando la llave pública de `GET /v1/auth/public-key` — revisa la nota en cada request que lo requiere.\n\n⚠️ Hallazgo de seguridad: `HmacSignatureFilter.java` acepta el valor literal `X-Signature: test-skip-hmac` para saltarse la validación de firma, sin ninguna guarda de perfil/entorno en el propio filtro (solo se usa desde tests). Si el código se despliega tal cual, cualquier cliente podría usar ese valor para saltarse la integridad HMAC en producción. Esta colección NO usa ese atajo — firma de verdad — pero vale la pena revisar y, si aplica, restringirlo con `@Profile(\"!prod\")` o una bandera de configuración.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Replica HmacSignatureFilter.java: firma POST/PUT/PATCH/DELETE con HMAC-SHA256.",
+          "// dataToSign = method + servletPath + timestamp + rawBody  (servletPath = path SIN el",
+          "// context-path '/api', igual que request.getServletPath() en el backend).",
+          "const protectedMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];",
+          "const skipPrefixes = ['/v3/api-docs', '/swagger-ui', '/v1/webhooks', '/v1/auth', '/v1/admin/auth'];",
+          "",
+          "if (protectedMethods.includes(pm.request.method)) {",
+          "    const resolvedUrl = pm.variables.replaceIn(pm.request.url.toString());",
+          "    const withoutQuery = resolvedUrl.split('?')[0];",
+          "    const afterHost = withoutQuery.replace(/^https?:\\/\\/[^/]+/, '');",
+          "    const servletPath = afterHost.startsWith('/api') ? afterHost.substring(4) : afterHost;",
+          "    const shouldSkip = skipPrefixes.some((p) => servletPath.startsWith(p));",
+          "",
+          "    if (!shouldSkip) {",
+          "        const timestamp = Date.now().toString();",
+          "        const rawBody = (pm.request.body && pm.request.body.mode === 'raw') ? pm.request.body.raw : '';",
+          "        const resolvedBody = pm.variables.replaceIn(rawBody || '');",
+          "        const secret = pm.collectionVariables.get('hmacSecret');",
+          "        const dataToSign = pm.request.method + servletPath + timestamp + resolvedBody;",
+          "        const signature = CryptoJS.HmacSHA256(dataToSign, secret).toString(CryptoJS.enc.Base64);",
+          "        pm.request.headers.upsert({ key: 'X-Signature', value: signature });",
+          "        pm.request.headers.upsert({ key: 'X-Timestamp', value: timestamp });",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticación",
+      "item": [
+        {
+          "name": "Obtener llave pública (RSA)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/public-key",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "public-key"
+              ]
+            },
+            "description": "Llave pública del servidor usada para cifrar el PIN antes de registro/login/recuperación."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "⚠️ El campo `pin` (y `newPin`/`currentPin` cuando aplica) viaja cifrado con RSA-OAEP usando la llave pública del servidor (GET /v1/auth/public-key), NO en texto plano. El valor de este ejemplo es solo un marcador de posición — cífralo antes de enviar (ver mobile/met_app/lib/core/security/rsa_encryption_service.dart para la implementación de referencia).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\",\n    \"email\": \"usuario@example.com\",\n    \"phone\": \"3001234567\",\n    \"firstName\": \"Juan\",\n    \"lastName\": \"García\",\n    \"pin\": \"<PIN_CIFRADO_RSA_BASE64>\",\n    \"termsAccepted\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar email (OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/verify-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "verify-email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\",\n    \"otpCode\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reenviar OTP de verificación de email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/resend-email-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "resend-email-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "⚠️ El campo `pin` (y `newPin`/`currentPin` cuando aplica) viaja cifrado con RSA-OAEP usando la llave pública del servidor (GET /v1/auth/public-key), NO en texto plano. El valor de este ejemplo es solo un marcador de posición — cífralo antes de enviar (ver mobile/met_app/lib/core/security/rsa_encryption_service.dart para la implementación de referencia). Guarda accessToken/refreshToken automáticamente en variables de colección (ver pestaña Tests).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\",\n    \"deviceId\": \"postman-test-device\",\n    \"pin\": \"<PIN_CIFRADO_RSA_BASE64>\",\n    \"biometricPayload\": null,\n    \"otpCode\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const data = json.data || json;",
+                  "    if (data.accessToken) pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    if (data.refreshToken) pm.collectionVariables.set('refreshToken', data.refreshToken);",
+                  "    pm.test('Login devolvió accessToken', function () {",
+                  "        pm.expect(data.accessToken).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refrescar token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Usa el refreshToken guardado. Devuelve un nuevo par access/refresh y los actualiza automáticamente."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const data = json.data || json;",
+                  "    if (data.accessToken) pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    if (data.refreshToken) pm.collectionVariables.set('refreshToken', data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Solicitar recuperación de PIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/pin-recovery/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "pin-recovery",
+                "request"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restablecer PIN con OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/pin-recovery/reset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "pin-recovery",
+                "reset"
+              ]
+            },
+            "description": "⚠️ El campo `pin` (y `newPin`/`currentPin` cuando aplica) viaja cifrado con RSA-OAEP usando la llave pública del servidor (GET /v1/auth/public-key), NO en texto plano. El valor de este ejemplo es solo un marcador de posición — cífralo antes de enviar (ver mobile/met_app/lib/core/security/rsa_encryption_service.dart para la implementación de referencia).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\",\n    \"otpCode\": \"123456\",\n    \"newPin\": \"<PIN_CIFRADO_RSA_BASE64>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener mi perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"nuevo-correo@example.com\",\n    \"phone\": \"3009876543\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar PIN",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/pin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "pin"
+              ]
+            },
+            "description": "Revisar si currentPin/newPin requieren el mismo cifrado RSA que en login/registro.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"currentPin\": \"<PIN_ACTUAL>\",\n    \"newPin\": \"<PIN_NUEVO>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar preferencias de notificaciones",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "notifications"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"emailNotificationsEnabled\": true,\n    \"pushNotificationsEnabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar biometría",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/biometric",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "biometric"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentImageBase64\": \"<BASE64_IMAGEN_DOCUMENTO>\",\n    \"selfieImageBase64\": \"<BASE64_SELFIE>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cerrar sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Invalida el accessToken (Redis blacklist) y revoca todos los refresh tokens del usuario."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Cuentas & Inicio",
+      "item": [
+        {
+          "name": "Obtener mi cuenta",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/accounts/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "accounts",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resumen de inicio (Home)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/account/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "summary"
+              ]
+            },
+            "description": "Nota: ruta en singular '/v1/account' (contrato ya fijado con los clientes móvil/web)."
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar destinatario",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/accounts/verify?identifier={{documentNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "accounts",
+                "verify"
+              ],
+              "query": [
+                {
+                  "key": "identifier",
+                  "value": "{{documentNumber}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Destinatarios recientes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/accounts/recent-recipients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "accounts",
+                "recent-recipients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Descargar extracto (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/accounts/statement?year=2026&month=7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "accounts",
+                "statement"
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                },
+                {
+                  "key": "month",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Transferencias & Depósitos",
+      "item": [
+        {
+          "name": "Solicitar OTP de transferencia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/accounts/transactions/transfer/otp/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "accounts",
+                "transactions",
+                "transfer",
+                "otp",
+                "request"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ejecutar transferencia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/accounts/transactions/transfer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "accounts",
+                "transactions",
+                "transfer"
+              ]
+            },
+            "description": "⚠️ El campo `pin` (y `newPin`/`currentPin` cuando aplica) viaja cifrado con RSA-OAEP usando la llave pública del servidor (GET /v1/auth/public-key), NO en texto plano. El valor de este ejemplo es solo un marcador de posición — cífralo antes de enviar (ver mobile/met_app/lib/core/security/rsa_encryption_service.dart para la implementación de referencia). otp: obtenido en 'Solicitar OTP de transferencia'. idempotencyKey: cambia este valor manualmente en cada prueba real (debe ser único por transferencia; NO uses {{$guid}} aquí — al firmarse el cuerpo con HMAC, una variable dinámica se regeneraría entre el cálculo de la firma y el envío real, invalidándola).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"destinationAccountId\": \"{{destinationAccountId}}\",\n    \"amount\": 50000,\n    \"concept\": \"Pago de servicios\",\n    \"pin\": \"<PIN_CIFRADO_RSA_BASE64>\",\n    \"otp\": \"123456\",\n    \"idempotencyKey\": \"postman-test-0001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generar link de depósito PSE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/accounts/deposit-pse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "accounts",
+                "deposit-pse"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 100000,\n    \"returnUrl\": \"https://met.com/deposito/confirmacion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Ahorro Programado",
+      "item": [
+        {
+          "name": "Crear plan de ahorro programado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/savings/scheduled",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "savings",
+                "scheduled"
+              ]
+            },
+            "description": "frequency: WEEKLY | BIWEEKLY | MONTHLY. Usa debitDayOfWeek (1-7) o debitDayOfMonth (1-28) según frequency.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Vacaciones diciembre\",\n    \"contributionAmount\": 100000,\n    \"targetAmount\": 1200000,\n    \"frequency\": \"MONTHLY\",\n    \"debitDayOfWeek\": null,\n    \"debitDayOfMonth\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar mis planes de ahorro",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/savings/scheduled",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "savings",
+                "scheduled"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener plan de ahorro",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/savings/scheduled/{{savingsAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "savings",
+                "scheduled",
+                "{{savingsAccountId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar plan de ahorro",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/savings/scheduled/{{savingsAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "savings",
+                "scheduled",
+                "{{savingsAccountId}}"
+              ]
+            },
+            "description": "status: ACTIVE | PAUSED | COMPLETED | CANCELLED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"contributionAmount\": 150000,\n    \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de contribuciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/savings/scheduled/{{savingsAccountId}}/contributions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "savings",
+                "scheduled",
+                "{{savingsAccountId}}",
+                "contributions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retirar de ahorro programado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/savings/scheduled/{{savingsAccountId}}/withdraw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "savings",
+                "scheduled",
+                "{{savingsAccountId}}",
+                "withdraw"
+              ]
+            },
+            "description": "withdrawalType: PARTIAL | FULL. Respuesta 204 sin cuerpo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"accountId\": \"{{savingsAccountId}}\",\n    \"amount\": 200000,\n    \"withdrawalType\": \"PARTIAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Solidaridad",
+      "item": [
+        {
+          "name": "Crear grupo solidario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Ahorro Barrio Norte\",\n    \"description\": \"Grupo de ahorro y microcrédito entre vecinos\",\n    \"minContribution\": 20000,\n    \"maxMembers\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unirse a un grupo (código de invitación)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/join",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "join"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"inviteCode\": \"ABC12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar mis grupos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener grupo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar miembros del grupo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "members"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Contribuir al fondo común",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/contributions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "contributions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 20000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Solicitar microcrédito grupal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/loans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "loans"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 300000,\n    \"purpose\": \"Capital de trabajo\",\n    \"termMonths\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Revisar (aprobar/rechazar) microcrédito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/loans/{{loanId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "loans",
+                "{{loanId}}",
+                "review"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"approved\": true,\n    \"rejectionReason\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pagar cuota de microcrédito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/loans/{{loanId}}/installments/{{installmentId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "loans",
+                "{{loanId}}",
+                "installments",
+                "{{installmentId}}",
+                "pay"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar créditos del grupo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/loans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "loans"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar cuotas de un crédito",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/loans/{{loanId}}/installments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "loans",
+                "{{loanId}}",
+                "installments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de transacciones del grupo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/solidarity/groups/{{groupId}}/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "solidarity",
+                "groups",
+                "{{groupId}}",
+                "transactions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Créditos Personales",
+      "item": [
+        {
+          "name": "Simular crédito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/loans/simulate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "loans",
+                "simulate"
+              ]
+            },
+            "description": "Público — usado por el simulador de la web comercial.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 5000000,\n    \"termMonths\": 24\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Enviar solicitud de crédito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/loans/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "loans",
+                "applications"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 5000000,\n    \"termMonths\": 24,\n    \"purpose\": \"Libre inversión\",\n    \"hasAcceptedHabeasData\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar mis solicitudes de crédito",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/loans/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "loans",
+                "applications"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener solicitud de crédito",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/loans/applications/{{applicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "loans",
+                "applications",
+                "{{applicationId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Inversiones",
+      "item": [
+        {
+          "name": "Listar instrumentos disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/investments/instruments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "investments",
+                "instruments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear portafolio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/investments/portfolio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "investments",
+                "portfolio"
+              ]
+            },
+            "description": "estrategia: EQUAL | WEIGHTED | RISK_BASED (por defecto EQUAL si se omite).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"montoTotal\": 1000000,\n    \"estrategia\": \"EQUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar mis portafolios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/investments/portfolio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "investments",
+                "portfolio"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener portafolio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/investments/portfolio/{{portfolioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "investments",
+                "portfolio",
+                "{{portfolioId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancelar portafolio",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/investments/portfolio/{{portfolioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "investments",
+                "portfolio",
+                "{{portfolioId}}"
+              ]
+            },
+            "description": "Cancela antes del vencimiento y devuelve el capital."
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de rendimientos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/investments/returns",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "investments",
+                "returns"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Notificaciones",
+      "item": [
+        {
+          "name": "Listar notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "notifications"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Contador de no leídas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "notifications",
+                "unread-count"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar como leída",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/notifications/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": "Respuesta 204 sin cuerpo."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Legal",
+      "item": [
+        {
+          "name": "Solicitar firma de mandato (envía OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/legal/mandate/request-signature",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "legal",
+                "mandate",
+                "request-signature"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirmar firma de mandato",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/legal/mandate/confirm-signature",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "legal",
+                "mandate",
+                "confirm-signature"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"otpCode\": \"123456\",\n    \"transactionId\": \"{{transactionId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Soporte",
+      "item": [
+        {
+          "name": "Chat de soporte (IA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/support/chat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "chat"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"¿Cómo abro una cuenta digital?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Formulario público de contacto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/support/public/contact",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "public",
+                "contact"
+              ]
+            },
+            "description": "Usado por la web comercial (ContactSection). Nota: actualmente solo registra en logs, falta persistencia (TODO en el código).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Juan García\",\n    \"email\": \"juan@example.com\",\n    \"message\": \"Quisiera más información sobre créditos.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "11. Webhooks & Pagos",
+      "item": [
+        {
+          "name": "Webhook de pago (Wompi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-wompi-signature-v1",
+                "value": "<FIRMA_WOMPI_O_HMAC_LEGACY>"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/webhooks/payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "webhooks",
+                "payment"
+              ]
+            },
+            "description": "No usa JWT. Validado por firma Wompi (x-wompi-signature-v1) o, como fallback legacy, HMAC-SHA256 con X-Signature.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"event\": \"transaction.updated\",\n    \"data\": {\n        \"transaction\": {\n            \"id\": \"wompi-tx-id\",\n            \"status\": \"APPROVED\",\n            \"amountInCents\": 10000000\n        }\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Webhook de pago simulado (solo dev)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/webhooks/mock-payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "webhooks",
+                "mock-payment"
+              ]
+            },
+            "description": "Solo activo con el perfil Spring 'dev' (@Profile(\"dev\")). Auto-aprueba y acredita el depósito, sin validar firma.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"transactionId\": \"mock-tx-id\",\n    \"status\": \"APPROVED\",\n    \"amount\": 100000,\n    \"userId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Página HTML de pasarela simulada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/mock-payment-gateway?transactionId=mock-tx-id&amount=100000&userId={{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "mock-payment-gateway"
+              ],
+              "query": [
+                {
+                  "key": "transactionId",
+                  "value": "mock-tx-id"
+                },
+                {
+                  "key": "amount",
+                  "value": "100000"
+                },
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Devuelve HTML, no JSON — para pruebas manuales del flujo PSE simulado en dev."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "12. Admin",
+      "item": [
+        {
+          "name": "12.1 Autenticación",
+          "item": [
+            {
+              "name": "Login admin",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Guarda adminAccessToken/adminRefreshToken automáticamente (ver pestaña Tests).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"<CONTRASEÑA_ADMIN>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const json = pm.response.json();",
+                      "    const data = json.data || json;",
+                      "    if (data.accessToken) pm.collectionVariables.set('adminAccessToken', data.accessToken);",
+                      "    if (data.refreshToken) pm.collectionVariables.set('adminRefreshToken', data.refreshToken);",
+                      "    pm.test('Login admin devolvió accessToken', function () {",
+                      "        pm.expect(data.accessToken).to.exist;",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "12.2 Usuarios",
+          "item": [
+            {
+              "name": "Listar todos los usuarios",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar estado KYC",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/kyc?status=APPROVED",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "kyc"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "APPROVED"
+                    }
+                  ]
+                },
+                "description": "status: enum KycStatus (ver backend para valores exactos, ej. PENDING/APPROVED/REJECTED)."
+              },
+              "response": []
+            },
+            {
+              "name": "Resetear credenciales de usuario",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/reset-credentials",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "reset-credentials"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"reason\": \"Usuario reportó pérdida de acceso al dispositivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.3 Cuentas & Transacciones",
+          "item": [
+            {
+              "name": "Listar todas las cuentas",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/accounts",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "accounts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Depósito manual (admin)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/accounts/deposit",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "accounts",
+                    "deposit"
+                  ]
+                },
+                "description": "Nota: la ruta vive bajo /v1/accounts (no /v1/admin) pero requiere rol ADMIN/SUPER_ADMIN.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"amount\": 500000,\n    \"method\": \"MANUAL\",\n    \"reference\": \"Ajuste contable #123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Reversar transacción",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/transactions/reverse",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "transactions",
+                    "reverse"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"transactionId\": \"{{transactionId}}\",\n    \"reason\": \"Transacción duplicada por error del cliente\",\n    \"confirmationCode\": \"REVERSE-CONFIRM\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.4 Créditos",
+          "item": [
+            {
+              "name": "Listar todas las solicitudes de crédito",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/loans",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "loans"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar estado de solicitud de crédito",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/loans/{{applicationId}}/status?status=APPROVED",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "loans",
+                    "{{applicationId}}",
+                    "status"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "APPROVED"
+                    }
+                  ]
+                },
+                "description": "status: enum LoanApplicationStatus."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.5 Tarifas",
+          "item": [
+            {
+              "name": "Listar todas las tarifas",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/fees",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "fees"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar tarifas vigentes",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/fees/vigentes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "fees",
+                    "vigentes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Crear tarifa",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/fees",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "fees"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipoTarifa\": \"TRANSFERENCIA\",\n    \"descripcion\": \"Comisión por transferencia interbancaria\",\n    \"valor\": 0,\n    \"esPorcentaje\": false,\n    \"vigentDesde\": \"2026-08-01T00:00:00Z\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar tarifa",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/fees/{{feeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "fees",
+                    "{{feeId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipoTarifa\": \"TRANSFERENCIA\",\n    \"descripcion\": \"Comisión por transferencia interbancaria\",\n    \"valor\": 0,\n    \"esPorcentaje\": false,\n    \"vigentDesde\": \"2026-08-01T00:00:00Z\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar tarifa",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/fees/{{feeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "fees",
+                    "{{feeId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.6 Instrumentos de Inversión",
+          "item": [
+            {
+              "name": "Listar todos los instrumentos",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/investment-instruments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "investment-instruments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Crear instrumento de inversión",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/investment-instruments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "investment-instruments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"CDT 90 días\",\n    \"descripcion\": \"Certificado de depósito a término a 90 días\",\n    \"tasaAnual\": 9.5,\n    \"plazoDias\": 90,\n    \"montoMinimo\": 100000,\n    \"cupoMaximo\": 500000000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Activar/desactivar instrumento",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/investment-instruments/{{instrumentId}}/toggle?activo=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "investment-instruments",
+                    "{{instrumentId}}",
+                    "toggle"
+                  ],
+                  "query": [
+                    {
+                      "key": "activo",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar instrumento",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/investment-instruments/{{instrumentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "investment-instruments",
+                    "{{instrumentId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.7 Auditoría",
+          "item": [
+            {
+              "name": "Listar auditoría (paginado)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/audit-log?page=0&size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "audit-log"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Auditoría por admin",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/audit-log/admin/{{adminId}}?page=0&size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "audit-log",
+                    "admin",
+                    "{{adminId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Auditoría por entidad",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/audit-log/entidad/{{auditEntidad}}/{{auditEntidadId}}?page=0&size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "audit-log",
+                    "entidad",
+                    "{{auditEntidad}}",
+                    "{{auditEntidadId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20"
+                    }
+                  ]
+                },
+                "description": "auditEntidad: ej. 'USER', 'ACCOUNT', 'LOAN_APPLICATION' (nombre de la entidad auditada)."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.8 Mantenimiento",
+          "item": [
+            {
+              "name": "Listar ventanas de mantenimiento",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/maintenance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "maintenance"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener mantenimiento activo",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/maintenance/activa",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "maintenance",
+                    "activa"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Programar mantenimiento",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/maintenance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "maintenance"
+                  ]
+                },
+                "description": "endpointsActivos: rutas que siguen disponibles durante el mantenimiento.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"descripcion\": \"Mantenimiento programado de base de datos\",\n    \"inicio\": \"2026-08-01T02:00:00Z\",\n    \"fin\": \"2026-08-01T04:00:00Z\",\n    \"endpointsActivos\": [\n        \"/v1/auth/login\"\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Activar ventana de mantenimiento",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/maintenance/{{maintenanceId}}/activate",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "maintenance",
+                    "{{maintenanceId}}",
+                    "activate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Desactivar ventana de mantenimiento",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/maintenance/{{maintenanceId}}/deactivate",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "maintenance",
+                    "{{maintenanceId}}",
+                    "deactivate"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.9 Límites de Operación",
+          "item": [
+            {
+              "name": "Listar límites de operación",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/limits",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "limits"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar límite de operación",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/limits",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "limits"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipoOperacion\": \"TRANSFERENCIA\",\n    \"montoDiarioMax\": 10000000,\n    \"montoPorTransaccionMax\": 5000000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.10 Reglas de Riesgo",
+          "item": [
+            {
+              "name": "Listar reglas de riesgo",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/risk-rules",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "risk-rules"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar reglas activas",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/risk-rules/activas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "risk-rules",
+                    "activas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Crear regla de riesgo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/risk-rules",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "risk-rules"
+                  ]
+                },
+                "description": "accion: ALLOW | BLOCK | REVIEW.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"Transferencia de alto monto\",\n    \"descripcion\": \"Marca para revisión transferencias mayores a $10.000.000\",\n    \"condicion\": \"{\\\"field\\\":\\\"amount\\\",\\\"operator\\\":\\\"gt\\\",\\\"value\\\":10000000}\",\n    \"accion\": \"REVIEW\",\n    \"activo\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Activar/desactivar regla",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/risk-rules/{{riskRuleId}}/toggle?activo=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "risk-rules",
+                    "{{riskRuleId}}",
+                    "toggle"
+                  ],
+                  "query": [
+                    {
+                      "key": "activo",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar regla de riesgo",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/risk-rules/{{riskRuleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "risk-rules",
+                    "{{riskRuleId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "12.11 Bloqueo de Emergencia",
+          "item": [
+            {
+              "name": "Ejecutar bloqueo de emergencia",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/emergency-lock",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "emergency-lock"
+                  ]
+                },
+                "description": "scope: USER | CARD | ACCESS_TOKEN.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"targetId\": \"{{userId}}\",\n    \"scope\": \"USER\",\n    \"reason\": \"Actividad sospechosa reportada por el usuario\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ],
+      "description": "Todos los endpoints bajo /v1/admin/** (y algunos fuera de ese prefijo pero con el mismo rol) requieren ROLE_ADMIN o ROLE_SUPER_ADMIN. Inicia sesión primero con '12.1 Autenticación > Login admin'."
+    },
+    {
+      "name": "13. Cumplimiento (Reportes Regulatorios)",
+      "item": [
+        {
+          "name": "Listar tipos de reporte",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/compliance/reports/types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "compliance",
+                "reports",
+                "types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generar reporte",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/compliance/reports/generate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "compliance",
+                "reports",
+                "generate"
+              ]
+            },
+            "description": "reportType: ASOCIADOS | AHORROS_PROGRAMADOS | CREDITO_PERSONAL | AHORRO_SOLIDARIO | SARLAFT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"reportType\": \"ASOCIADOS\",\n    \"periodYear\": 2026,\n    \"periodMonth\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar reportes generados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/compliance/reports?year=2026&month=7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "compliance",
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                },
+                {
+                  "key": "month",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener metadatos de un reporte",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/compliance/reports/{{reportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "compliance",
+                "reports",
+                "{{reportId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Descargar reporte",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/compliance/reports/{{reportId}}/download",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "compliance",
+                "reports",
+                "{{reportId}}",
+                "download"
+              ]
+            },
+            "description": "La respuesta incluye un header con el checksum SHA-256 del archivo."
+          },
+          "response": []
+        }
+      ],
+      "description": "Requiere ROLE_ADMIN/ROLE_SUPER_ADMIN, igual que la carpeta 12. Admin (usa el mismo adminAccessToken)."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "description": "Incluye el context-path /api (server.servlet.context-path)."
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "adminAccessToken",
+      "value": ""
+    },
+    {
+      "key": "adminRefreshToken",
+      "value": ""
+    },
+    {
+      "key": "hmacSecret",
+      "value": "D3vHmacS3cr3tKey123!@#",
+      "description": "Debe coincidir con HMAC_SECRET del backend. Este es el fallback de dev de mobile/met_app/lib/core/config/app_config.dart — cámbialo si tu entorno usa otro valor."
+    },
+    {
+      "key": "documentNumber",
+      "value": "123456789"
+    },
+    {
+      "key": "destinationAccountId",
+      "value": ""
+    },
+    {
+      "key": "savingsAccountId",
+      "value": ""
+    },
+    {
+      "key": "groupId",
+      "value": ""
+    },
+    {
+      "key": "loanId",
+      "value": ""
+    },
+    {
+      "key": "installmentId",
+      "value": ""
+    },
+    {
+      "key": "applicationId",
+      "value": ""
+    },
+    {
+      "key": "portfolioId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "transactionId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "adminId",
+      "value": ""
+    },
+    {
+      "key": "auditEntidad",
+      "value": "USER"
+    },
+    {
+      "key": "auditEntidadId",
+      "value": ""
+    },
+    {
+      "key": "feeId",
+      "value": ""
+    },
+    {
+      "key": "instrumentId",
+      "value": ""
+    },
+    {
+      "key": "riskRuleId",
+      "value": ""
+    },
+    {
+      "key": "maintenanceId",
+      "value": ""
+    },
+    {
+      "key": "reportId",
+      "value": ""
+    }
+  ]
 }

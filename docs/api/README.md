@@ -3,9 +3,30 @@
 Esta carpeta contiene la documentación principal para consumir los servicios del backend (`met-platform`).
 
 ## 1. Postman Collection
-Hemos exportado una colección de Postman pre-configurada que incluye las peticiones más comunes (Auth, Accounts, Transfers, Admin). 
-Puedes importarla directamente desde Postman seleccionando el archivo:
-`met-platform-postman-collection.json`
+`met-platform-postman-collection.json` es una colección completa (99 requests, 13 carpetas) que cubre
+**todos** los controladores REST del backend: Autenticación, Cuentas & Inicio, Transferencias & Depósitos,
+Ahorro Programado, Solidaridad, Créditos Personales, Inversiones, Notificaciones, Legal, Soporte,
+Webhooks & Pagos, Admin (11 subcarpetas) y Cumplimiento (reportes regulatorios).
+
+Puntos clave de la colección:
+- **Login automático**: al ejecutar `1. Autenticación > Login` (o `12.1 Autenticación > Login admin`),
+  el `accessToken`/`refreshToken` se guardan solos en variables de colección — no hay que copiarlos a mano.
+- **Firma HMAC automática**: todo POST/PUT/PATCH/DELETE (salvo auth, webhooks y admin/auth) se firma
+  con HMAC-SHA256 vía un pre-request script a nivel de colección, replicando `HmacSignatureFilter.java`.
+  Ajusta la variable `hmacSecret` si tu `HMAC_SECRET` local no es el valor de desarrollo por defecto.
+- **PIN cifrado con RSA**: `register`, `login`, `pin-recovery/reset` (y probablemente `pin`) requieren el
+  PIN cifrado con la llave pública de `GET /v1/auth/public-key` — cada request que lo necesita lo indica
+  en su descripción; la colección no lo cifra por ti.
+- **Variables de colección** para IDs de recursos (`groupId`, `savingsAccountId`, `portfolioId`, etc.):
+  quedan vacías por defecto, complétalas con los IDs que te devuelvan las respuestas de creación.
+
+Puedes importarla directamente desde Postman seleccionando el archivo anterior.
+
+> ⚠️ **Nota de seguridad**: `HmacSignatureFilter.java` acepta el valor literal `X-Signature: test-skip-hmac`
+> para saltarse la validación de firma, sin ninguna guarda de perfil/entorno en el filtro (solo se usa en
+> tests). Tal como está, cualquier cliente podría usarlo para evadir la integridad HMAC en producción. Vale
+> la pena revisar y restringirlo (p. ej. `@Profile("!prod")` o una bandera de configuración). Esta colección
+> no depende de ese atajo.
 
 ## 2. Swagger / OpenAPI (Desarrollo)
 En el entorno de producción, la documentación de Swagger está **deshabilitada** por razones de seguridad (`springdoc.api-docs.enabled=false`). 

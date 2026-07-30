@@ -53,7 +53,7 @@ export default function Footer() {
                 <span className={styles.logoText}>MET</span>
               </div>
               <p className={styles.tagline}>
-                La cooperativa financiera digital que trabaja para ti. Seguros, modernos y transparentes.
+                La financiera digital que trabaja para ti. Seguros, modernos y transparentes.
               </p>
               <div className={styles.socials}>
                 {socials.map(({ icon: Icon, label }) => (
@@ -87,7 +87,7 @@ export default function Footer() {
 
       <div className={styles.bottom}>
         <div className="container">
-          <p>© 2025 MET Cooperativa Financiera. Todos los derechos reservados.</p>
+          <p>© 2025 MET Financiera. Todos los derechos reservados.</p>
           <p>Desarrollado con 💚 en Colombia · NIT: 000.000.000-0</p>
         </div>
       </div>

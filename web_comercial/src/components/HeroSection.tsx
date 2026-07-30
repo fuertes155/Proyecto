@@ -24,7 +24,7 @@ export default function HeroSection() {
 
           {/* Headline */}
           <h1 className={styles.title}>
-            La cooperativa que{' '}
+            MET,{' '}
             <span className="gradient-text">trabaja para ti</span>
           </h1>
 

@@ -109,24 +109,32 @@ export default function SimulatorSection() {
               <div className={styles.result}>
                 <div className={styles.resultMain}>
                   <span className={styles.resultLabel}>Cuota mensual estimada</span>
-                  <span className={styles.resultValue}>
-                    {creditoResult.loading ? 'Calculando...' : formatCOP(Math.round(creditoResult.cuota))}
-                  </span>
+                  {creditoResult.loading ? (
+                    <span className={`${styles.skeleton} ${styles.skeletonLg}`} />
+                  ) : (
+                    <span className={styles.resultValue}>{formatCOP(Math.round(creditoResult.cuota))}</span>
+                  )}
                 </div>
                 <div className={styles.resultDetails}>
                   <div className={styles.resultItem}>
                     <span>Total a pagar</span>
-                    <strong>{creditoResult.loading ? '...' : formatCOP(Math.round(creditoResult.totalPagar))}</strong>
+                    {creditoResult.loading ? <span className={styles.skeleton} /> : (
+                      <strong>{formatCOP(Math.round(creditoResult.totalPagar))}</strong>
+                    )}
                   </div>
                   <div className={styles.resultItem}>
                     <span>Total intereses</span>
-                    <strong style={{ color: '#F59E0B' }}>
-                      {creditoResult.loading ? '...' : formatCOP(Math.round(creditoResult.totalIntereses))}
-                    </strong>
+                    {creditoResult.loading ? <span className={styles.skeleton} /> : (
+                      <strong style={{ color: 'var(--danger)' }}>
+                        {formatCOP(Math.round(creditoResult.totalIntereses))}
+                      </strong>
+                    )}
                   </div>
                   <div className={styles.resultItem}>
                     <span>Tasa mensual</span>
-                    <strong>{creditoResult.loading ? '...' : `${(creditoResult.tasa * 100).toFixed(2)}%`}</strong>
+                    {creditoResult.loading ? <span className={styles.skeleton} /> : (
+                      <strong>{`${(creditoResult.tasa * 100).toFixed(2)}%`}</strong>
+                    )}
                   </div>
                 </div>
                 <p className={styles.disclaimer}>* Simulación referencial. La tasa final depende del estudio de crédito.</p>

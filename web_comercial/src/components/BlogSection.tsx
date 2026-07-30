@@ -4,7 +4,7 @@ import styles from './BlogSection.module.css';
 const articles = [
   {
     tag: 'Finanzas Personales',
-    tagColor: '#00C06F',
+    tagColor: '#059669',
     title: '5 hábitos financieros que cambiarán tu relación con el dinero',
     excerpt: 'Aprende los principios que usan las personas más prósperas para gestionar sus ingresos, ahorrar sin esfuerzo y construir un patrimonio sólido desde cero.',
     date: 'Julio 2025',
@@ -13,17 +13,17 @@ const articles = [
   },
   {
     tag: 'Cooperativismo',
-    tagColor: '#4F8EF7',
-    title: '¿Por qué una cooperativa puede ser mejor que un banco tradicional?',
-    excerpt: 'Te explicamos las diferencias clave entre ser cliente de un banco y ser socio de una cooperativa: quién se beneficia realmente de tus ahorros.',
+    tagColor: '#2563EB',
+    title: '¿Por qué el cooperativismo puede ser mejor que un banco tradicional?',
+    excerpt: 'Te explicamos las diferencias clave entre ser cliente de un banco y ser socio de un modelo cooperativo: quién se beneficia realmente de tus ahorros.',
     date: 'Junio 2025',
     readTime: '6 min',
     emoji: '🏦',
   },
   {
     tag: 'Inversiones',
-    tagColor: '#8B5CF6',
-    title: 'CDTs en cooperativas: ¿son seguros y cuánto puedo ganar?',
+    tagColor: '#7C3AED',
+    title: 'CDTs en el sector cooperativo: ¿son seguros y cuánto puedo ganar?',
     excerpt: 'Todo lo que necesitas saber sobre los Certificados de Depósito a Término, el seguro Fogacoop y cómo maximizar el rendimiento de tus ahorros.',
     date: 'Mayo 2025',
     readTime: '5 min',

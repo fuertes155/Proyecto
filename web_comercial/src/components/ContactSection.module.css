@@ -8,6 +8,7 @@
   display: flex; gap: 16px; align-items: flex-start;
   padding: 20px; background: var(--bg-card);
   border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   transition: all 0.2s;
 }
 .infoCard:hover { border-color: var(--border-hover); }
@@ -28,6 +29,7 @@
 .formCard {
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--radius-xl); padding: 36px;
+  box-shadow: var(--shadow-card);
 }
 .formTitle { font-size: 20px; font-weight: 700; margin-bottom: 28px; }
 .form { display: flex; flex-direction: column; gap: 20px; }
@@ -44,11 +46,20 @@
 
 .success {
   display: flex; align-items: center; gap: 16px;
-  padding: 20px; background: rgba(0,192,111,0.08);
-  border: 1px solid rgba(0,192,111,0.2); border-radius: var(--radius-md);
+  padding: 20px; background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.2); border-radius: var(--radius-md);
   font-size: 14px; color: var(--text-secondary);
 }
 .success span { font-size: 32px; }
 .success strong { display: block; color: var(--primary); font-size: 16px; margin-bottom: 4px; }
+
+.errorBox {
+  padding: 14px 16px;
+  background: var(--danger-glow);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--danger);
+}
 
 @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }

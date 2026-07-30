@@ -4,29 +4,25 @@ import styles from './ProductsSection.module.css';
 const products = [
   {
     icon: Wallet,
-    color: '#00C06F',
     title: 'Cuenta Digital',
     description: 'Abre tu cuenta sin filas ni papeleo. Administra tu dinero desde la app con total seguridad.',
     features: ['Sin costo de mantenimiento', 'Transferencias gratuitas', 'Tarjeta virtual incluida'],
   },
   {
     icon: BadgeDollarSign,
-    color: '#4F8EF7',
     title: 'Créditos',
-    description: 'Créditos de consumo y libre inversión con las tasas más competitivas del mercado cooperativo.',
+    description: 'Créditos de consumo y libre inversión con las tasas más competitivas del mercado.',
     features: ['Desde $500.000', 'Plazo hasta 60 meses', 'Respuesta en 24 horas'],
     featured: true,
   },
   {
     icon: TrendingUp,
-    color: '#8B5CF6',
     title: 'Inversiones / CDTs',
     description: 'Haz que tu dinero trabaje para ti con nuestros CDTs y planes de ahorro programado.',
     features: ['Tasas superiores al promedio', 'Desde $100.000', 'Seguro de depósito Fogacoop'],
   },
   {
     icon: Send,
-    color: '#F59E0B',
     title: 'Transferencias',
     description: 'Envía y recibe dinero al instante a cualquier banco en Colombia, sin comisiones ocultas.',
     features: ['PSE y ACH', 'Sin límite de transacciones', 'Notificación en tiempo real'],
@@ -49,23 +45,23 @@ export default function ProductsSection() {
         </div>
 
         <div className={styles.grid}>
-          {products.map(({ icon: Icon, color, title, description, features, featured }) => (
+          {products.map(({ icon: Icon, title, description, features, featured }) => (
             <div key={title} className={`${styles.card} ${featured ? styles.featured : ''}`}>
               {featured && <div className={styles.featuredBadge}>Más popular</div>}
-              <div className={styles.iconWrap} style={{ background: `${color}15`, border: `1px solid ${color}25` }}>
-                <Icon size={26} color={color} />
+              <div className={styles.iconWrap}>
+                <Icon size={26} color="var(--primary)" />
               </div>
               <h3 className={styles.title}>{title}</h3>
               <p className={styles.desc}>{description}</p>
               <ul className={styles.features}>
                 {features.map((f) => (
                   <li key={f} className={styles.feature}>
-                    <span className={styles.check} style={{ color }}>✓</span>
+                    <span className={styles.check}>✓</span>
                     {f}
                   </li>
                 ))}
               </ul>
-              <a href="#contacto" className={styles.cta} style={{ color }}>
+              <a href="#contacto" className={styles.cta}>
                 Conocer más <ArrowRight size={16} />
               </a>
             </div>

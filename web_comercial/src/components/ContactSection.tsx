@@ -51,17 +51,17 @@ export default function ContactSection() {
               </div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoIcon}><Phone size={20} color="var(--accent-blue)" /></div>
+              <div className={styles.infoIcon}><Phone size={20} color="var(--primary)" /></div>
               <div>
                 <h4>Teléfono</h4>
                 <p>+57 315 859 8604<br />Lunes a Viernes 8am – 5pm</p>
               </div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoIcon}><Mail size={20} color="var(--accent-purple)" /></div>
+              <div className={styles.infoIcon}><Mail size={20} color="var(--primary)" /></div>
               <div>
                 <h4>Correo Electrónico</h4>
-                <p>contacto@metcooperativa.com.co</p>
+                <p>contacto@met.com.co</p>
               </div>
             </div>
 
@@ -88,7 +88,7 @@ export default function ContactSection() {
             ) : (
               <form className={styles.form} onSubmit={handleSubmit}>
                 {error && (
-                  <div style={{ color: 'red', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                  <div className={styles.errorBox}>
                     Hubo un problema al enviar el mensaje. Por favor, inténtalo de nuevo.
                   </div>
                 )}

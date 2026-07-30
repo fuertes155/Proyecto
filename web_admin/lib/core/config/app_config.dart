@@ -17,4 +17,12 @@ class AppConfig {
     
     return 'http://localhost:8080/api';
   }
+
+  static String get hmacSecret {
+    const fromEnv = String.fromEnvironment('HMAC_SECRET');
+    if (fromEnv.isNotEmpty) return fromEnv;
+
+    // Fallback para desarrollo local.
+    return 'D3vHmacS3cr3tKey123!@#';
+  }
 }

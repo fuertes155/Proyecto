@@ -1,11 +1,9 @@
-import 'dart:ui';
 import 'dart:convert';
 // ignore: avoid_web_libraries_in_flutter
 import 'package:universal_html/html.dart' as html;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/theme/app_theme.dart';
 
 class RegulatoryReportsPage extends StatefulWidget {
   const RegulatoryReportsPage({super.key});
@@ -53,7 +51,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
       final bytes = utf8.encode(fileContent);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
+      html.AnchorElement(href: url)
         ..setAttribute("download", fileName)
         ..click();
       html.Url.revokeObjectUrl(url);

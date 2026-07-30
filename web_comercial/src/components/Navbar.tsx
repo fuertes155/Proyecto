@@ -31,7 +31,6 @@ export default function Navbar() {
             <TrendingUp size={20} color="#fff" />
           </div>
           <span className={styles.logoText}>MET</span>
-          <span className={styles.logoBadge}>Cooperativa</span>
         </a>
 
         {/* Desktop Links */}

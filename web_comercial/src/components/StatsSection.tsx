@@ -4,10 +4,10 @@ import { Users, Award, CreditCard, TrendingUp } from 'lucide-react';
 import styles from './StatsSection.module.css';
 
 const stats = [
-  { icon: Users, value: 15000, suffix: '+', label: 'Socios Activos', color: 'var(--primary)' },
-  { icon: Award, value: 12, suffix: ' años', label: 'De Experiencia', color: 'var(--accent-blue)' },
-  { icon: CreditCard, value: 42000, suffix: '+', label: 'Créditos Otorgados', color: 'var(--accent-purple)' },
-  { icon: TrendingUp, value: 85, suffix: 'B', label: 'En Activos Administrados', color: 'var(--accent-gold)' },
+  { icon: Users, value: 15000, suffix: '+', label: 'Socios Activos' },
+  { icon: Award, value: 12, suffix: ' años', label: 'De Experiencia' },
+  { icon: CreditCard, value: 42000, suffix: '+', label: 'Créditos Otorgados' },
+  { icon: TrendingUp, value: 85, suffix: 'B', label: 'En Activos Administrados' },
 ];
 
 function CountUp({ target, suffix }: { target: number; suffix: string }) {
@@ -47,12 +47,12 @@ export default function StatsSection() {
       <div className={styles.bg} />
       <div className="container">
         <div className={styles.grid}>
-          {stats.map(({ icon: Icon, value, suffix, label, color }) => (
+          {stats.map(({ icon: Icon, value, suffix, label }) => (
             <div key={label} className={styles.item}>
-              <div className={styles.iconWrap} style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
-                <Icon size={24} color={color} />
+              <div className={styles.iconWrap}>
+                <Icon size={24} color="var(--primary)" />
               </div>
-              <div className={styles.number} style={{ color }}>
+              <div className={styles.number}>
                 <CountUp target={value} suffix={suffix} />
               </div>
               <div className={styles.label}>{label}</div>
