@@ -38,6 +38,11 @@ docker exec "${VAULT_ENV[@]}" met-vault vault kv put secret/met-platform \
   WOMPI_PRIVATE_KEY='prv_test_wompi_dev' \
   WOMPI_INTEGRITY_SECRET='int_test_wompi_dev' \
   WOMPI_WEBHOOK_SECRET='wh_test_wompi_dev' \
+  WOMPI_PAYOUTS_API_URL='https://sandbox.wompi.co/v1' \
+  WOMPI_PAYOUTS_API_KEY='payouts_test_wompi_dev' \
+  WOMPI_PAYOUTS_PRINCIPAL_USER_ID='principal_test_wompi_dev' \
+  WOMPI_PAYOUTS_SOURCE_ACCOUNT_ID='source_account_test_wompi_dev' \
+  WOMPI_PAYOUTS_WEBHOOK_SECRET='payouts_wh_test_wompi_dev' \
   NOTIFICATION_API_KEY='notification_dev_key' \
   DATACREDITO_CLIENT_SECRET='mock_datacredito_secret' \
   GEMINI_API_KEY='dev_gemini_key' \

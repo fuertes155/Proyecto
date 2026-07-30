@@ -1,7 +1,9 @@
 package com.cooperativa.met.application.identity.service;
 
+import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,7 +20,15 @@ public class OtpService {
     private final StringRedisTemplate redisTemplate;
     private final JavaMailSender mailSender;
     private final SecureRandom secureRandom = new SecureRandom();
-    
+
+    @Value("${met.mail.from-address}")
+    private String fromAddress;
+
+    // Solo development/local (ver application-dev.yml). En producción debe quedar en false
+    // para que un fallo de envío se reporte como error real en vez de exponer el OTP en logs.
+    @Value("${met.mail.log-otp-on-failure:false}")
+    private boolean logOtpOnFailure;
+
     private static final String OTP_PREFIX = "pin-recovery-otp:";
     private static final String OTP_ATTEMPTS_PREFIX = "otp-attempts:";
     private static final String OTP_LOCKOUT_PREFIX = "otp-lockout:";
@@ -43,18 +53,23 @@ public class OtpService {
         // Send Email
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("no-reply@met.com");
+            message.setFrom(fromAddress);
             message.setTo(email);
             message.setSubject("Tu código de recuperación de PIN");
-            message.setText("Hola,\n\nHas solicitado recuperar tu PIN. Tu código de verificación es: " + otpCode + 
+            message.setText("Hola,\n\nHas solicitado recuperar tu PIN. Tu código de verificación es: " + otpCode +
                             "\n\nEste código expirará en 5 minutos.\nSi no fuiste tú, ignora este mensaje.\n\nSaludos,\nEquipo de Finanzas");
             mailSender.send(message);
             log.info("OTP Email sent successfully to {}", email);
         } catch (Exception e) {
             log.error("Failed to send OTP Email to {}", email, e);
-            log.warn("=================================================");
-            log.warn("MOCK DEV MODE - Tu código OTP es: {}", otpCode);
-            log.warn("=================================================");
+            if (logOtpOnFailure) {
+                log.warn("=================================================");
+                log.warn("MOCK DEV MODE - Tu código OTP es: {}", otpCode);
+                log.warn("=================================================");
+            } else {
+                throw new BusinessRuleException("EMAIL_DELIVERY_FAILED",
+                    "No pudimos enviar el correo con tu código. Intenta nuevamente en unos minutos.");
+            }
         }
 
         return otpCode;
@@ -92,16 +107,21 @@ public class OtpService {
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("no-reply@met.com");
+            message.setFrom(fromAddress);
             message.setTo(email);
             message.setSubject("Verificación de Correo Electrónico");
-            message.setText("Hola,\n\nTu código de verificación de correo es: " + otpCode + 
+            message.setText("Hola,\n\nTu código de verificación de correo es: " + otpCode +
                             "\n\nEste código expirará en 5 minutos.\n\nSaludos,\nEquipo MET");
             mailSender.send(message);
             log.info("Email Verification OTP sent successfully to {}", email);
         } catch (Exception e) {
             log.error("Failed to send Email Verification OTP to {}", email, e);
-            log.warn("MOCK DEV MODE - Tu código OTP de verificación es: {}", otpCode);
+            if (logOtpOnFailure) {
+                log.warn("MOCK DEV MODE - Tu código OTP de verificación es: {}", otpCode);
+            } else {
+                throw new BusinessRuleException("EMAIL_DELIVERY_FAILED",
+                    "No pudimos enviar el correo de verificación. Intenta nuevamente en unos minutos.");
+            }
         }
         return otpCode;
     }

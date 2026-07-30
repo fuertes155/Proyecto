@@ -297,6 +297,11 @@ class QuickActions extends StatelessWidget {
           onTap: () => _showDepositSheet(context),
         ),
         _QuickAction(
+          icon: Icons.arrow_upward,
+          label: 'Retiro',
+          onTap: () => context.push('/accounts/external'),
+        ),
+        _QuickAction(
           icon: Icons.description_outlined,
           label: 'Movimientos',
           onTap: () => context.push('/statement'),

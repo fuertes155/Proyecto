@@ -7,6 +7,7 @@ class DepositState {
   DepositState({
     this.amount = 0.0,
     this.method = '',
+    this.bankCode,
     this.isLoading = false,
     this.error,
     this.isSuccess = false,
@@ -15,6 +16,9 @@ class DepositState {
 
   final double amount;
   final String method;
+
+  /// Banco elegido en el selector nativo de PSE (null para el resto de métodos).
+  final String? bankCode;
   final bool isLoading;
   final String? error;
   final bool isSuccess;
@@ -25,6 +29,7 @@ class DepositState {
   DepositState copyWith({
     double? amount,
     String? method,
+    String? bankCode,
     bool? isLoading,
     String? error,
     bool? isSuccess,
@@ -34,6 +39,7 @@ class DepositState {
     return DepositState(
       amount: amount ?? this.amount,
       method: method ?? this.method,
+      bankCode: bankCode ?? this.bankCode,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       isSuccess: isSuccess ?? this.isSuccess,
@@ -53,6 +59,10 @@ class DepositNotifier extends StateNotifier<DepositState> {
 
   void setAmount(double amount) {
     state = state.copyWith(amount: amount, error: null);
+  }
+
+  void setBankCode(String bankCode) {
+    state = state.copyWith(bankCode: bankCode, error: null);
   }
 
   /// Inicia el depósito para cualquier método de pago soportado por Wompi.
@@ -78,6 +88,36 @@ class DepositNotifier extends StateNotifier<DepositState> {
         'metapp://deposit/success',
       );
 
+      state = state.copyWith(isLoading: false, paymentUrl: url);
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';
+      state = state.copyWith(isLoading: false, error: msg);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Ocurrió un error inesperado: $e');
+    }
+  }
+
+  /// Inicia un depósito PSE nativo: el banco ya fue elegido dentro de la app
+  /// (ver [setBankCode]) en vez de dentro del checkout hosteado de Wompi.
+  Future<void> submitNativePseDeposit() async {
+    if (state.amount <= 0) {
+      state = state.copyWith(error: 'El monto debe ser mayor a 0');
+      return;
+    }
+    if (state.bankCode == null || state.bankCode!.isEmpty) {
+      state = state.copyWith(error: 'Selecciona tu banco para continuar');
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null, clearPaymentUrl: true);
+
+    try {
+      final repository = ref.read(transfersRepositoryProvider);
+      final url = await repository.createNativePseDeposit(
+        state.amount,
+        state.bankCode!,
+        'metapp://deposit/success',
+      );
       state = state.copyWith(isLoading: false, paymentUrl: url);
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';

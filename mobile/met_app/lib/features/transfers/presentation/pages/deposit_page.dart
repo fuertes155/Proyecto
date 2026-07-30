@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../external_accounts/data/models/bank_model.dart';
+import '../../../external_accounts/presentation/providers/external_accounts_provider.dart';
 import '../providers/deposit_provider.dart';
 
 class DepositPage extends ConsumerStatefulWidget {
@@ -145,9 +147,18 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                     ],
                   ),
                 ).animate().fadeIn().slideY(begin: 0.1, end: 0),
-                
+
+                if (widget.method == 'PSE') ...[
+                  const SizedBox(height: 16),
+                  _BankSelector(
+                    selectedBankCode: state.bankCode,
+                    onBankSelected: (bank) =>
+                        ref.read(depositProvider.notifier).setBankCode(bank.code),
+                  ),
+                ],
+
                 const SizedBox(height: 16),
-                
+
                 // Bottom Card (Amount Input)
                 Container(
                   padding: const EdgeInsets.all(24),
@@ -226,7 +237,17 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                                   );
                                   return;
                                 }
-                                ref.read(depositProvider.notifier).submitDeposit(widget.method);
+                                if (widget.method == 'PSE') {
+                                  if (state.bankCode == null || state.bankCode!.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Selecciona tu banco para continuar')),
+                                    );
+                                    return;
+                                  }
+                                  ref.read(depositProvider.notifier).submitNativePseDeposit();
+                                } else {
+                                  ref.read(depositProvider.notifier).submitDeposit(widget.method);
+                                }
                               },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).colorScheme.primary,
@@ -276,6 +297,142 @@ class _DepositPageState extends ConsumerState<DepositPage> {
       child: Text(
         '\$$display',
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      ),
+    );
+  }
+}
+
+/// Selector nativo de banco PSE: reemplaza la elección de banco que antes
+/// solo ocurría dentro del checkout hosteado de Wompi por una lista propia,
+/// alimentada por el catálogo real sincronizado en el backend.
+class _BankSelector extends ConsumerWidget {
+  const _BankSelector({required this.selectedBankCode, required this.onBankSelected});
+
+  final String? selectedBankCode;
+  final ValueChanged<BankModel> onBankSelected;
+
+  void _openPicker(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Selecciona tu banco', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final banksAsync = ref.watch(banksProvider('PSE'));
+                  return banksAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (error, _) => Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text('No fue posible cargar la lista de bancos: $error'),
+                    ),
+                    data: (banks) {
+                      if (banks.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text('No hay bancos PSE disponibles por el momento'),
+                        );
+                      }
+                      return ListView.separated(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        itemCount: banks.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final bank = banks[index];
+                          return ListTile(
+                            leading: const Icon(Icons.account_balance_outlined),
+                            title: Text(bank.name),
+                            onTap: () {
+                              onBankSelected(bank);
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedName = selectedBankCode == null
+        ? null
+        : ref.watch(banksProvider('PSE')).maybeWhen(
+              data: (banks) {
+                for (final bank in banks) {
+                  if (bank.code == selectedBankCode) return bank.name;
+                }
+                return null;
+              },
+              orElse: () => null,
+            );
+
+    return InkWell(
+      onTap: () => _openPicker(context, ref),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selectedBankCode == null ? Colors.orange.shade300 : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.account_balance_outlined, color: Colors.black54),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                selectedName ?? 'Selecciona tu banco',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: selectedName == null ? Colors.black54 : Colors.black87,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.black54),
+          ],
+        ),
       ),
     );
   }

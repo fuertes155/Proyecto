@@ -105,6 +105,17 @@ met:
       # obtenido la llave pública anterior fallará al descifrar hasta recargar la app.
       rsa-private-key: ${RSA_PRIVATE_KEY:}
       rsa-public-key: ${RSA_PUBLIC_KEY:}
+  mail:
+    # Remitente real de los correos transaccionales (OTP, verificación, alertas).
+    # Con SMTP de Gmail el remitente DEBE coincidir con la cuenta autenticada (MAIL_USERNAME);
+    # si no coincide, Gmail rompe el alineamiento SPF/DKIM y el correo cae a spam o se rechaza
+    # del lado del receptor (por eso los correos de verificación no llegaban a Gmail).
+    # Al migrar a un proveedor transaccional (SES/SendGrid/Postmark) con dominio propio,
+    # sobreescribe esto con MAIL_FROM_ADDRESS en vez de depender de MAIL_USERNAME.
+    from-address: ${MAIL_FROM_ADDRESS:${MAIL_USERNAME:no-reply@met.com}}
+    # Si el envío falla, por defecto se debe lanzar un error real (no se oculta el fallo al usuario).
+    # Solo development/local activa el fallback que imprime el OTP en logs (ver application-dev.yml).
+    log-otp-on-failure: ${MAIL_LOG_OTP_ON_FAILURE:false}
   ai:
     gemini:
       # API Key de Google Gemini para el módulo de chat y soporte.
@@ -141,6 +152,24 @@ met:
     api-url: ${WOMPI_API_URL:https://sandbox.wompi.co/v1}
     # URL base del checkout Wompi (donde el usuario completa el pago)
     checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
+    payouts:
+      # Producto "Pagos a Terceros" de Wompi — API distinta a la de Checkout,
+      # con sus propias credenciales (API Key + Principal User ID) y, muy
+      # probablemente, su propia URL base. NO se pone un default aquí:
+      # confirmar el valor real en el dashboard de Wompi al activar el
+      # producto (ver WompiPayoutConfig / WompiPayoutAdapter para más contexto).
+      api-url: ${WOMPI_PAYOUTS_API_URL}
+      api-key: ${WOMPI_PAYOUTS_API_KEY}
+      principal-user-id: ${WOMPI_PAYOUTS_PRINCIPAL_USER_ID}
+      # Nombres de header de autenticación — provisionales, confirmar contra
+      # la documentación real entregada al activar el producto.
+      auth-header: ${WOMPI_PAYOUTS_AUTH_HEADER:Authorization}
+      principal-header: ${WOMPI_PAYOUTS_PRINCIPAL_HEADER:X-Principal-User-Id}
+      # Cuenta de origen (Wompi/Bancolombia) que fondea los payouts (GET /accounts)
+      source-account-id: ${WOMPI_PAYOUTS_SOURCE_ACCOUNT_ID}
+      # Secreto para validar la firma de los webhooks de payouts (independiente
+      # del webhook-secret de depósitos)
+      webhook-secret: ${WOMPI_PAYOUTS_WEBHOOK_SECRET}
   notification-service:
     url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8090}
     api-key: ${NOTIFICATION_API_KEY}

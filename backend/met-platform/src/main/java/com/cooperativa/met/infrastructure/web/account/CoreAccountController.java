@@ -16,6 +16,9 @@ import com.cooperativa.met.application.account.usecase.DepositUseCase;
 import com.cooperativa.met.application.account.usecase.GeneratePseLinkUseCase;
 import com.cooperativa.met.application.account.dto.GeneratePseLinkRequest;
 import com.cooperativa.met.application.account.dto.GeneratePseLinkResponse;
+import com.cooperativa.met.application.account.usecase.CreateNativePseDepositUseCase;
+import com.cooperativa.met.application.account.dto.CreateNativePseDepositRequest;
+import com.cooperativa.met.application.account.dto.CreateNativePseDepositResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -42,6 +45,7 @@ public class CoreAccountController {
     private final RequestTransferOtpUseCase requestTransferOtpUseCase;
     private final DepositUseCase depositUseCase;
     private final GeneratePseLinkUseCase generatePseLinkUseCase;
+    private final CreateNativePseDepositUseCase createNativePseDepositUseCase;
     private final GetRecentRecipientsUseCase getRecentRecipientsUseCase;
     private final GenerateAccountStatementUseCase generateAccountStatementUseCase;
 
@@ -110,5 +114,17 @@ public class CoreAccountController {
     @PostMapping("/deposit-pse")
     public ResponseEntity<GeneratePseLinkResponse> generatePseLink(@Valid @RequestBody GeneratePseLinkRequest request) {
         return ResponseEntity.ok(generatePseLinkUseCase.execute(getAuthenticatedUserId(), request));
+    }
+
+    /**
+     * Depósito PSE nativo: el usuario elige el banco dentro de la app
+     * (catálogo real vía GET /v1/banks?type=PSE) y esta llamada crea la
+     * transacción directamente en Wompi, devolviendo la URL de
+     * autenticación bancaria — sin pasar por el checkout hosteado.
+     */
+    @PostMapping("/deposit-pse/native")
+    public ResponseEntity<CreateNativePseDepositResponse> createNativePseDeposit(
+            @Valid @RequestBody CreateNativePseDepositRequest request) {
+        return ResponseEntity.ok(createNativePseDepositUseCase.execute(getAuthenticatedUserId(), request));
     }
 }

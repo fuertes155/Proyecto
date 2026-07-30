@@ -33,8 +33,17 @@ public interface CoreTransactionJpaRepository extends JpaRepository<CoreTransact
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM CoreTransactionJpaEntity t " +
            "WHERE t.sourceAccountId = :accountId AND t.createdAt BETWEEN :start AND :end")
     BigDecimal sumOutgoingTransfers(
-        @Param("accountId") UUID accountId, 
-        @Param("start") Instant start, 
+        @Param("accountId") UUID accountId,
+        @Param("start") Instant start,
+        @Param("end") Instant end
+    );
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM CoreTransactionJpaEntity t " +
+           "WHERE t.sourceAccountId = :accountId AND t.type = :type AND t.createdAt BETWEEN :start AND :end")
+    BigDecimal sumOutgoingByAccountIdAndType(
+        @Param("accountId") UUID accountId,
+        @Param("type") com.cooperativa.met.domain.account.model.TransactionType type,
+        @Param("start") Instant start,
         @Param("end") Instant end
     );
 }

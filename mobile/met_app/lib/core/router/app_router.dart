@@ -27,6 +27,9 @@ import '../../features/loans/presentation/pages/loan_application_detail_page.dar
 import '../../features/loans/presentation/pages/loan_applications_list_page.dart';
 import '../../features/loans/presentation/pages/loan_simulation_page.dart';
 import '../../features/transfers/presentation/pages/account_statement_page.dart';
+import '../../features/external_accounts/presentation/pages/external_bank_accounts_page.dart';
+import '../../features/external_accounts/presentation/pages/add_external_bank_account_page.dart';
+import '../../features/external_accounts/presentation/pages/payout_page.dart';
 // Investment Module
 import '../../features/investment/presentation/pages/investment_home_page.dart';
 import '../../features/investment/presentation/pages/create_portfolio_page.dart';
@@ -94,6 +97,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(path: '/auth/recover-pin', builder: (context, state) => const PinRecoveryPage()),
+      GoRoute(
+        path: '/accounts/external',
+        builder: (context, state) => const ExternalBankAccountsPage(),
+      ),
+      GoRoute(
+        path: '/accounts/external/add',
+        builder: (context, state) => const AddExternalBankAccountPage(),
+      ),
+      GoRoute(
+        path: '/payout',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return PayoutPage(preselectedAccountId: extra?['accountId'] as String?);
+        },
+      ),
       GoRoute(
         path: '/savings/scheduled',
         builder: (context, state) => const ScheduledSavingsListPage(),

@@ -78,4 +78,17 @@ class TransfersRemoteDataSource {
         : _dio.options.baseUrl;
     return '$base$url';
   }
+
+  /// Depósito PSE nativo: el usuario ya eligió el banco dentro de la app
+  /// (selector alimentado por GET /v1/banks?type=PSE), así que aquí se crea
+  /// la transacción directamente en Wompi en vez de redirigir al checkout
+  /// hosteado donde tendría que elegir el banco de nuevo.
+  Future<String> createNativePseDeposit(double amount, String bankCode, String returnUrl) async {
+    final response = await _dio.post('/v1/accounts/deposit-pse/native', data: {
+      'amount': amount,
+      'bankCode': bankCode,
+      'returnUrl': returnUrl,
+    });
+    return response.data['asyncPaymentUrl'] as String;
+  }
 }

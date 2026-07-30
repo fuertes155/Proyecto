@@ -47,6 +47,11 @@ class TransfersRepositoryImpl implements TransfersRepository {
   }
 
   @override
+  Future<String> createNativePseDeposit(double amount, String bankCode, String returnUrl) async {
+    return _remoteDataSource.createNativePseDeposit(amount, bankCode, returnUrl);
+  }
+
+  @override
   Future<String> getStatementCsv({required int year, required int month}) {
     return _remoteDataSource.getStatementCsv(year: year, month: month);
   }

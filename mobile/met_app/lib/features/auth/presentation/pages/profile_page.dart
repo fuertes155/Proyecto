@@ -72,6 +72,11 @@ class ProfilePage extends ConsumerWidget {
                 title: 'Seguridad y Contraseña',
                 onTap: () => context.push('/profile/security'),
               ),
+              _ProfileOption(
+                icon: Icons.account_balance_outlined,
+                title: 'Cuentas bancarias externas',
+                onTap: () => context.push('/accounts/external'),
+              ),
 
               _ProfileOption(
                 icon: Icons.help_outline,

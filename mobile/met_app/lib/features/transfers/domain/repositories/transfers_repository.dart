@@ -12,5 +12,6 @@ abstract class TransfersRepository {
   Future<void> requestTransferOtp();
   Future<void> deposit(DepositRequestModel request);
   Future<String> generatePseLink(double amount, String returnUrl);
+  Future<String> createNativePseDeposit(double amount, String bankCode, String returnUrl);
   Future<String> getStatementCsv({required int year, required int month});
 }

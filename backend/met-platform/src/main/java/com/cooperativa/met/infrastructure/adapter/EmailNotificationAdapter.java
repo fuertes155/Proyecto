@@ -3,6 +3,7 @@ package com.cooperativa.met.infrastructure.adapter;
 import com.cooperativa.met.domain.identity.port.NotificationPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
@@ -18,11 +19,14 @@ public class EmailNotificationAdapter implements NotificationPort {
 
     private final JavaMailSender mailSender;
 
+    @Value("${met.mail.from-address}")
+    private String fromAddress;
+
     @Override
     public void sendAccountLockedEmail(String email) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("no-reply@met.com");
+            message.setFrom(fromAddress);
             message.setTo(email);
             message.setSubject("Cuenta Bloqueada");
             message.setText(
@@ -42,7 +46,7 @@ public class EmailNotificationAdapter implements NotificationPort {
     public void sendNewLoginFromNewIpEmail(String email, String ip) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("security@met.com");
+            message.setFrom(fromAddress);
             message.setTo(email);
             message.setSubject("Alerta de Seguridad: Nuevo inicio de sesión");
             message.setText(

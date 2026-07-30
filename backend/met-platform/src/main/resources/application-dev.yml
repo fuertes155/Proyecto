@@ -27,6 +27,10 @@ met:
       secret: ${JWT_SECRET}
     encryption:
       aes-key: ${AES_KEY}
+  mail:
+    # Solo en dev: si el envío de correo falla (p. ej. no hay credenciales SMTP configuradas),
+    # imprime el OTP en logs para poder seguir probando localmente sin bloquear al desarrollador.
+    log-otp-on-failure: true
 
 springdoc:
   api-docs:
