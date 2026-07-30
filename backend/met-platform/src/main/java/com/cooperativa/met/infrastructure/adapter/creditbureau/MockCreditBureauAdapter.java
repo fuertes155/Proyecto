@@ -1,5 +1,6 @@
 package com.cooperativa.met.infrastructure.adapter.creditbureau;
 
+import com.cooperativa.met.domain.lending.model.CreditReportEvent;
 import com.cooperativa.met.domain.lending.model.CreditScoreResult;
 import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import lombok.extern.slf4j.Slf4j;
@@ -43,5 +44,12 @@ public class MockCreditBureauAdapter implements CreditBureauPort {
                 .referenceId("MOCK-" + UUID.randomUUID().toString())
                 .queriedAt(Instant.now())
                 .build();
+    }
+
+    @Override
+    public void reportCreditBehavior(CreditReportEvent event) {
+        log.info("[MOCK DATACREDITO] Reportando {} para préstamo {} (usuario {}, {} días de mora, saldo {})",
+                event.getEventType(), event.getLoanId(), event.getUserId(),
+                event.getDaysLate() != null ? event.getDaysLate() : 0, event.getOutstandingBalance());
     }
 }

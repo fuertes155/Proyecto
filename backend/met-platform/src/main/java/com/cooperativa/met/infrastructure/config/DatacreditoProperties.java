@@ -11,6 +11,8 @@ public class DatacreditoProperties {
     private String baseUrl = "https://api.experian.com.co";
     private String clientId;
     private String clientSecret;
+    /** URL del endpoint OAuth2 (grant_type=client_credentials). Sin default: se configura al firmar el contrato. */
+    private String tokenUrl;
     private int connectTimeoutMs = 5000;
     private int readTimeoutMs = 10000;
 }

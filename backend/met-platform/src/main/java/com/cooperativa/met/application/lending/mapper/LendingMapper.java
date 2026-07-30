@@ -38,6 +38,7 @@ public class LendingMapper {
                 application.getPurpose(),
                 application.getStatus(),
                 application.getRejectionReason(),
+                application.getRiskTier() != null ? application.getRiskTier().name() : null,
                 application.getSubmittedAt(),
                 schedule.stream().map(this::toResponse).toList()
         );
@@ -55,6 +56,7 @@ public class LendingMapper {
                 application.getPurpose(),
                 application.getStatus(),
                 application.getRejectionReason(),
+                application.getRiskTier() != null ? application.getRiskTier().name() : null,
                 application.getSubmittedAt(),
                 List.of()
         );

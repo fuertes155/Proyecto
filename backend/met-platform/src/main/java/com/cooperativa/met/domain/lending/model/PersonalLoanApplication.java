@@ -26,6 +26,7 @@ public class PersonalLoanApplication {
     // Integración de Central de Riesgo
     private final Integer creditScore;
     private final String creditBureauRef;
+    private final RiskTier riskTier;
     
     private final Instant submittedAt;
     private final Instant reviewedAt;

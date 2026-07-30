@@ -17,6 +17,7 @@ public class LendingPersistenceMapper {
                 .totalPayment(e.getTotalPayment()).purpose(e.getPurpose()).status(e.getStatus())
                 .rejectionReason(e.getRejectionReason())
                 .creditScore(e.getCreditScore()).creditBureauRef(e.getCreditBureauRef())
+                .riskTier(e.getRiskTier())
                 .submittedAt(e.getSubmittedAt())
                 .reviewedAt(e.getReviewedAt()).createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt())
                 .build();
@@ -30,6 +31,7 @@ public class LendingPersistenceMapper {
         e.setTotalPayment(a.getTotalPayment()); e.setPurpose(a.getPurpose()); e.setStatus(a.getStatus());
         e.setRejectionReason(a.getRejectionReason()); 
         e.setCreditScore(a.getCreditScore()); e.setCreditBureauRef(a.getCreditBureauRef());
+        e.setRiskTier(a.getRiskTier());
         e.setSubmittedAt(a.getSubmittedAt());
         e.setReviewedAt(a.getReviewedAt()); e.setCreatedAt(a.getCreatedAt()); e.setUpdatedAt(a.getUpdatedAt());
         return e;

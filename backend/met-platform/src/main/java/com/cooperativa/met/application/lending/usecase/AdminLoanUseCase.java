@@ -10,8 +10,10 @@ import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.admin.model.FeeSchedule;
 import com.cooperativa.met.domain.admin.port.FeeScheduleRepositoryPort;
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
+import com.cooperativa.met.domain.lending.model.LoanEligibilityDecision;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
+import com.cooperativa.met.domain.lending.service.CreditScoringEngine;
 import com.cooperativa.met.domain.notification.model.Notification;
 import com.cooperativa.met.domain.notification.port.NotificationRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -54,12 +56,14 @@ public class AdminLoanUseCase {
 
             CoreAccount account = accountRepository.findByUserId(loan.getUserId())
                     .orElseThrow(() -> new BusinessRuleException("NO_ACCOUNT", "El usuario no tiene billetera virtual para desembolsar"));
-            
-            // Fix: Re-validate the 10x collateral rule at the time of approval
-            BigDecimal maxLoanAmount = account.getPrincipalBalance().multiply(new BigDecimal("10"));
-            if (loan.getAmount().compareTo(maxLoanAmount) > 0) {
-                throw new BusinessRuleException("MAX_LOAN_EXCEEDED", 
-                        "El usuario ya no tiene saldo suficiente para respaldar este préstamo. Saldo actual: $" + account.getPrincipalBalance());
+
+            // Re-validar el límite de riesgo al momento de aprobar, usando el mismo motor de
+            // scoring que se usó en el submit (el saldo de ahorro pudo haber cambiado desde entonces).
+            LoanEligibilityDecision eligibility = CreditScoringEngine.evaluate(loan.getCreditScore(), account.getPrincipalBalance());
+            if (loan.getAmount().compareTo(eligibility.getMaxAmount()) > 0) {
+                throw new BusinessRuleException("MAX_LOAN_EXCEEDED",
+                        "El usuario ya no tiene saldo suficiente para respaldar este préstamo dado su perfil de riesgo ("
+                                + eligibility.getTier() + "). Máximo disponible: $" + eligibility.getMaxAmount());
             }
 
             CoreAccount updatedAccount = account.creditPrincipal(netDisbursement);

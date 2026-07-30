@@ -5,5 +5,6 @@ public enum LoanApplicationStatus {
     IN_REVIEW,
     APPROVED,
     REJECTED,
-    DISBURSED
+    DISBURSED,
+    PAID_OFF
 }

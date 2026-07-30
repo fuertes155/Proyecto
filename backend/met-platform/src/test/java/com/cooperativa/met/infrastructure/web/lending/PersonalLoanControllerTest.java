@@ -90,6 +90,7 @@ class PersonalLoanControllerTest {
                 "EDUCATION",
                 LoanApplicationStatus.SUBMITTED,
                 null,
+                null,
                 Instant.now(),
                 List.of()
         );
@@ -118,6 +119,7 @@ class PersonalLoanControllerTest {
                 new BigDecimal("1140000"),
                 "EDUCATION",
                 LoanApplicationStatus.APPROVED,
+                null,
                 null,
                 Instant.now(),
                 List.of()

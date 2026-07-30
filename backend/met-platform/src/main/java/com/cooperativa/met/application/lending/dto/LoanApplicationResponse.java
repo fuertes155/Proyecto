@@ -18,6 +18,7 @@ public record LoanApplicationResponse(
         String purpose,
         LoanApplicationStatus status,
         String rejectionReason,
+        String riskTier,
         Instant submittedAt,
         List<AmortizationInstallmentResponse> schedule
 ) {

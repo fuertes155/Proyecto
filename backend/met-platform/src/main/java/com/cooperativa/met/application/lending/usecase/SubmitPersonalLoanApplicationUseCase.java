@@ -23,9 +23,10 @@ import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
 import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import com.cooperativa.met.domain.lending.model.CreditScoreResult;
+import com.cooperativa.met.domain.lending.model.LoanEligibilityDecision;
+import com.cooperativa.met.domain.lending.service.CreditScoringEngine;
 import com.cooperativa.met.domain.lending.service.FrenchAmortizationCalculator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,9 +48,6 @@ public class SubmitPersonalLoanApplicationUseCase {
     private final CoreTransactionRepositoryPort transactionRepository;
     private final CreditBureauPort creditBureauPort;
     private final LendingMapper mapper;
-
-    @Value("${met.credit-bureau.min-score:600}")
-    private int minCreditScore;
 
     @Transactional
     public LoanApplicationResponse execute(UUID userId, SubmitLoanApplicationRequest request) {
@@ -88,27 +86,35 @@ public class SubmitPersonalLoanApplicationUseCase {
                 null // User doesn't have dateOfBirth yet
         );
 
-        if (scoreResult.getScore() < minCreditScore) {
-            throw new BusinessRuleException("RISK_SCORE_LOW", 
-                    "Tu solicitud ha sido rechazada por nuestro motor de riesgo (Score: " + scoreResult.getScore() + ").");
+        // Motor de Scoring: si el score ya descalifica, no hace falta consultar el saldo
+        LoanEligibilityDecision preliminary = CreditScoringEngine.evaluate(scoreResult.getScore(), BigDecimal.ZERO);
+        if (!preliminary.isApproved()) {
+            throw new BusinessRuleException("RISK_SCORE_LOW", preliminary.getReason());
         }
 
         // Capa 4: Validación de Saldo (Ahorro)
         CoreAccount account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessRuleException("NO_ACCOUNT", "El usuario no tiene billetera virtual para validar el saldo"));
-        
-        BigDecimal maxLoanAmount = account.getPrincipalBalance().multiply(new BigDecimal("10"));
-        if (request.amount().compareTo(maxLoanAmount) > 0) {
-            throw new BusinessRuleException("MAX_LOAN_EXCEEDED", 
-                    "El monto solicitado excede tu límite. Puedes pedir máximo 10 veces tu saldo actual.");
+
+        // Única fuente de verdad para monto máximo, plazo y tasa según banda de riesgo
+        LoanEligibilityDecision eligibility = CreditScoringEngine.evaluate(scoreResult.getScore(), account.getPrincipalBalance());
+
+        if (request.amount().compareTo(eligibility.getMaxAmount()) > 0) {
+            throw new BusinessRuleException("MAX_LOAN_EXCEEDED",
+                    "El monto solicitado excede tu límite para tu perfil de riesgo (" + eligibility.getTier()
+                            + "). Máximo disponible: $" + eligibility.getMaxAmount());
         }
 
-        BigDecimal baseInterestRate = new BigDecimal("0.15"); // 15% annual rate
-        
+        if (request.termMonths() > eligibility.getMaxTermMonths()) {
+            throw new BusinessRuleException("MAX_TERM_EXCEEDED",
+                    "El plazo solicitado excede el máximo permitido para tu perfil de riesgo ("
+                            + eligibility.getMaxTermMonths() + " meses).");
+        }
+
         LoanSimulationResult simulation = FrenchAmortizationCalculator.simulate(
                 request.amount(),
                 request.termMonths(),
-                baseInterestRate,
+                eligibility.getAnnualInterestRate(),
                 LocalDate.now()
         );
 
@@ -126,6 +132,7 @@ public class SubmitPersonalLoanApplicationUseCase {
                 .status(LoanApplicationStatus.IN_REVIEW) // Pasa a revisión manual
                 .creditScore(scoreResult.getScore())
                 .creditBureauRef(scoreResult.getReferenceId())
+                .riskTier(eligibility.getTier())
                 .submittedAt(Instant.now())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())

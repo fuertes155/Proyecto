@@ -30,6 +30,7 @@ import '../../features/transfers/presentation/pages/account_statement_page.dart'
 import '../../features/external_accounts/presentation/pages/external_bank_accounts_page.dart';
 import '../../features/external_accounts/presentation/pages/add_external_bank_account_page.dart';
 import '../../features/external_accounts/presentation/pages/payout_page.dart';
+import '../../features/reports/presentation/pages/reports_page.dart';
 // Investment Module
 import '../../features/investment/presentation/pages/investment_home_page.dart';
 import '../../features/investment/presentation/pages/create_portfolio_page.dart';
@@ -72,7 +73,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/deposit',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
-          return DepositPage(method: extra?['method'] as String? ?? 'Nequi');
+          return DepositPage(
+            method: extra?['method'] as String? ?? 'Nequi',
+            bankHint: extra?['bankHint'] as String?,
+          );
         },
       ),
       GoRoute(
@@ -148,6 +152,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // administradores (ver /v1/compliance/** en SecurityConfig). El extracto de
       // transacciones del propio socio vive en /statement.
       GoRoute(path: '/statement', builder: (context, state) => const AccountStatementPage()),
+      GoRoute(path: '/reports', builder: (context, state) => const ReportsPage()),
       // ── Investment Module ──────────────────────────────────────────────────
       GoRoute(path: '/investments', builder: (context, state) => const InvestmentHomePage()),
       GoRoute(path: '/investments/create', builder: (context, state) => const CreatePortfolioPage()),

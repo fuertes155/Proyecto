@@ -128,11 +128,13 @@ met:
     storage-path: ${COMPLIANCE_STORAGE_PATH:./data/regulatory-reports}
   credit-bureau:
     provider: ${CREDIT_BUREAU_PROVIDER:mock}
-    min-score: ${CREDIT_BUREAU_MIN_SCORE:600}
     datacredito:
       base-url: ${DATACREDITO_API_URL:https://api.experian.com.co}
       client-id: ${DATACREDITO_CLIENT_ID:}
       client-secret: ${DATACREDITO_CLIENT_SECRET:}
+      # URL del endpoint OAuth2 (grant_type=client_credentials). Sin default: se define
+      # al firmar el contrato con DataCrédito. Ver DatacreditoOAuthTokenProvider.
+      token-url: ${DATACREDITO_TOKEN_URL:}
       connect-timeout-ms: 5000
       read-timeout-ms: 10000
   rate-limit:

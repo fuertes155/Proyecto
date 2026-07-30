@@ -7,6 +7,7 @@ import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.admin.model.FeeSchedule;
 import com.cooperativa.met.domain.admin.port.FeeScheduleRepositoryPort;
+import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
@@ -61,14 +62,15 @@ class AdminLoanUseCaseTest {
                 .id(loanId)
                 .userId(userId)
                 .amount(new BigDecimal("1000000.00"))
+                .creditScore(750) // RIESGO_MEDIO: hasta 2x saldo de ahorro
                 .status(LoanApplicationStatus.IN_REVIEW)
                 .build();
-                
+
         account = CoreAccount.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .status(AccountStatus.ACTIVE)
-                .principalBalance(new BigDecimal("100000.00"))
+                .principalBalance(new BigDecimal("1000000.00")) // 2x = 2,000,000 >= monto del préstamo
                 .build();
                 
         fee = FeeSchedule.builder()
@@ -97,14 +99,31 @@ class AdminLoanUseCaseTest {
         verify(accountRepository).save(accountCaptor.capture());
         
         CoreAccount savedAccount = accountCaptor.getValue();
-        // 100,000 + (1,000,000 - 20,000) = 1,080,000
-        assertEquals(new BigDecimal("1080000.00"), savedAccount.getPrincipalBalance());
+        // 1,000,000 + (1,000,000 - 20,000) = 1,980,000
+        assertEquals(new BigDecimal("1980000.00"), savedAccount.getPrincipalBalance());
         
         verify(transactionRepository).save(any(CoreTransaction.class));
         
         ArgumentCaptor<Notification> notifCaptor = ArgumentCaptor.forClass(Notification.class);
         verify(notificationRepository).save(notifCaptor.capture());
         assertEquals("Préstamo Aprobado 🎉", notifCaptor.getValue().getTitle());
+    }
+
+    @Test
+    void updateLoanStatus_approved_throwsMaxLoanExceeded_whenBalanceNoLongerSupportsRiskTier() {
+        // El saldo bajó desde la solicitud: score 750 (RIESGO_MEDIO, 2x) sobre 100,000 -> máximo 200,000 < 1,000,000
+        CoreAccount lowBalanceAccount = account.toBuilder().principalBalance(new BigDecimal("100000.00")).build();
+        when(loanApplicationPort.findById(loanId)).thenReturn(Optional.of(loanApp));
+        when(feeRepository.findVigentes()).thenReturn(List.of(fee));
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(lowBalanceAccount));
+
+        BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                () -> adminLoanUseCase.updateLoanStatus(loanId, LoanApplicationStatus.APPROVED));
+
+        assertEquals("MAX_LOAN_EXCEEDED", ex.getCode());
+        verify(accountRepository, never()).save(any());
+        verify(transactionRepository, never()).save(any());
+        verify(loanApplicationPort, never()).save(any());
     }
 
     @Test

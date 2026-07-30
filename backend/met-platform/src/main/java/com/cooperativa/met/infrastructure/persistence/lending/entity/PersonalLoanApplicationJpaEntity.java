@@ -1,6 +1,7 @@
 package com.cooperativa.met.infrastructure.persistence.lending.entity;
 
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
+import com.cooperativa.met.domain.lending.model.RiskTier;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -59,6 +60,10 @@ public class PersonalLoanApplicationJpaEntity {
 
     @Column(name = "credit_bureau_ref")
     private String creditBureauRef;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "risk_tier", length = 20)
+    private RiskTier riskTier;
 
     @Column(name = "submitted_at", nullable = false)
     private Instant submittedAt;

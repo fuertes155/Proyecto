@@ -3,8 +3,12 @@ package com.cooperativa.met.application.lending.usecase;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.lending.model.AmortizationInstallment;
+import com.cooperativa.met.domain.lending.model.CreditReportEvent;
+import com.cooperativa.met.domain.lending.model.CreditReportEventType;
+import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.AmortizationSchedulePort;
+import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import com.cooperativa.met.domain.lending.port.MessagingPort;
 import com.cooperativa.met.domain.lending.port.PaymentGatewayPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
@@ -29,6 +33,7 @@ public class ProcessLoanCollectionsUseCase {
     private final UserRepositoryPort userRepositoryPort;
     private final PaymentGatewayPort paymentGatewayPort;
     private final MessagingPort messagingPort;
+    private final CreditBureauPort creditBureauPort;
 
     // Tasa de Usura Actual: 28% Efectiva Anual (Para propósitos del test se deja constante)
     private static final BigDecimal USURY_RATE_ANNUAL = new BigDecimal("0.28");
@@ -63,6 +68,8 @@ public class ProcessLoanCollectionsUseCase {
                     AmortizationInstallment paidInstallment = installment.withStatus("PAID");
                     schedulePort.saveAll(loan.getId(), List.of(paidInstallment));
                     log.info("Cargo exitoso a tarjeta tokenizada para cuota {} del usuario {}", installment.getInstallmentNumber(), user.getId());
+
+                    reportFullPayoffIfApplicable(loan, user, today);
                     continue; // Se pagó exitosamente, no entra en mora
                 }
             }
@@ -95,11 +102,48 @@ public class ProcessLoanCollectionsUseCase {
                 } else if (daysLate == 5) {
                     messagingPort.sendSms(user.getPhone(), "Alerta " + user.getFirstName() + ": tienes 5 días de mora. A partir del día 6 se generará reporte a centrales de riesgo.");
                 } else if (daysLate > 5) {
-                    log.info("[DATA CREDITO MOCK] Reportando a central de riesgo usuario {} por {} días de mora.", user.getDocumentNumber(), daysLate);
+                    BigDecimal outstandingBalance = lateInstallment.getRemainingBalance() != null
+                            ? lateInstallment.getRemainingBalance() : BigDecimal.ZERO;
+                    creditBureauPort.reportCreditBehavior(CreditReportEvent.builder()
+                            .userId(user.getId())
+                            .nationalId(user.getDocumentNumber())
+                            .loanId(loan.getId())
+                            .eventType(CreditReportEventType.MORA)
+                            .outstandingBalance(outstandingBalance)
+                            .daysLate((int) daysLate)
+                            .reportedAt(today)
+                            .build());
                 }
             }
         }
         
         log.info("[CRON] Evaluación de cobranza y mora finalizada.");
+    }
+
+    /**
+     * Si con el pago recién aplicado el préstamo quedó completamente saldado
+     * (todas sus cuotas en estado PAID), reporta el evento PAGADO a la central
+     * de riesgo y cierra la solicitud como PAID_OFF.
+     */
+    private void reportFullPayoffIfApplicable(PersonalLoanApplication loan, User user, LocalDate today) {
+        List<AmortizationInstallment> allInstallments = schedulePort.findByApplicationId(loan.getId());
+        boolean fullyPaid = !allInstallments.isEmpty()
+                && allInstallments.stream().allMatch(i -> "PAID".equals(i.getStatus()));
+
+        if (!fullyPaid) {
+            return;
+        }
+
+        creditBureauPort.reportCreditBehavior(CreditReportEvent.builder()
+                .userId(user.getId())
+                .nationalId(user.getDocumentNumber())
+                .loanId(loan.getId())
+                .eventType(CreditReportEventType.PAGADO)
+                .outstandingBalance(BigDecimal.ZERO)
+                .reportedAt(today)
+                .build());
+
+        loanPort.save(loan.withStatus(LoanApplicationStatus.PAID_OFF));
+        log.info("Préstamo {} saldado en su totalidad. Reportado como PAGADO a central de riesgo.", loan.getId());
     }
 }

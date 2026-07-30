@@ -16,16 +16,17 @@ import com.cooperativa.met.domain.identity.port.ComplianceCheckPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.lending.model.CreditScoreResult;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
+import com.cooperativa.met.domain.lending.model.RiskTier;
 import com.cooperativa.met.domain.lending.port.AmortizationSchedulePort;
 import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -69,16 +70,13 @@ class SubmitPersonalLoanApplicationUseCaseTest {
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .status(AccountStatus.ACTIVE)
-                .principalBalance(new BigDecimal("5000000.00")) // Permite préstamo hasta 50M
+                .principalBalance(new BigDecimal("5000000.00")) // Riesgo medio (700-799): hasta 2x = 10,000,000
                 .build();
-
-        // Inyectar el @Value field
-        ReflectionTestUtils.setField(useCase, "minCreditScore", 600);
     }
 
     @Test
     void execute_submitLoanSuccessfully_withGoodCreditScore() {
-        // Arrange
+        // Arrange: score 750 -> banda RIESGO_MEDIO (2x saldo, tope 15M, 24 meses, 22%)
         SubmitLoanApplicationRequest request = buildRequest(new BigDecimal("10000000"), 24, true);
         CreditScoreResult goodScore = CreditScoreResult.builder()
                 .score(750).referenceId("REF-001").build();
@@ -99,7 +97,11 @@ class SubmitPersonalLoanApplicationUseCaseTest {
 
         // Assert
         assertNotNull(result);
-        verify(applicationPort).save(any(PersonalLoanApplication.class));
+        ArgumentCaptor<PersonalLoanApplication> captor = ArgumentCaptor.forClass(PersonalLoanApplication.class);
+        verify(applicationPort).save(captor.capture());
+        PersonalLoanApplication saved = captor.getValue();
+        assertEquals(RiskTier.RIESGO_MEDIO, saved.getRiskTier());
+        assertEquals(new BigDecimal("0.22"), saved.getAnnualInterestRate());
     }
 
     @Test
@@ -168,8 +170,8 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsMaxLoanExceeded_whenAmountExceedsTenTimesBalance() {
-        // Balance: 5,000,000 → max loan: 50,000,000. Solicitamos 60,000,000
+    void execute_throwsMaxLoanExceeded_whenAmountExceedsRiskTierLimit() {
+        // Balance: 5,000,000, score 750 -> RIESGO_MEDIO: máximo 2x = 10,000,000. Solicitamos 20,000,000
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(applicationPort.hasPendingApplication(userId)).thenReturn(false);
         when(complianceCheckPort.checkUser(any(), any())).thenReturn(ComplianceResult.CLEAR);
@@ -178,9 +180,26 @@ class SubmitPersonalLoanApplicationUseCaseTest {
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(userAccount));
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
-                () -> useCase.execute(userId, buildRequest(new BigDecimal("60000000"), 24, true)));
+                () -> useCase.execute(userId, buildRequest(new BigDecimal("20000000"), 24, true)));
 
         assertEquals("MAX_LOAN_EXCEEDED", ex.getCode());
+        verify(applicationPort, never()).save(any());
+    }
+
+    @Test
+    void execute_throwsMaxTermExceeded_whenTermExceedsRiskTierLimit() {
+        // Score 750 -> RIESGO_MEDIO: plazo máximo 24 meses. Solicitamos 36.
+        when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
+        when(applicationPort.hasPendingApplication(userId)).thenReturn(false);
+        when(complianceCheckPort.checkUser(any(), any())).thenReturn(ComplianceResult.CLEAR);
+        CreditScoreResult goodScore = CreditScoreResult.builder().score(750).referenceId("REF-004").build();
+        when(creditBureauPort.checkScore(any(), any(), any(), any(), any())).thenReturn(goodScore);
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(userAccount));
+
+        BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                () -> useCase.execute(userId, buildRequest(new BigDecimal("5000000"), 36, true)));
+
+        assertEquals("MAX_TERM_EXCEEDED", ex.getCode());
         verify(applicationPort, never()).save(any());
     }
 

@@ -1,5 +1,6 @@
 package com.cooperativa.met.domain.lending.port;
 
+import com.cooperativa.met.domain.lending.model.CreditReportEvent;
 import com.cooperativa.met.domain.lending.model.CreditScoreResult;
 
 import java.time.LocalDate;
@@ -32,4 +33,14 @@ public interface CreditBureauPort {
             String lastName,
             LocalDate dateOfBirth
     );
+
+    /**
+     * Reporta el comportamiento crediticio de un préstamo a la central de riesgo
+     * (contraparte obligatoria de {@link #checkScore}: toda "fuente de información"
+     * que consulta la vida crediticia de un usuario debe también reportar su
+     * comportamiento de pago — Ley 1266 de 2008).
+     *
+     * @param event Evento de comportamiento crediticio (al día, mora o pagado).
+     */
+    void reportCreditBehavior(CreditReportEvent event);
 }

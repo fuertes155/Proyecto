@@ -8,7 +8,15 @@ import '../providers/deposit_provider.dart';
 
 class DepositPage extends ConsumerStatefulWidget {
   final String method;
-  const DepositPage({super.key, required this.method});
+
+  /// Nombre (no código) de un banco a preseleccionar cuando [method] es
+  /// 'PSE' — permite que un tile de un banco puntual en la pantalla de
+  /// métodos salte directo al monto con el banco ya elegido, en vez de
+  /// obligar a pasar por el selector genérico. Se resuelve contra el
+  /// catálogo real (GET /v1/banks?type=PSE) por coincidencia de nombre.
+  final String? bankHint;
+
+  const DepositPage({super.key, required this.method, this.bankHint});
 
   @override
   ConsumerState<DepositPage> createState() => _DepositPageState();
@@ -20,9 +28,28 @@ class _DepositPageState extends ConsumerState<DepositPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(depositProvider.notifier).reset();
       ref.read(depositProvider.notifier).setMethod(widget.method);
+
+      final hint = widget.bankHint;
+      if (widget.method == 'PSE' && hint != null && hint.isNotEmpty) {
+        try {
+          final banks = await ref.read(banksProvider('PSE').future);
+          final normalizedHint = hint.toLowerCase();
+          for (final bank in banks) {
+            if (bank.name.toLowerCase().contains(normalizedHint)) {
+              if (mounted) {
+                ref.read(depositProvider.notifier).setBankCode(bank.code);
+              }
+              break;
+            }
+          }
+        } catch (_) {
+          // Si falla la carga del catálogo, el usuario igual puede elegir
+          // el banco manualmente desde el selector — no bloqueamos la pantalla.
+        }
+      }
     });
 
     _amountController.addListener(() {
@@ -371,7 +398,7 @@ class _BankSelector extends ConsumerWidget {
                         itemBuilder: (context, index) {
                           final bank = banks[index];
                           return ListTile(
-                            leading: const Icon(Icons.account_balance_outlined),
+                            leading: _bankLogo(bank.name),
                             title: Text(bank.name),
                             onTap: () {
                               onBankSelected(bank);
@@ -387,6 +414,58 @@ class _BankSelector extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Insignia tipográfica del banco (colores/iniciales asociadas a la marca,
+  /// no un logo oficial) — mismo criterio ya usado para Nequi/Bre-B/PSE en
+  /// el resto de la app: evita depender de assets de imagen con derechos
+  /// de marca de terceros, manteniendo igual la identificación visual.
+  static const Map<String, _BankBadge> _bankBadges = {
+    'bancolombia': _BankBadge(Color(0xFFFFD100), Color(0xFF002855), 'Bc'),
+    'davivienda': _BankBadge(Color(0xFFEE3831), Colors.white, 'Dv'),
+    'bbva': _BankBadge(Color(0xFF004481), Colors.white, 'BBVA'),
+    'bogotá': _BankBadge(Color(0xFFDA291C), Colors.white, 'BB'),
+    'occidente': _BankBadge(Color(0xFF006341), Colors.white, 'BO'),
+    'popular': _BankBadge(Color(0xFFC8102E), Colors.white, 'BP'),
+    'caja social': _BankBadge(Color(0xFFF58220), Colors.white, 'CS'),
+    'scotiabank': _BankBadge(Color(0xFFEC111A), Colors.white, 'SC'),
+    'colpatria': _BankBadge(Color(0xFFEC111A), Colors.white, 'SC'),
+    'itaú': _BankBadge(Color(0xFFEC7000), Colors.white, 'I'),
+    'itau': _BankBadge(Color(0xFFEC7000), Colors.white, 'I'),
+    'av villas': _BankBadge(Color(0xFFFBB034), Color(0xFF5B3A00), 'AV'),
+    'agrario': _BankBadge(Color(0xFF2E7D32), Colors.white, 'BA'),
+    'bancoomeva': _BankBadge(Color(0xFF00A19A), Colors.white, 'Bo'),
+    'nequi': _BankBadge(Color(0xFFE10098), Colors.white, 'Nq'),
+    'daviplata': _BankBadge(Color(0xFFED1C24), Colors.white, 'DP'),
+  };
+
+  Widget _bankLogo(String bankName) {
+    final normalized = bankName.toLowerCase();
+    _BankBadge? badge;
+    for (final entry in _bankBadges.entries) {
+      if (normalized.contains(entry.key)) {
+        badge = entry.value;
+        break;
+      }
+    }
+
+    if (badge == null) {
+      return CircleAvatar(
+        backgroundColor: Colors.grey.shade200,
+        child: const Icon(Icons.account_balance_outlined, color: Colors.black54, size: 20),
+      );
+    }
+
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: badge.background, borderRadius: BorderRadius.circular(10)),
+      child: Text(
+        badge.label,
+        style: TextStyle(color: badge.foreground, fontWeight: FontWeight.w900, fontSize: 13),
       ),
     );
   }
@@ -436,4 +515,12 @@ class _BankSelector extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _BankBadge {
+  const _BankBadge(this.background, this.foreground, this.label);
+
+  final Color background;
+  final Color foreground;
+  final String label;
 }

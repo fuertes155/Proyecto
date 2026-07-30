@@ -77,6 +77,11 @@ class ProfilePage extends ConsumerWidget {
                 title: 'Cuentas bancarias externas',
                 onTap: () => context.push('/accounts/external'),
               ),
+              _ProfileOption(
+                icon: Icons.summarize_outlined,
+                title: 'Reportes',
+                onTap: () => context.push('/reports'),
+              ),
 
               _ProfileOption(
                 icon: Icons.help_outline,

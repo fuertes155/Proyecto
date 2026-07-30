@@ -125,6 +125,13 @@
             <version>1.3.30</version>
         </dependency>
 
+        <!-- Generación de reportes en Excel (módulo de reportes del usuario) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

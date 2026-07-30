@@ -109,15 +109,76 @@ class QuickActions extends StatelessWidget {
         ),
         _buildDepositMethodTile(
           context,
-          'PSE',
-          'Normalmente en 10 minutos',
+          'Bancolombia',
+          'PSE | Normalmente en 10 minutos',
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Color(0xFFFFD100), borderRadius: BorderRadius.circular(6)),
+            child: Text('Bc', style: TextStyle(color: Color(0xFF002855), fontWeight: FontWeight.w900, fontSize: 16)),
+          ),
+          method: 'PSE',
+          bankHint: 'Bancolombia',
+        ),
+        _buildDepositMethodTile(
+          context,
+          'Davivienda',
+          'PSE | Normalmente en 10 minutos',
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Color(0xFFEE3831), borderRadius: BorderRadius.circular(6)),
+            child: Text('Dv', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+          ),
+          method: 'PSE',
+          bankHint: 'Davivienda',
+        ),
+        _buildDepositMethodTile(
+          context,
+          'BBVA',
+          'PSE | Normalmente en 10 minutos',
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Color(0xFF004481), borderRadius: BorderRadius.circular(6)),
+            child: Text('BBVA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+          ),
+          method: 'PSE',
+          bankHint: 'BBVA',
+        ),
+        _buildDepositMethodTile(
+          context,
+          'Banco de Bogotá',
+          'PSE | Normalmente en 10 minutos',
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Color(0xFFDA291C), borderRadius: BorderRadius.circular(6)),
+            child: Text('BB', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+          ),
+          method: 'PSE',
+          bankHint: 'Bogotá',
+        ),
+        _buildDepositMethodTile(
+          context,
+          'Otro banco (PSE)',
+          'Elige tu banco entre más de 14 disponibles',
           Container(
             padding: EdgeInsets.all(4),
             decoration: BoxDecoration(color: Color(0xFF003057), borderRadius: BorderRadius.circular(20)),
             child: Text('PSE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
           ),
+          method: 'PSE',
         ),
-        
+
+        _buildSectionHeader(context, 'TARJETAS'),
+        _buildDepositMethodTile(
+          context,
+          'Tarjeta de crédito/débito',
+          'Visa, Mastercard y más | Al instante',
+          Container(
+            padding: EdgeInsets.all(6),
+            decoration: BoxDecoration(color: Color(0xFF1A1F71), borderRadius: BorderRadius.circular(8)),
+            child: Icon(Icons.credit_card, color: Colors.white, size: 20),
+          ),
+        ),
+
         _buildSectionHeader(context, 'WALLETS'),
         _buildDepositMethodTile(
           context,
@@ -143,6 +204,36 @@ class QuickActions extends StatelessWidget {
           'Hasta 5 minutos',
           Text('puntored', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.5)),
         ),
+        _buildDepositMethodTile(
+          context,
+          'Baloto',
+          'Hasta 5 minutos',
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(color: Color(0xFFE30613), borderRadius: BorderRadius.circular(4)),
+            child: Text('Baloto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
+          ),
+        ),
+        _buildDepositMethodTile(
+          context,
+          'Gana',
+          'Hasta 5 minutos',
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(color: Color(0xFF00A651), borderRadius: BorderRadius.circular(4)),
+            child: Text('gana', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14)),
+          ),
+        ),
+        _buildDepositMethodTile(
+          context,
+          'Corresponsal Bancolombia',
+          'Paga en efectivo en un punto Bancolombia',
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Color(0xFFFFD100), borderRadius: BorderRadius.circular(4)),
+            child: Text('BC', style: TextStyle(color: Color(0xFF003057), fontWeight: FontWeight.w900, fontSize: 14)),
+          ),
+        ),
       ]
     ));
   }
@@ -162,7 +253,14 @@ class QuickActions extends StatelessWidget {
     );
   }
 
-  Widget _buildDepositMethodTile(BuildContext context, String title, String subtitle, Widget leadingLogo) {
+  Widget _buildDepositMethodTile(
+    BuildContext context,
+    String title,
+    String subtitle,
+    Widget leadingLogo, {
+    String? method,
+    String? bankHint,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -181,7 +279,10 @@ class QuickActions extends StatelessWidget {
         child: InkWell(
           onTap: () {
             Navigator.pop(context);
-            context.push('/deposit', extra: {'method': title});
+            context.push('/deposit', extra: {
+              'method': method ?? title,
+              if (bankHint != null) 'bankHint': bankHint,
+            });
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
@@ -193,12 +294,12 @@ class QuickActions extends StatelessWidget {
                   height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark 
+                    color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white.withOpacity(0.9)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: leadingLogo,
+                  child: FittedBox(fit: BoxFit.scaleDown, child: leadingLogo),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
