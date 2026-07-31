@@ -14,6 +14,7 @@ public class LedgerEntry {
     private final UUID accountId;
     private final UUID transactionReference;
     private final LedgerEntryType entryType;
+    private final LedgerEntryCategory category;
     private final BigDecimal amount;
     private final String concept;
     private final Instant createdAt;

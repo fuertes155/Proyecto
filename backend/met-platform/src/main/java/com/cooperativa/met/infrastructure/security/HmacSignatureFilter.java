@@ -58,8 +58,14 @@ public class HmacSignatureFilter extends OncePerRequestFilter {
         // porque el cliente Dio firma el path SIN "/api" (su baseUrl ya lo incluye). Usar
         // getRequestURI() aquí rompía tanto este skip-list (nunca matcheaba "/v1/auth") como
         // la comparación de firma para el resto de endpoints protegidos.
+        //
+        // /v1/admin/** completo (no solo /v1/admin/auth) queda exento: el panel admin web ya
+        // se protege con JWT + rol (ADMIN/SUPER_ADMIN) vía Spring Security, que es el control
+        // correcto para un cliente web. La firma HMAC con secreto compartido es para la app
+        // móvil (binario compilado); embeber ese mismo secreto en el bundle del panel web lo
+        // dejaría visible para cualquiera que inspeccione el código — no aporta seguridad real.
         String path = request.getServletPath();
-        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/v1/webhooks") || path.startsWith("/v1/auth") || path.startsWith("/v1/admin/auth")) {
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/v1/webhooks") || path.startsWith("/v1/auth") || path.startsWith("/v1/admin")) {
             filterChain.doFilter(request, response);
             return;
         }

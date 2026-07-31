@@ -1,6 +1,7 @@
 package com.cooperativa.met.infrastructure.persistence.investment.adapter;
 
 import com.cooperativa.met.domain.investment.model.LedgerEntry;
+import com.cooperativa.met.domain.investment.model.LedgerEntryCategory;
 import com.cooperativa.met.domain.investment.model.LedgerEntryType;
 import com.cooperativa.met.domain.investment.port.LedgerRepositoryPort;
 import com.cooperativa.met.infrastructure.persistence.investment.entity.LedgerEntryJpaEntity;
@@ -44,6 +45,7 @@ public class LedgerEntryRepositoryAdapter implements LedgerRepositoryPort {
                 .accountId(model.getAccountId())
                 .transactionReference(model.getTransactionReference())
                 .entryType(model.getEntryType().name())
+                .category(model.getCategory().name())
                 .amount(model.getAmount())
                 .concept(model.getConcept())
                 .createdAt(model.getCreatedAt())
@@ -56,6 +58,7 @@ public class LedgerEntryRepositoryAdapter implements LedgerRepositoryPort {
                 .accountId(entity.getAccountId())
                 .transactionReference(entity.getTransactionReference())
                 .entryType(LedgerEntryType.valueOf(entity.getEntryType()))
+                .category(LedgerEntryCategory.valueOf(entity.getCategory()))
                 .amount(entity.getAmount())
                 .concept(entity.getConcept())
                 .createdAt(entity.getCreatedAt())

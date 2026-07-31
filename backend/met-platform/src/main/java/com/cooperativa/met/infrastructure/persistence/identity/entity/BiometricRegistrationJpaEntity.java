@@ -26,8 +26,14 @@ public class BiometricRegistrationJpaEntity {
     @Column(name = "document_image", columnDefinition = "TEXT")
     private String documentImage;
 
+    @Column(name = "document_back_image", columnDefinition = "TEXT")
+    private String documentBackImage;
+
     @Column(name = "selfie_image", columnDefinition = "TEXT")
     private String selfieImage;
+
+    @Column(name = "signature_image", columnDefinition = "TEXT")
+    private String signatureImage;
 
     @Column(name = "liveness_score", precision = 5, scale = 4)
     private BigDecimal livenessScore;

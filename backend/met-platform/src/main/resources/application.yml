@@ -182,6 +182,23 @@ met:
     phone-number: ${TWILIO_PHONE_NUMBER:+1234567890}
     whatsapp-number: ${TWILIO_WHATSAPP_NUMBER:+1234567890}
 
+  # --- Motor de Distribución de Capital (P2P: inversionistas <-> deudores) ---
+  capital-engine:
+    # Modelo de cálculo del margen sobre el interés que paga el deudor:
+    # DIRECT_RATE_SUBTRACTION (A), INTEREST_COMMISSION (B, recomendado), CAPITAL_COMMISSION (C).
+    margin-model: ${CAPITAL_ENGINE_MARGIN_MODEL:INTEREST_COMMISSION}
+    # Tasa de margen de la plataforma (0.02 = 2%).
+    margin-rate: ${CAPITAL_ENGINE_MARGIN_RATE:0.02}
+    # Base de la tasa de interés del préstamo: NOMINAL_ANNUAL | EFFECTIVE_ANNUAL | MONTHLY.
+    rate-basis: ${CAPITAL_ENGINE_RATE_BASIS:NOMINAL_ANNUAL}
+    # Máximo % de un depósito que se puede concentrar en un solo deudor (diversificación real).
+    concentration-cap-percentage: ${CAPITAL_ENGINE_CONCENTRATION_CAP:0.20}
+    # % del saldo pendiente que el Fondo de Garantías puede cubrir en mora sostenida.
+    # Nunca 1.00: el fondo no garantiza el 100% del retorno del capital.
+    guarantee-fund-coverage-ratio: ${CAPITAL_ENGINE_FUND_COVERAGE_RATIO:0.70}
+    # Días de mora a partir de los cuales se evalúa la cobertura del Fondo de Garantías.
+    guarantee-fund-activation-days-late: ${CAPITAL_ENGINE_FUND_ACTIVATION_DAYS:90}
+
 logging:
   level:
     com.cooperativa.met: INFO

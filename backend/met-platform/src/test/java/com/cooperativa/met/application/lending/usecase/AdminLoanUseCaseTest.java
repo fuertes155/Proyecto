@@ -1,5 +1,6 @@
 package com.cooperativa.met.application.lending.usecase;
 
+import com.cooperativa.met.application.investment.service.GuaranteeFundService;
 import com.cooperativa.met.domain.account.model.AccountStatus;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.model.CoreTransaction;
@@ -28,6 +29,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +46,8 @@ class AdminLoanUseCaseTest {
     private NotificationRepositoryPort notificationRepository;
     @Mock
     private FeeScheduleRepositoryPort feeRepository;
+    @Mock
+    private GuaranteeFundService guaranteeFundService;
 
     @InjectMocks
     private AdminLoanUseCase adminLoanUseCase;
@@ -103,7 +108,8 @@ class AdminLoanUseCaseTest {
         assertEquals(new BigDecimal("1980000.00"), savedAccount.getPrincipalBalance());
         
         verify(transactionRepository).save(any(CoreTransaction.class));
-        
+        verify(guaranteeFundService).contribute(eq(new BigDecimal("20000.00")), anyString(), eq(loanId));
+
         ArgumentCaptor<Notification> notifCaptor = ArgumentCaptor.forClass(Notification.class);
         verify(notificationRepository).save(notifCaptor.capture());
         assertEquals("Préstamo Aprobado 🎉", notifCaptor.getValue().getTitle());

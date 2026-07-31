@@ -14,7 +14,9 @@ public class BiometricRegistration {
     private final UUID id;
     private final UUID userId;
     private final String documentImage;
+    private final String documentBackImage;
     private final String selfieImage;
+    private final String signatureImage;
     private final BigDecimal livenessScore;
     private final boolean verified;
     private final Instant verifiedAt;

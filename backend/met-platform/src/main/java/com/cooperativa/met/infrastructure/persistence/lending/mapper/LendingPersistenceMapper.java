@@ -43,6 +43,8 @@ public class LendingPersistenceMapper {
                 .installmentNumber(e.getInstallmentNumber()).paymentAmount(e.getPaymentAmount())
                 .principalAmount(e.getPrincipalAmount()).interestAmount(e.getInterestAmount())
                 .remainingBalance(e.getRemainingBalance()).dueDate(e.getDueDate())
+                .status(e.getStatus())
+                .penaltyInterestAmount(e.getPenaltyInterestAmount())
                 .build();
     }
 
@@ -56,6 +58,8 @@ public class LendingPersistenceMapper {
         e.setInterestAmount(i.getInterestAmount());
         e.setRemainingBalance(i.getRemainingBalance());
         e.setDueDate(i.getDueDate());
+        e.setStatus(i.getStatus() != null ? i.getStatus() : "PENDING");
+        e.setPenaltyInterestAmount(i.getPenaltyInterestAmount() != null ? i.getPenaltyInterestAmount() : java.math.BigDecimal.ZERO);
         return e;
     }
 }

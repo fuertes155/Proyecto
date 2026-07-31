@@ -1,5 +1,6 @@
 package com.cooperativa.met.application.lending.usecase;
 
+import com.cooperativa.met.application.investment.service.GuaranteeFundService;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.model.CoreTransaction;
 import com.cooperativa.met.domain.account.model.TransactionStatus;
@@ -34,6 +35,7 @@ public class AdminLoanUseCase {
     private final CoreTransactionRepositoryPort transactionRepository;
     private final NotificationRepositoryPort notificationRepository;
     private final FeeScheduleRepositoryPort feeRepository;
+    private final GuaranteeFundService guaranteeFundService;
 
     public List<PersonalLoanApplication> getAllLoans() {
         return loanApplicationPort.findAll();
@@ -68,6 +70,10 @@ public class AdminLoanUseCase {
 
             CoreAccount updatedAccount = account.creditPrincipal(netDisbursement);
             accountRepository.save(updatedAccount);
+
+            guaranteeFundService.contribute(fondoGarantias,
+                    "Cuota Fondo de Garantías - Desembolso préstamo " + loan.getId().toString().substring(0, 8),
+                    loan.getId());
 
             CoreTransaction disbursementTx = CoreTransaction.builder()
                     .id(UUID.randomUUID())

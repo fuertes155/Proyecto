@@ -12,7 +12,9 @@ public class BiometricPersistenceMapper {
                 .id(entity.getId())
                 .userId(entity.getUserId())
                 .documentImage(entity.getDocumentImage())
+                .documentBackImage(entity.getDocumentBackImage())
                 .selfieImage(entity.getSelfieImage())
+                .signatureImage(entity.getSignatureImage())
                 .livenessScore(entity.getLivenessScore())
                 .verified(entity.isVerified())
                 .verifiedAt(entity.getVerifiedAt())
@@ -25,7 +27,9 @@ public class BiometricPersistenceMapper {
         entity.setId(registration.getId());
         entity.setUserId(registration.getUserId());
         entity.setDocumentImage(registration.getDocumentImage());
+        entity.setDocumentBackImage(registration.getDocumentBackImage());
         entity.setSelfieImage(registration.getSelfieImage());
+        entity.setSignatureImage(registration.getSignatureImage());
         entity.setLivenessScore(registration.getLivenessScore());
         entity.setVerified(registration.isVerified());
         entity.setVerifiedAt(registration.getVerifiedAt());

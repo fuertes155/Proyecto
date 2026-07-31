@@ -1,5 +1,7 @@
 package com.cooperativa.met.application.lending.usecase;
 
+import com.cooperativa.met.application.investment.usecase.GuaranteeFundCompensationUseCase;
+import com.cooperativa.met.application.investment.usecase.PaymentDistributionUseCase;
 import com.cooperativa.met.domain.identity.model.DocumentType;
 import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
@@ -15,6 +17,7 @@ import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import com.cooperativa.met.domain.lending.port.MessagingPort;
 import com.cooperativa.met.domain.lending.port.PaymentGatewayPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
+import com.cooperativa.met.infrastructure.config.CapitalEngineProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -50,6 +53,12 @@ class ProcessLoanCollectionsUseCaseTest {
     private MessagingPort messagingPort;
     @Mock
     private CreditBureauPort creditBureauPort;
+    @Mock
+    private PaymentDistributionUseCase paymentDistributionUseCase;
+    @Mock
+    private GuaranteeFundCompensationUseCase guaranteeFundCompensationUseCase;
+    @Mock
+    private CapitalEngineProperties capitalEngineProperties;
 
     @InjectMocks
     private ProcessLoanCollectionsUseCase processLoanCollectionsUseCase;

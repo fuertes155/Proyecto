@@ -29,13 +29,13 @@ class FraudDetectionServiceTest {
     private GeoLocationService geoLocationService;
 
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Mock
-    private ValueOperations<String, Object> valueOperations;
+    private ValueOperations<String, String> valueOperations;
 
     @Mock
-    private SetOperations<String, Object> setOperations;
+    private SetOperations<String, String> setOperations;
 
     @InjectMocks
     private FraudDetectionService fraudDetectionService;

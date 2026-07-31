@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public record BiometricRegistrationRequest(
         @NotBlank String documentImageBase64,
-        @NotBlank String selfieImageBase64
+        @NotBlank String documentBackImageBase64,
+        @NotBlank String selfieImageBase64,
+        @NotBlank String signatureImageBase64
 ) {
 }

@@ -35,6 +35,9 @@ public class LedgerEntryJpaEntity {
     @Column(name = "entry_type", nullable = false)
     private String entryType;
 
+    @Column(name = "category", nullable = false)
+    private String category;
+
     @Column(nullable = false)
     private BigDecimal amount;
 

@@ -23,7 +23,7 @@ public class AmortizationScheduleAdapter implements AmortizationSchedulePort {
         List<PersonalLoanAmortizationJpaEntity> entities = installments.stream()
                 .map(i -> {
                     AmortizationInstallment withAppId = AmortizationInstallment.builder()
-                            .id(UUID.randomUUID())
+                            .id(i.getId() != null ? i.getId() : UUID.randomUUID())
                             .applicationId(applicationId)
                             .installmentNumber(i.getInstallmentNumber())
                             .paymentAmount(i.getPaymentAmount())

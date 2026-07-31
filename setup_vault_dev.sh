@@ -46,7 +46,17 @@ docker exec "${VAULT_ENV[@]}" met-vault vault kv put secret/met-platform \
   NOTIFICATION_API_KEY='notification_dev_key' \
   DATACREDITO_CLIENT_SECRET='mock_datacredito_secret' \
   GEMINI_API_KEY='dev_gemini_key' \
-  MAIL_PASSWORD='dev_mail_password'
+  MAIL_USERNAME='TU_CORREO@gmail.com' \
+  MAIL_PASSWORD='TU_APP_PASSWORD_DE_16_CARACTERES'
 
 echo "¡Secretos insertados exitosamente en Vault!"
+echo ""
+echo "IMPORTANTE: MAIL_USERNAME/MAIL_PASSWORD siguen con valores de ejemplo."
+echo "Gmail rechaza la contraseña normal de la cuenta (error 535 5.7.8 Username"
+echo "and Password not accepted). Debes usar una 'App Password' real:"
+echo "  1. Activa la verificacion en 2 pasos en la cuenta de Gmail que enviara los correos."
+echo "  2. Genera una en https://myaccount.google.com/apppasswords (app: Correo)."
+echo "  3. Reemplaza MAIL_USERNAME y MAIL_PASSWORD arriba con el correo real y la App"
+echo "     Password de 16 caracteres (sin espacios)."
+echo "  4. Vuelve a correr este script y luego: docker compose restart backend"
 echo "Reinicia el backend para que los tome:  docker compose up -d backend"

@@ -1,5 +1,7 @@
 package com.cooperativa.met.application.lending.usecase;
 
+import com.cooperativa.met.application.investment.usecase.GuaranteeFundCompensationUseCase;
+import com.cooperativa.met.application.investment.usecase.PaymentDistributionUseCase;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.lending.model.AmortizationInstallment;
@@ -12,6 +14,7 @@ import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import com.cooperativa.met.domain.lending.port.MessagingPort;
 import com.cooperativa.met.domain.lending.port.PaymentGatewayPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
+import com.cooperativa.met.infrastructure.config.CapitalEngineProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,9 @@ public class ProcessLoanCollectionsUseCase {
     private final PaymentGatewayPort paymentGatewayPort;
     private final MessagingPort messagingPort;
     private final CreditBureauPort creditBureauPort;
+    private final PaymentDistributionUseCase paymentDistributionUseCase;
+    private final GuaranteeFundCompensationUseCase guaranteeFundCompensationUseCase;
+    private final CapitalEngineProperties capitalEngineProperties;
 
     // Tasa de Usura Actual: 28% Efectiva Anual (Para propósitos del test se deja constante)
     private static final BigDecimal USURY_RATE_ANNUAL = new BigDecimal("0.28");
@@ -69,6 +75,7 @@ public class ProcessLoanCollectionsUseCase {
                     schedulePort.saveAll(loan.getId(), List.of(paidInstallment));
                     log.info("Cargo exitoso a tarjeta tokenizada para cuota {} del usuario {}", installment.getInstallmentNumber(), user.getId());
 
+                    paymentDistributionUseCase.distribute(loan, paidInstallment);
                     reportFullPayoffIfApplicable(loan, user, today);
                     continue; // Se pagó exitosamente, no entra en mora
                 }
@@ -113,6 +120,11 @@ public class ProcessLoanCollectionsUseCase {
                             .daysLate((int) daysLate)
                             .reportedAt(today)
                             .build());
+                }
+
+                // Mora sostenida: se activa (una sola vez) la cobertura del Fondo de Garantías
+                if (daysLate == capitalEngineProperties.getGuaranteeFundActivationDaysLate()) {
+                    guaranteeFundCompensationUseCase.compensate(loan, lateInstallment);
                 }
             }
         }
