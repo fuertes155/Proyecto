@@ -209,3 +209,95 @@ class AuditLogEntry {
   final String? ipOrigen;
   final String timestamp;
 }
+
+/// Alerta SARLAFT de operación inusual (monto, frecuencia o patrón atípico).
+class ComplianceAlert {
+  ComplianceAlert({
+    required this.id,
+    required this.userId,
+    required this.userFullName,
+    required this.userDocumentNumber,
+    this.transactionId,
+    required this.alertType,
+    required this.severity,
+    required this.description,
+    required this.status,
+    required this.createdAt,
+    this.reviewedByAdminId,
+    this.reviewedAt,
+    this.resolutionNotes,
+  });
+
+  factory ComplianceAlert.fromJson(Map<String, dynamic> json) {
+    return ComplianceAlert(
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      userFullName: json['userFullName'] as String? ?? '-',
+      userDocumentNumber: json['userDocumentNumber'] as String? ?? '-',
+      transactionId: json['transactionId'] as String?,
+      alertType: json['alertType'] as String,
+      severity: json['severity'] as String,
+      description: json['description'] as String,
+      status: json['status'] as String,
+      createdAt: json['createdAt'] as String,
+      reviewedByAdminId: json['reviewedByAdminId'] as String?,
+      reviewedAt: json['reviewedAt'] as String?,
+      resolutionNotes: json['resolutionNotes'] as String?,
+    );
+  }
+
+  final String id;
+  final String userId;
+  final String userFullName;
+  final String userDocumentNumber;
+  final String? transactionId;
+  final String alertType;
+  final String severity;
+  final String description;
+  final String status;
+  final String createdAt;
+  final String? reviewedByAdminId;
+  final String? reviewedAt;
+  final String? resolutionNotes;
+
+  String get alertTypeLabel => switch (alertType) {
+        'UNUSUAL_AMOUNT' => 'Monto inusual',
+        'UNUSUAL_FREQUENCY' => 'Frecuencia inusual',
+        'STRUCTURING_PATTERN' => 'Posible fraccionamiento',
+        'RAPID_IN_OUT' => 'Entrada-salida rápida',
+        _ => alertType,
+      };
+}
+
+/// Coincidencia de un usuario contra una lista restrictiva (OFAC/ONU).
+class RestrictiveListMatch {
+  RestrictiveListMatch({
+    required this.checkId,
+    required this.userId,
+    required this.userFullName,
+    required this.userDocumentNumber,
+    required this.listType,
+    required this.checkedAt,
+    this.details,
+  });
+
+  factory RestrictiveListMatch.fromJson(Map<String, dynamic> json) {
+    return RestrictiveListMatch(
+      checkId: json['checkId'] as String,
+      userId: json['userId'] as String,
+      userFullName: json['userFullName'] as String? ?? '-',
+      userDocumentNumber: json['userDocumentNumber'] as String? ?? '-',
+      listType: json['listType'] as String,
+      checkedAt: json['checkedAt'] as String,
+      details: json['details'] as String?,
+    );
+  }
+
+  final String checkId;
+  final String userId;
+  final String userFullName;
+  final String userDocumentNumber;
+  final String listType;
+  final String checkedAt;
+  final String? details;
+}

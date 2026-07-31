@@ -44,6 +44,11 @@ public class InvestmentFractionRepositoryAdapter implements InvestmentFractionRe
         return repository.findByOriginalDepositId(depositId).stream().map(this::toModel).toList();
     }
 
+    @Override
+    public List<InvestmentFraction> findByInvestorAccountId(UUID investorAccountId) {
+        return repository.findByInvestorAccountId(investorAccountId).stream().map(this::toModel).toList();
+    }
+
     private InvestmentFractionJpaEntity toEntity(InvestmentFraction model) {
         return InvestmentFractionJpaEntity.builder()
                 .id(model.getId())

@@ -1,5 +1,6 @@
 package com.cooperativa.met.application.identity.usecase;
 
+import com.cooperativa.met.application.compliance.service.ComplianceBlockService;
 import com.cooperativa.met.application.identity.dto.BiometricRegistrationRequest;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
@@ -40,6 +41,7 @@ public class RegisterBiometricUseCase {
     private final UserRepositoryPort userRepository;
     private final BiometricRegistrationPort biometricRegistrationPort;
     private final ComplianceCheckPort complianceCheckPort;
+    private final ComplianceBlockService complianceBlockService;
     private final EncryptionPort encryptionPort;
     private final CoreAccountRepositoryPort coreAccountRepository;
 
@@ -66,7 +68,9 @@ public class RegisterBiometricUseCase {
             ComplianceResult result = complianceCheckPort.checkUser(user.getId(), listType);
             complianceCheckPort.persistCheck(user.getId(), listType, result, null);
             if (result == ComplianceResult.MATCH) {
-                userRepository.save(user.withStatus(UserStatus.BLOCKED).withKycStatus(KycStatus.REJECTED));
+                // En su propia transacción (REQUIRES_NEW): la excepción de abajo revierte
+                // esta transacción, y ese bloqueo no puede depender de que ella confirme.
+                complianceBlockService.blockUser(user.getId());
                 throw new BusinessRuleException("COMPLIANCE_MATCH", "Usuario en lista restrictiva: " + listType);
             }
         }

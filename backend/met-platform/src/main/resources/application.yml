@@ -126,6 +126,18 @@ met:
   compliance:
     entity-code: ${COMPLIANCE_ENTITY_CODE:COOP001}
     storage-path: ${COMPLIANCE_STORAGE_PATH:./data/regulatory-reports}
+    sarlaft:
+      # Fuentes públicas oficiales, sin autenticación ni contrato (a diferencia de
+      # DataCrédito): SDN list del Tesoro de EE.UU. y lista consolidada de la ONU.
+      ofac-list-url: ${SARLAFT_OFAC_LIST_URL:https://www.treasury.gov/ofac/downloads/sdn.csv}
+      un-list-url: ${SARLAFT_UN_LIST_URL:https://scsanctions.un.org/resources/xml/en/consolidated.xml}
+      restrictive-list-match-threshold: ${SARLAFT_LIST_MATCH_THRESHOLD:0.82}
+      unusual-amount-threshold: ${SARLAFT_UNUSUAL_AMOUNT_THRESHOLD:10000000}
+      unusual-amount-multiplier: ${SARLAFT_UNUSUAL_AMOUNT_MULTIPLIER:5}
+      max-transactions-per-day: ${SARLAFT_MAX_TX_PER_DAY:10}
+      structuring-lower-ratio: ${SARLAFT_STRUCTURING_LOWER_RATIO:0.8}
+      structuring-min-occurrences: ${SARLAFT_STRUCTURING_MIN_OCCURRENCES:3}
+      rapid-in-out-window-minutes: ${SARLAFT_RAPID_IN_OUT_WINDOW_MINUTES:60}
   credit-bureau:
     provider: ${CREDIT_BUREAU_PROVIDER:mock}
     datacredito:

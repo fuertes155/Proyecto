@@ -111,6 +111,38 @@ class AdminRepository {
     return response.data as Map<String, dynamic>;
   }
 
+  // ── SARLAFT / Cumplimiento ─────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getComplianceAlerts({
+    String status = 'OPEN',
+    int page = 0,
+    int size = 20,
+  }) async {
+    final response = await _adminDio()
+        .get('/v1/admin/compliance/alerts?status=$status&page=$page&size=$size');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<ComplianceAlert> reviewComplianceAlert(String id, String status, String? notes) async {
+    final response = await _adminDio().post('/v1/admin/compliance/alerts/$id/review', data: {
+      'status': status,
+      if (notes != null && notes.isNotEmpty) 'notes': notes,
+    });
+    return ComplianceAlert.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<List<RestrictiveListMatch>> getRestrictiveListMatches({int page = 0, int size = 20}) async {
+    final response = await _adminDio()
+        .get('/v1/admin/compliance/restrictive-list-matches?page=$page&size=$size');
+    return (response.data as List)
+        .map((e) => RestrictiveListMatch.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> refreshRestrictiveLists() async {
+    final response = await _adminDio().post('/v1/admin/compliance/restrictive-lists/refresh');
+    return response.data as Map<String, dynamic>;
+  }
+
   // ── Reset Credentials ──────────────────────────────────────────────────────
   Future<void> resetUserCredentials(String userId, String reason) async {
     await _adminDio().post('/v1/admin/users/$userId/reset-credentials', data: {'reason': reason});

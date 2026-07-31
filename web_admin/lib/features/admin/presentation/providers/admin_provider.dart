@@ -182,3 +182,62 @@ class AuditLogNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>>> {
   Future<void> nextPage() => load(page: _page + 1);
   Future<void> prevPage() => load(page: _page > 0 ? _page - 1 : 0);
 }
+
+// ── SARLAFT: Alertas de operaciones inusuales ──────────────────────────────────
+final complianceAlertStatusFilterProvider = StateProvider<String>((ref) => 'OPEN');
+
+final complianceAlertsProvider =
+    StateNotifierProvider<ComplianceAlertsNotifier, AsyncValue<Map<String, dynamic>>>((ref) {
+  final notifier = ComplianceAlertsNotifier(ref.watch(adminRepositoryProvider));
+  notifier.load(status: ref.watch(complianceAlertStatusFilterProvider));
+  return notifier;
+});
+
+class ComplianceAlertsNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>>> {
+  ComplianceAlertsNotifier(this._repo) : super(const AsyncValue.loading());
+  final AdminRepository _repo;
+  String _status = 'OPEN';
+
+  Future<void> load({String? status}) async {
+    _status = status ?? _status;
+    state = const AsyncValue.loading();
+    try {
+      state = AsyncValue.data(await _repo.getComplianceAlerts(status: _status));
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> review(String id, String newStatus, String? notes) async {
+    await _repo.reviewComplianceAlert(id, newStatus, notes);
+    await load();
+  }
+}
+
+// ── SARLAFT: Coincidencias en listas restrictivas ──────────────────────────────
+final restrictiveListMatchesProvider =
+    StateNotifierProvider<RestrictiveListMatchesNotifier, AsyncValue<List<RestrictiveListMatch>>>((ref) {
+  return RestrictiveListMatchesNotifier(ref.watch(adminRepositoryProvider));
+});
+
+class RestrictiveListMatchesNotifier extends StateNotifier<AsyncValue<List<RestrictiveListMatch>>> {
+  RestrictiveListMatchesNotifier(this._repo) : super(const AsyncValue.loading()) {
+    load();
+  }
+  final AdminRepository _repo;
+
+  Future<void> load() async {
+    state = const AsyncValue.loading();
+    try {
+      state = AsyncValue.data(await _repo.getRestrictiveListMatches());
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<Map<String, dynamic>> refreshLists() async {
+    final result = await _repo.refreshRestrictiveLists();
+    await load();
+    return result;
+  }
+}

@@ -38,6 +38,7 @@ class LoginRequest {
     this.deviceId,
     this.pin,
     this.biometricPayload,
+    this.otpCode,
   });
 
   final String documentType;
@@ -45,6 +46,7 @@ class LoginRequest {
   final String? deviceId;
   final String? pin;
   final String? biometricPayload;
+  final String? otpCode;
 
   Map<String, dynamic> toJson() => {
         'documentType': documentType,
@@ -52,6 +54,7 @@ class LoginRequest {
         if (deviceId != null) 'deviceId': deviceId,
         if (pin != null) 'pin': pin,
         if (biometricPayload != null) 'biometricPayload': biometricPayload,
+        if (otpCode != null) 'otpCode': otpCode,
       };
 }
 

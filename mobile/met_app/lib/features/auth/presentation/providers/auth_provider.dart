@@ -41,6 +41,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
         documentNumber: request.documentNumber,
         deviceId: deviceId,
         pin: request.pin,
+        otpCode: request.otpCode,
       );
       await _repository.loginWithPin(enhancedRequest);
       final profile = await _repository.getProfile();

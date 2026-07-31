@@ -31,6 +31,7 @@ import com.cooperativa.met.infrastructure.security.IdempotencyService;
 import com.cooperativa.met.application.account.service.TransferLimitService;
 import com.cooperativa.met.infrastructure.security.PinAttemptService;
 import com.cooperativa.met.application.security.FraudDetectionService;
+import com.cooperativa.met.application.compliance.service.SarlaftAlertEngine;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +47,7 @@ public class ExecuteTransferUseCase {
     private final TransferLimitService transferLimitService;
     private final PinAttemptService pinAttemptService;
     private final FraudDetectionService fraudDetectionService;
+    private final SarlaftAlertEngine sarlaftAlertEngine;
     private final MeterRegistry meterRegistry;
 
     // Métricas de negocio — transacciones fallidas por razón
@@ -175,6 +177,9 @@ public class ExecuteTransferUseCase {
                 .build();
                 
         transactionRepository.save(transaction);
+
+        // Control SARLAFT: operación inusual por monto/frecuencia/patrón (no bloquea).
+        sarlaftAlertEngine.evaluate(userId, updatedSource.getId(), transaction.getId(), TransactionType.TRANSFER, request.amount());
 
         // 6. Audit log — registro exitoso con datos enmascarados (Compliance)
         String maskedAmount = "***";

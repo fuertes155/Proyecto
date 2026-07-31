@@ -13,4 +13,5 @@ import java.util.UUID;
 public interface InvestmentFractionJpaRepository extends JpaRepository<InvestmentFractionJpaEntity, UUID> {
     List<InvestmentFractionJpaEntity> findByStatus(String status);
     List<InvestmentFractionJpaEntity> findByOriginalDepositId(UUID originalDepositId);
+    List<InvestmentFractionJpaEntity> findByInvestorAccountId(UUID investorAccountId);
 }

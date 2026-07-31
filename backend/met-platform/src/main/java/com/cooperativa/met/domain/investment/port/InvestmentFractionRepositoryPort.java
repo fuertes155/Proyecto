@@ -13,4 +13,5 @@ public interface InvestmentFractionRepositoryPort {
     Optional<InvestmentFraction> findById(UUID id);
     List<InvestmentFraction> findByStatus(InvestmentFractionStatus status);
     List<InvestmentFraction> findByOriginalDepositId(UUID depositId);
+    List<InvestmentFraction> findByInvestorAccountId(UUID investorAccountId);
 }

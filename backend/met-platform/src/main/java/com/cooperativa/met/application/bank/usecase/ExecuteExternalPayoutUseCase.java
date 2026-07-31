@@ -3,6 +3,7 @@ package com.cooperativa.met.application.bank.usecase;
 import com.cooperativa.met.application.account.service.AccountReversalService;
 import com.cooperativa.met.application.bank.dto.ExecutePayoutRequest;
 import com.cooperativa.met.application.bank.service.PayoutLimitService;
+import com.cooperativa.met.application.compliance.service.SarlaftAlertEngine;
 import com.cooperativa.met.application.identity.service.OtpService;
 import com.cooperativa.met.application.security.FraudDetectionService;
 import com.cooperativa.met.domain.account.model.AccountStatus;
@@ -90,6 +91,7 @@ public class ExecuteExternalPayoutUseCase {
     private final IdempotencyService idempotencyService;
     private final PinAttemptService pinAttemptService;
     private final FraudDetectionService fraudDetectionService;
+    private final SarlaftAlertEngine sarlaftAlertEngine;
     private final PlatformTransactionManager transactionManager;
 
     private TransactionTemplate transactionTemplate;
@@ -216,6 +218,10 @@ public class ExecuteExternalPayoutUseCase {
 
             return new PhaseOneResult(savedTransaction, savedPayout);
         });
+
+        // Control SARLAFT: operación inusual por monto/frecuencia/patrón (no bloquea).
+        sarlaftAlertEngine.evaluate(userId, phase1.transaction().getSourceAccountId(),
+                phase1.transaction().getId(), TransactionType.EXTERNAL_PAYOUT, request.amount());
 
         PayoutGatewayResult gatewayResult;
         try {

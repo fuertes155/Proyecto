@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
+import com.cooperativa.met.application.compliance.service.SarlaftAlertEngine;
 import com.cooperativa.met.application.investment.usecase.DistributeDepositUseCase;
 
 @Service
@@ -25,6 +26,7 @@ public class DepositUseCase {
     private final CoreTransactionRepositoryPort transactionRepository;
     private final DistributeDepositUseCase distributeDepositUseCase;
     private final UserRepositoryPort userRepository;
+    private final SarlaftAlertEngine sarlaftAlertEngine;
 
     @Transactional
     public void execute(UUID userId, DepositRequest request) {
@@ -64,6 +66,9 @@ public class DepositUseCase {
                 .build();
 
         transactionRepository.save(transaction);
+
+        // Control SARLAFT: operación inusual por monto/frecuencia/patrón (no bloquea).
+        sarlaftAlertEngine.evaluate(userId, updatedAccount.getId(), transaction.getId(), TransactionType.DEPOSIT, request.getAmount());
 
         // 4. Fraccionar y emparejar la inversión automáticamente
         distributeDepositUseCase.execute(updatedAccount.getId(), transaction.getId(), request.getAmount());

@@ -14,46 +14,11 @@ class InvestmentRemoteDataSource {
 
   final Dio _dio;
 
-  Future<List<InvestmentInstrument>> listInstruments() async {
-    final response = await _dio.get('/v1/investments/instruments');
+  Future<List<InvestmentBreakdownItem>> getMyBreakdown() async {
+    final response = await _dio.get('/v1/investments/my-breakdown');
     final list = response.data as List<dynamic>;
     return list
-        .map((e) => InvestmentInstrument.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<InvestmentPortfolio> createPortfolio(
-      CreatePortfolioRequest request) async {
-    final response =
-        await _dio.post('/v1/investments/portfolio', data: request.toJson());
-    return InvestmentPortfolio.fromJson(
-        response.data as Map<String, dynamic>);
-  }
-
-  Future<List<InvestmentPortfolio>> listPortfolios() async {
-    final response = await _dio.get('/v1/investments/portfolio');
-    final list = response.data as List<dynamic>;
-    return list
-        .map((e) => InvestmentPortfolio.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<InvestmentPortfolio> getPortfolio(String portfolioId) async {
-    final response =
-        await _dio.get('/v1/investments/portfolio/$portfolioId');
-    return InvestmentPortfolio.fromJson(
-        response.data as Map<String, dynamic>);
-  }
-
-  Future<void> cancelPortfolio(String portfolioId) async {
-    await _dio.delete('/v1/investments/portfolio/$portfolioId');
-  }
-
-  Future<List<InvestmentReturn>> listReturns() async {
-    final response = await _dio.get('/v1/investments/returns');
-    final list = response.data as List<dynamic>;
-    return list
-        .map((e) => InvestmentReturn.fromJson(e as Map<String, dynamic>))
+        .map((e) => InvestmentBreakdownItem.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 }

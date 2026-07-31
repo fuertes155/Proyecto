@@ -44,6 +44,11 @@ class AdminDashboardPage extends ConsumerWidget {
         route: '/admin/risk-rules',
       ),
       _AdminModule(
+        icon: Icons.shield_rounded,
+        label: 'Cumplimiento\nSARLAFT',
+        route: '/admin/compliance',
+      ),
+      _AdminModule(
         icon: Icons.attach_money_rounded,
         label: 'Límites de\nOperación',
         route: '/admin/limits',

@@ -315,6 +315,11 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Volver a inicio de sesión',
+          onPressed: () => context.go('/login'),
+        ),
         title: const Text('Verificación de Identidad'),
         centerTitle: true,
       ),

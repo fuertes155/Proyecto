@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -408,64 +409,83 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
     super.dispose();
   }
 
-  String _getErrorMessage(Object error) {
-    return error.toString();
+  /// Lee el código y mensaje de negocio reales que manda el backend.
+  ///
+  /// IMPORTANTE: `DioException.toString()` NUNCA incluye el cuerpo JSON de la
+  /// respuesta (solo una plantilla genérica tipo "the response has a status
+  /// code of 422..."). Por eso hay que leer `error.response?.data` directamente
+  /// en vez de comparar texto contra `error.toString()`.
+  (String? code, String? message) _extractServerError(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map) {
+        return (data['code'] as String?, data['message'] as String?);
+      }
+    }
+    return (null, null);
   }
 
   void _showFriendlyErrorFromErrorObject(Object error) {
-    final errorMsg = _getErrorMessage(error);
-    String friendlyMessage =
-        'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
-    final lowerError = errorMsg.toLowerCase();
+    if (error is String && error.startsWith('FRAUD_DETECTED')) {
+      _triggerError();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Detectamos un comportamiento inusual. Por tu seguridad, bloqueamos este intento.'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    if (lowerError.contains('rate') ||
-        lowerError.contains('429') ||
-        lowerError.contains('too many requests')) {
-      friendlyMessage =
-          'Demasiados intentos. Espera unos segundos e inténtalo de nuevo.';
-    } else if (lowerError.contains('pending_verification') || lowerError.contains('verificar')) {
-      friendlyMessage = 'Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.';
-      final docType = _documentType;
-      final docNumber = _documentController.text.trim();
-      if (docNumber.isNotEmpty) {
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) context.push('/verify-email', extra: {'documentType': docType, 'documentNumber': docNumber});
-        });
-      }
-    } else if (lowerError.contains('locked') || lowerError.contains('bloqueada')) {
-      friendlyMessage = 'Tu cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos. Revisa tu correo.';
-    } else if (lowerError.contains('intento')) {
-      // Extract exactly what the backend sent regarding the attempt count
-      friendlyMessage = errorMsg.contains('"message":"') ? errorMsg.split('"message":"')[1].split('"')[0] : 'Credenciales inválidas. Demasiados intentos fallidos.';
-      _triggerError();
-    } else if (lowerError.contains('pin') || lowerError.contains('incorrect') || lowerError.contains('credenciales')) {
-      friendlyMessage =
-          'El PIN es incorrecto. Por favor, verifica e intenta de nuevo.';
-      _triggerError(); // MEJORA 3: Trigger shake and error color
-    } else if (lowerError.contains('not found') ||
-        lowerError.contains('usuario')) {
-      friendlyMessage = 'No encontramos un usuario con este documento.';
-    } else if (lowerError.contains('401') ||
-        lowerError.contains('unauthorized') ||
-        lowerError.contains('422') ||
-        lowerError.contains('unprocessable')) {
-      friendlyMessage =
-          'No autorizado. Verifica tus credenciales e inténtalo de nuevo.';
-      _triggerError();
+    final (code, serverMessage) = _extractServerError(error);
+
+    if (code == 'DEVICE_NOT_RECOGNIZED') {
+      _promptDeviceOtp();
+      return;
+    }
+    if (code == 'INVALID_OTP') {
+      _promptDeviceOtp(errorText: serverMessage ?? 'El código es incorrecto o expiró. Intenta de nuevo.');
+      return;
+    }
+
+    String friendlyMessage;
+    switch (code) {
+      case 'USER_NOT_ACTIVE':
+        friendlyMessage = 'Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.';
+        final docType = _documentType;
+        final docNumber = _documentController.text.trim();
+        if (docNumber.isNotEmpty) {
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) context.push('/verify-email', extra: {'documentType': docType, 'documentNumber': docNumber});
+          });
+        }
+        break;
+      case 'ACCOUNT_LOCKED':
+        friendlyMessage = serverMessage ?? 'Tu cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos. Revisa tu correo.';
+        break;
+      case 'INVALID_CREDENTIALS':
+        friendlyMessage = serverMessage ?? 'El PIN es incorrecto. Por favor, verifica e intenta de nuevo.';
+        _triggerError();
+        break;
+      case 'RATE_LIMIT_EXCEEDED':
+        friendlyMessage = serverMessage ?? 'Demasiados intentos. Espera unos segundos e inténtalo de nuevo.';
+        break;
+      default:
+        friendlyMessage = serverMessage ?? 'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
+        _triggerError();
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          '$friendlyMessage\n${errorMsg.length > 200 ? errorMsg.substring(0, 200) + '...' : errorMsg}',
-        ),
+        content: Text(friendlyMessage),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  Future<void> _loginWithPin() async {
+  Future<void> _loginWithPin({String? otpCode}) async {
     if (!_formKey.currentState!.validate()) return;
     if (_pinController.text.length != 4) {
        _triggerError();
@@ -473,7 +493,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
     }
 
     // Análisis de Biometría Conductual local antes de enviar
-    if (BehavioralBiometricsService().analyzeAndDetectFraud()) {
+    if (otpCode == null && BehavioralBiometricsService().analyzeAndDetectFraud()) {
        _showFriendlyErrorFromErrorObject('FRAUD_DETECTED: Patrón de comportamiento anómalo detectado. Por su seguridad, el acceso ha sido bloqueado.');
        // Reiniciar la sesión por si fue un falso positivo y quiere reintentar
        BehavioralBiometricsService().startSession();
@@ -498,6 +518,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
             documentType: _documentType,
             documentNumber: docToSend,
             pin: _pinController.text,
+            otpCode: otpCode,
           ),
         );
 
@@ -516,6 +537,66 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
         context.go('/home');
       }
     }
+  }
+
+  /// Se muestra cuando el backend detecta un dispositivo/navegador no
+  /// reconocido y envía un código de seguridad al correo del usuario.
+  Future<void> _promptDeviceOtp({String? errorText}) async {
+    final otpController = TextEditingController();
+    String? dialogError = errorText;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Nuevo dispositivo detectado'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Por seguridad, enviamos un código a tu correo. Ingrésalo para continuar.'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: otpController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    autofocus: true,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 22, letterSpacing: 8),
+                    decoration: const InputDecoration(hintText: '------', counterText: ''),
+                  ),
+                  if (dialogError != null) ...[
+                    const SizedBox(height: 8),
+                    Text(dialogError!, style: const TextStyle(color: Colors.red)),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final code = otpController.text.trim();
+                    if (code.length != 6) {
+                      setDialogState(() => dialogError = 'Ingresa el código de 6 dígitos.');
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
+                    _loginWithPin(otpCode: code);
+                  },
+                  child: const Text('Verificar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _loginWithBiometric() async {
