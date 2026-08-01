@@ -78,7 +78,14 @@ Future<void> main() async {
         packageName: 'com.cooperativa.met',
         signingCertHashes: androidSigningHash.isNotEmpty
             ? [androidSigningHash]
-            : ['__DEBUG_PLACEHOLDER__'], // Solo válido en dev local
+            // freeRASP valida en runtime que cada hash sea un SHA-256 en Base64 (32 bytes,
+            // 44 chars) — un placeholder de texto libre como "__DEBUG_PLACEHOLDER__" lanza
+            // "configuration-exception" SIN capturar durante la construcción de AndroidConfig
+            // (antes del try/catch de Talsec.instance.start), lo que aborta main() en seco
+            // antes de runApp() y deja la app congelada en el splash nativo para siempre.
+            // Este es un Base64 de 32 ceros — pasa el formato pero freeRASP igual reportará
+            // integridad inválida en dev (esperado; solo importa en un build de release real).
+            : ['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='], // Solo válido en dev local
       ),
       iosConfig: IOSConfig(
         bundleIds: ['com.cooperativa.met'],
