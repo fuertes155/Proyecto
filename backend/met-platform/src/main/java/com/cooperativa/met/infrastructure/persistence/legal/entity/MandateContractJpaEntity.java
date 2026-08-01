@@ -3,7 +3,6 @@ package com.cooperativa.met.infrastructure.persistence.legal.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,7 +31,10 @@ public class MandateContractJpaEntity {
     @Column(name = "document_number", nullable = false)
     private String documentNumber;
 
-    @Lob
+    // Sin @Lob a propósito: en PostgreSQL, @Lob sobre un byte[] hace que Hibernate
+    // intente usar Large Objects (OID, tipo bigint) en vez de escribir directo en
+    // la columna bytea, lo que revienta con "column pdf_content is of type bytea
+    // but expression is of type bigint". Un byte[] plano sí mapea correctamente.
     @Column(name = "pdf_content", nullable = false)
     private byte[] pdfContent;
 
