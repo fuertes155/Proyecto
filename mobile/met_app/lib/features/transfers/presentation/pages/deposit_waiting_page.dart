@@ -101,14 +101,20 @@ class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false, // Hide back button for waiting screen
+        automaticallyImplyLeading: false,
+        leadingWidth: 48,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.black87, size: 28),
+          tooltip: 'Volver al inicio',
+          onPressed: () => context.go('/home'),
+        ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
               'MET',
               style: TextStyle(
-                color: Color(0xFFE55B13), // Metano Orange
+                color: Color(0xFF2E7D32), // Verde de marca (AppTheme.primaryColorLight)
                 fontWeight: FontWeight.w900,
                 fontSize: 24,
                 fontStyle: FontStyle.italic,

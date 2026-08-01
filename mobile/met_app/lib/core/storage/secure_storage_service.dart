@@ -14,7 +14,7 @@ class SecureStorageService {
   static const _lastActivityKey = 'last_activity_at';
 
   /// Tiempo máximo de inactividad antes de cerrar sesión (5 minutos)
-  static const _sessionTimeoutMinutes = 5;
+  static const _sessionTimeoutMinutes = 15;
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 

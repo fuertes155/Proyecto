@@ -19,7 +19,7 @@ class InactivityDetector extends ConsumerStatefulWidget {
 
 class _InactivityDetectorState extends ConsumerState<InactivityDetector>
     with WidgetsBindingObserver {
-  static const _timeoutDuration = Duration(minutes: 5);
+  static const _timeoutDuration = Duration(minutes: 15);
   static const _backgroundLockDuration = Duration(seconds: 10);
 
   Timer? _inactivityTimer;
