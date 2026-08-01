@@ -5,6 +5,7 @@ import '../models/transfer_request_model.dart';
 import '../models/deposit_request_model.dart';
 import '../models/verify_recipient_model.dart';
 import '../models/recent_recipient_model.dart';
+import '../models/movement_model.dart';
 
 class TransfersRepositoryImpl implements TransfersRepository {
   TransfersRepositoryImpl(this._remoteDataSource);
@@ -54,5 +55,10 @@ class TransfersRepositoryImpl implements TransfersRepository {
   @override
   Future<String> getStatementCsv({required int year, required int month}) {
     return _remoteDataSource.getStatementCsv(year: year, month: month);
+  }
+
+  @override
+  Future<List<MovementModel>> getMovements() {
+    return _remoteDataSource.getMovements();
   }
 }

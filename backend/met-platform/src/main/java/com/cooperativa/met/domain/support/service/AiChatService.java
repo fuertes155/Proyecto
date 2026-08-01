@@ -25,7 +25,12 @@ public class AiChatService {
     private String geminiApiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+    // gemini-1.5-flash fue retirado por Google (404 Not Found) y gemini-2.5-flash
+    // (el reemplazo directo) también dejó de estar disponible para nuevas API keys
+    // poco después. Se usa el alias "gemini-flash-latest" — Google lo mantiene
+    // apuntando siempre al modelo rápido/económico vigente, evitando tener que
+    // perseguir manualmente cada retiro de versión.
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=";
 
     public String generateReply(String userMessage) {
         if (geminiApiKey == null || geminiApiKey.trim().isEmpty() || geminiApiKey.contains("tu_api_key")) {

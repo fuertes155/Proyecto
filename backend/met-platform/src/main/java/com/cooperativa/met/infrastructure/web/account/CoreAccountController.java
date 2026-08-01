@@ -2,6 +2,8 @@ package com.cooperativa.met.infrastructure.web.account;
 
 import com.cooperativa.met.application.account.dto.AccountStatementResult;
 import com.cooperativa.met.application.account.dto.CoreAccountResponse;
+import com.cooperativa.met.application.account.dto.MovementResponse;
+import com.cooperativa.met.application.account.usecase.GetAccountMovementsUseCase;
 import com.cooperativa.met.application.account.dto.RecentRecipientResponse;
 import com.cooperativa.met.application.account.dto.TransferRequest;
 import com.cooperativa.met.application.account.dto.VerifyRecipientResponse;
@@ -48,6 +50,7 @@ public class CoreAccountController {
     private final CreateNativePseDepositUseCase createNativePseDepositUseCase;
     private final GetRecentRecipientsUseCase getRecentRecipientsUseCase;
     private final GenerateAccountStatementUseCase generateAccountStatementUseCase;
+    private final GetAccountMovementsUseCase getAccountMovementsUseCase;
 
     private UUID getAuthenticatedUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -77,6 +80,11 @@ public class CoreAccountController {
     @GetMapping("/recent-recipients")
     public ResponseEntity<List<RecentRecipientResponse>> getRecentRecipients() {
         return ResponseEntity.ok(getRecentRecipientsUseCase.execute(getAuthenticatedUserId()));
+    }
+
+    @GetMapping("/movements")
+    public ResponseEntity<List<MovementResponse>> getMovements() {
+        return ResponseEntity.ok(getAccountMovementsUseCase.execute(getAuthenticatedUserId()));
     }
 
     @GetMapping("/statement")

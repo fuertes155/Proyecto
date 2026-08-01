@@ -3,6 +3,7 @@ import '../../data/models/transfer_request_model.dart';
 import '../../data/models/verify_recipient_model.dart';
 import '../../data/models/deposit_request_model.dart';
 import '../../data/models/recent_recipient_model.dart';
+import '../../data/models/movement_model.dart';
 
 abstract class TransfersRepository {
   Future<CoreAccountModel> getMyAccount();
@@ -14,4 +15,5 @@ abstract class TransfersRepository {
   Future<String> generatePseLink(double amount, String returnUrl);
   Future<String> createNativePseDeposit(double amount, String bankCode, String returnUrl);
   Future<String> getStatementCsv({required int year, required int month});
+  Future<List<MovementModel>> getMovements();
 }

@@ -6,6 +6,7 @@ import '../models/transfer_request_model.dart';
 import '../models/deposit_request_model.dart';
 import '../models/verify_recipient_model.dart';
 import '../models/recent_recipient_model.dart';
+import '../models/movement_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final transfersRemoteDataSourceProvider = Provider<TransfersRemoteDataSource>((ref) {
@@ -54,6 +55,13 @@ class TransfersRemoteDataSource {
 
   Future<void> deposit(DepositRequestModel request) async {
     await _dio.post('/v1/accounts/deposit', data: request.toJson());
+  }
+
+  Future<List<MovementModel>> getMovements() async {
+    final response = await _dio.get('/v1/accounts/movements');
+    return (response.data as List<dynamic>)
+        .map((e) => MovementModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<String> getStatementCsv({required int year, required int month}) async {

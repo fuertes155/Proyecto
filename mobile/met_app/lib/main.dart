@@ -7,6 +7,7 @@ import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_windowmanager_plus/flutter_windowmanager_plus.dart';
 import 'package:freerasp/freerasp.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/config/app_config.dart';
 import 'core/notifications/push_notification_service.dart';
@@ -16,6 +17,11 @@ import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // DateFormat con locale explícito (p. ej. 'es_CO' en la pantalla de
+  // movimientos) lanza LocaleDataException si esto no se llama antes:
+  // los símbolos de mes/día en español no vienen cargados por defecto.
+  await initializeDateFormatting('es_CO', null);
 
   // Inicialización de Firebase
   if (!kIsWeb) {
