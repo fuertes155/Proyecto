@@ -1,7 +1,11 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../core/network/api_client_provider.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 
 /// Página de pago que se adapta a la plataforma:
 /// - **Web (Chrome/Firefox):** Abre el checkout en nueva pestaña + muestra pantalla de espera.
@@ -9,7 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 ///
 /// NOTA: webview_flutter no soporta Flutter Web. El WebView embebido se activará
 /// en la versión de producción para Android/iOS usando compilación condicional.
-class PaymentWebViewPage extends StatefulWidget {
+class PaymentWebViewPage extends ConsumerStatefulWidget {
   final String paymentUrl;
   final String method;
   final double amount;
@@ -22,12 +26,13 @@ class PaymentWebViewPage extends StatefulWidget {
   });
 
   @override
-  State<PaymentWebViewPage> createState() => _PaymentWebViewPageState();
+  ConsumerState<PaymentWebViewPage> createState() => _PaymentWebViewPageState();
 }
 
-class _PaymentWebViewPageState extends State<PaymentWebViewPage> {
+class _PaymentWebViewPageState extends ConsumerState<PaymentWebViewPage> {
   bool _launched = false;
   bool _isLaunching = false;
+  bool _confirming = false;
 
   @override
   void initState() {
@@ -66,6 +71,37 @@ class _PaymentWebViewPageState extends State<PaymentWebViewPage> {
           ),
         );
       }
+    }
+  }
+
+  /// SOLO builds debug: simula la aprobación del pago llamando directamente al
+  /// webhook simulado del backend (perfil "dev"), para poder probar el motor de
+  /// distribución de capital sin depender de credenciales reales de Wompi. Nunca
+  /// se compila en un build de release (kDebugMode es una const en tiempo de
+  /// compilación, el compilador elimina esta rama por completo).
+  Future<void> _simulateApprovalIfDebug() async {
+    if (!kDebugMode) return;
+    setState(() => _confirming = true);
+    try {
+      final userId = await ref.read(secureStorageProvider).readUserId();
+      if (userId == null) return;
+
+      final dio = ref.read(apiClientProvider);
+      final txId = 'TEST-${DateTime.now().millisecondsSinceEpoch}';
+      await dio.post('/v1/webhooks/mock-payment', data: {
+        'event': 'transaction.updated',
+        'data': {
+          'transactionId': txId,
+          'status': 'APPROVED',
+          'amount': widget.amount,
+          'userId': userId,
+        },
+      });
+    } catch (_) {
+      // Si falla, no bloquea el flujo: el usuario igual llega a la pantalla de
+      // espera y puede confirmar el pago por la vía real o reintentar luego.
+    } finally {
+      if (mounted) setState(() => _confirming = false);
     }
   }
 
@@ -171,22 +207,32 @@ class _PaymentWebViewPageState extends State<PaymentWebViewPage> {
                   width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: () {
-                      context.pushReplacement('/deposit/waiting', extra: {
-                        'method': widget.method,
-                        'amount': widget.amount,
-                      });
-                    },
+                    onPressed: _confirming
+                        ? null
+                        : () async {
+                            await _simulateApprovalIfDebug();
+                            if (!mounted) return;
+                            context.pushReplacement('/deposit/waiting', extra: {
+                              'method': widget.method,
+                              'amount': widget.amount,
+                            });
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0044ff),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text(
-                      'Ya pagué, continuar',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    child: _confirming
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text(
+                            'Ya pagué, continuar',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                   ),
                 ),
 

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'transfers_provider.dart';
+import '../../../home/presentation/providers/home_provider.dart';
 
 /// Estado del flujo de depósito.
 class DepositState {
@@ -149,6 +150,10 @@ class DepositNotifier extends StateNotifier<DepositState> {
   void markSuccess() {
     state = state.copyWith(isLoading: false, isSuccess: true, clearPaymentUrl: true);
     ref.invalidate(myAccountProvider);
+    // La pantalla de inicio (saldo, capital bloqueado, intereses) usa homeProvider,
+    // no myAccountProvider — sin esto, un depósito exitoso no se reflejaba ahí hasta
+    // hacer pull-to-refresh manual.
+    ref.invalidate(homeProvider);
   }
 
   void reset() {
