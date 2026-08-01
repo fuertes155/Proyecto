@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:flutter_windowmanager_plus/flutter_windowmanager_plus.dart';
 import 'package:freerasp/freerasp.dart';
 
 import 'core/config/app_config.dart';
@@ -31,7 +31,7 @@ Future<void> main() async {
 
   if (!kIsWeb && Platform.isAndroid) {
     try {
-      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      await FlutterWindowManagerPlus.addFlags(FlutterWindowManagerPlus.FLAG_SECURE);
     } catch (e) {
       debugPrint("Error setting secure flag: $e");
     }
