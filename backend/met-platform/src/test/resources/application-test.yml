@@ -38,6 +38,12 @@ met:
     private-key: test-priv-key
     integrity-secret: test-int-secret
     webhook-secret: test-webhook-secret
+    payouts:
+      api-url: http://localhost:0/wompi-payouts-test
+      api-key: test-payouts-api-key
+      principal-user-id: test-payouts-principal-user-id
+      source-account-id: test-payouts-source-account-id
+      webhook-secret: test-payouts-webhook-secret
   cors:
     allowed-origins:
       - http://localhost:3000

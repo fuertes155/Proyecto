@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 public record SubmitLoanApplicationRequest(
         @NotNull(message = "El monto solicitado es obligatorio") 
         @DecimalMin(value = "500000", message = "El monto mínimo es 500,000") 
-        @DecimalMax(value = "50000000", message = "El monto máximo es 50,000,000") 
+        @DecimalMax(value = "60000000", message = "El monto máximo es 60,000,000")
         BigDecimal amount,
         
         @NotNull(message = "El plazo en meses es obligatorio") 

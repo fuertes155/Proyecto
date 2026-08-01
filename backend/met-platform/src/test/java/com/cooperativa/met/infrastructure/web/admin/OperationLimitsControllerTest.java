@@ -3,6 +3,7 @@ package com.cooperativa.met.infrastructure.web.admin;
 import com.cooperativa.met.application.admin.dto.OperationLimitRequest;
 import com.cooperativa.met.application.admin.usecase.ManageOperationLimitsUseCase;
 import com.cooperativa.met.domain.admin.model.OperationLimit;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -57,8 +60,16 @@ class OperationLimitsControllerTest {
                 .andExpect(jsonPath("$[0].tipoOperacion").value("TRANSFER"));
     }
 
+    private UsernamePasswordAuthenticationToken jwtAdminAuth() {
+        // Replica cómo JwtAuthenticationFilter arma la autenticación en producción: el
+        // principal ES el UUID directamente (no un UserDetails), que es lo que exige
+        // (UUID) auth.getPrincipal() en el controlador. @WithMockUser no lo replica.
+        return new UsernamePasswordAuthenticationToken(
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), null,
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+    }
+
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldUpdateLimit() throws Exception {
         OperationLimit limit = OperationLimit.builder()
                 .id(UUID.randomUUID())
@@ -75,6 +86,8 @@ class OperationLimitsControllerTest {
         String json = "{\"tipoOperacion\": \"TRANSFER\", \"montoDiarioMax\": 2000000, \"montoPorTransaccionMax\": 1000000}";
 
         mockMvc.perform(put("/v1/admin/limits").with(csrf())
+                .with(authentication(jwtAdminAuth()))
+                .servletPath("/v1/admin/limits")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())

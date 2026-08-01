@@ -2,6 +2,7 @@ package com.cooperativa.met.application.investment.usecase;
 
 import com.cooperativa.met.application.investment.dto.MicroInvestmentResponse;
 import com.cooperativa.met.application.investment.dto.PortfolioResponse;
+import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.investment.model.MicroInvestment;
 import com.cooperativa.met.domain.investment.model.MicroInvestmentPortfolio;
 import com.cooperativa.met.domain.investment.port.InvestmentInstrumentPort;
@@ -32,10 +33,16 @@ public class GetInvestmentPortfolioUseCase {
                 .toList();
     }
 
-    /** Obtiene un portfolio específico por id. */
-    public PortfolioResponse getById(UUID portfolioId) {
+    /** Obtiene un portfolio específico por id. Solo el dueño del portfolio puede consultarlo. */
+    public PortfolioResponse getById(UUID userId, UUID portfolioId) {
         MicroInvestmentPortfolio portfolio = portfolioPort.findById(portfolioId)
                 .orElseThrow(() -> new IllegalArgumentException("Portfolio no encontrado: " + portfolioId));
+
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new BusinessRuleException(
+                    "UNAUTHORIZED", "No tienes permiso para consultar este portfolio.");
+        }
+
         return buildResponse(portfolio);
     }
 

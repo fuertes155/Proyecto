@@ -1,6 +1,7 @@
 package com.cooperativa.met.application.account.usecase;
 
 import com.cooperativa.met.application.account.dto.DepositRequest;
+import com.cooperativa.met.application.compliance.service.SarlaftAlertEngine;
 import com.cooperativa.met.application.investment.usecase.DistributeDepositUseCase;
 import com.cooperativa.met.domain.account.model.AccountStatus;
 import com.cooperativa.met.domain.account.model.CoreAccount;
@@ -37,6 +38,8 @@ class DepositUseCaseTest {
     private DistributeDepositUseCase distributeDepositUseCase;
     @Mock
     private UserRepositoryPort userRepository;
+    @Mock
+    private SarlaftAlertEngine sarlaftAlertEngine;
 
     @InjectMocks
     private DepositUseCase depositUseCase;

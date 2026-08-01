@@ -5,7 +5,9 @@ import com.cooperativa.met.application.account.dto.TransferRequest;
 import com.cooperativa.met.application.account.usecase.ExecuteTransferUseCase;
 import com.cooperativa.met.application.account.usecase.GetMyAccountUseCase;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
 import com.cooperativa.met.infrastructure.security.DeviceAttestationService;
+import com.cooperativa.met.infrastructure.security.HmacSigner;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -35,6 +37,9 @@ class CoreAccountControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private MetSecurityProperties securityProperties;
+
     @MockBean
     private GetMyAccountUseCase getMyAccountUseCase;
 
@@ -58,9 +63,10 @@ class CoreAccountControllerTest {
         Mockito.when(getMyAccountUseCase.execute(any())).thenReturn(mockResponse);
 
         // Act & Assert
+        String timestamp = String.valueOf(System.currentTimeMillis());
         mockMvc.perform(get("/v1/accounts/me")
-                .header("X-Signature", "test-skip-hmac")
-                .header("X-Timestamp", String.valueOf(System.currentTimeMillis()))
+                .header("X-Signature", sign("GET", "/v1/accounts/me", timestamp, ""))
+                .header("X-Timestamp", timestamp)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountNumber").value("100020003000"))
@@ -77,14 +83,24 @@ class CoreAccountControllerTest {
                 .when(executeTransferUseCase).execute(any(), any(TransferRequest.class), any());
 
         String validJson = "{\"destinationAccountId\": \"550e8400-e29b-41d4-a716-446655440000\", \"amount\": 5000.00, \"concept\": \"pago\", \"pin\": \"1234\", \"otp\": \"123456\", \"idempotencyKey\": \"test-key\"}";
+        String timestamp = String.valueOf(System.currentTimeMillis());
 
         // Act & Assert
         mockMvc.perform(post("/v1/accounts/transactions/transfer").with(csrf())
-                .header("X-Signature", "test-skip-hmac")
-                .header("X-Timestamp", String.valueOf(System.currentTimeMillis()))
+                .servletPath("/v1/accounts/transactions/transfer")
+                .header("X-Signature", sign("POST", "/v1/accounts/transactions/transfer", timestamp, validJson))
+                .header("X-Timestamp", timestamp)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validJson))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.message").value("Fondos insuficientes"));
+    }
+
+    private String sign(String method, String path, String timestamp, String body) {
+        String secret = securityProperties.getEncryption().getHmacSecret();
+        if (secret == null || secret.isBlank()) {
+            secret = securityProperties.getEncryption().getAesKey();
+        }
+        return HmacSigner.sign(method, path, timestamp, body, secret);
     }
 }

@@ -4,6 +4,7 @@ import com.cooperativa.met.application.admin.dto.RiskRuleRequest;
 import com.cooperativa.met.application.admin.usecase.ManageRiskRulesUseCase;
 import com.cooperativa.met.domain.admin.model.RiskAction;
 import com.cooperativa.met.domain.admin.model.RiskRule;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -12,6 +13,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -61,8 +64,16 @@ class RiskRulesControllerTest {
                 .andExpect(jsonPath("$[0].nombre").value("MAX_DAILY_AMOUNT"));
     }
 
+    private UsernamePasswordAuthenticationToken jwtAdminAuth() {
+        // Replica cómo JwtAuthenticationFilter arma la autenticación en producción: el
+        // principal ES el UUID directamente (no un UserDetails), que es lo que exige
+        // (UUID) auth.getPrincipal() en el controlador. @WithMockUser no lo replica.
+        return new UsernamePasswordAuthenticationToken(
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), null,
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+    }
+
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldCreateRiskRule() throws Exception {
         RiskRule rule = RiskRule.builder()
                 .id(UUID.randomUUID())
@@ -80,6 +91,8 @@ class RiskRulesControllerTest {
         String json = "{\"nombre\": \"MAX_TX\", \"condicion\": \"amount > 5000000\", \"accion\": \"BLOCK\", \"descripcion\": \"Test\"}";
 
         mockMvc.perform(post("/v1/admin/risk-rules").with(csrf())
+                .with(authentication(jwtAdminAuth()))
+                .servletPath("/v1/admin/risk-rules")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -87,7 +100,6 @@ class RiskRulesControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldToggleRiskRule() throws Exception {
         UUID ruleId = UUID.randomUUID();
         RiskRule rule = RiskRule.builder()
@@ -104,6 +116,8 @@ class RiskRulesControllerTest {
         Mockito.when(manageRiskRulesUseCase.toggleActivo(any(UUID.class), any(UUID.class), anyBoolean(), anyString())).thenReturn(rule);
 
         mockMvc.perform(patch("/v1/admin/risk-rules/" + ruleId + "/toggle?activo=true")
+                .with(authentication(jwtAdminAuth()))
+                .servletPath("/v1/admin/risk-rules/" + ruleId + "/toggle")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.activo").value(true));

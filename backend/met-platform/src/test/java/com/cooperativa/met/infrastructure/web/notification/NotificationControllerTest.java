@@ -4,6 +4,8 @@ import com.cooperativa.met.application.notification.dto.NotificationResponse;
 import com.cooperativa.met.application.notification.usecase.GetNotificationsUseCase;
 import com.cooperativa.met.application.notification.usecase.GetUnreadNotificationsCountUseCase;
 import com.cooperativa.met.application.notification.usecase.MarkNotificationReadUseCase;
+import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+import com.cooperativa.met.infrastructure.security.HmacSigner;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -33,6 +35,9 @@ class NotificationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private MetSecurityProperties securityProperties;
 
     @MockBean
     private GetNotificationsUseCase getNotificationsUseCase;
@@ -83,9 +88,23 @@ class NotificationControllerTest {
 
         Mockito.doNothing().when(markNotificationReadUseCase).execute(any(UUID.class), any(UUID.class));
 
-        mockMvc.perform(put("/v1/notifications/" + notificationId + "/read").with(csrf())
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String path = "/v1/notifications/" + notificationId + "/read";
+
+        mockMvc.perform(put(path).with(csrf())
+                .servletPath(path)
+                .header("X-Signature", sign("PUT", path, timestamp, ""))
+                .header("X-Timestamp", timestamp)
                 .with(authentication(getAuth()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
+    }
+
+    private String sign(String method, String path, String timestamp, String body) {
+        String secret = securityProperties.getEncryption().getHmacSecret();
+        if (secret == null || secret.isBlank()) {
+            secret = securityProperties.getEncryption().getAesKey();
+        }
+        return HmacSigner.sign(method, path, timestamp, body, secret);
     }
 }

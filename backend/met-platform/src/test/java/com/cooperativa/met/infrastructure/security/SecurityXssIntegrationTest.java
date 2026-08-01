@@ -2,6 +2,7 @@ package com.cooperativa.met.infrastructure.security;
 
 import com.cooperativa.met.application.account.dto.TransferRequest;
 import com.cooperativa.met.application.account.usecase.ExecuteTransferUseCase;
+import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -27,6 +28,9 @@ class SecurityXssIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private MetSecurityProperties securityProperties;
 
     @MockBean
     private ExecuteTransferUseCase executeTransferUseCase;
@@ -55,9 +59,11 @@ class SecurityXssIntegrationTest {
                 """.formatted(maliciousConcept);
 
         // Act
+        String timestamp = String.valueOf(System.currentTimeMillis());
         mockMvc.perform(post("/v1/accounts/transactions/transfer")
-                .header("X-Signature", "test-skip-hmac")
-                .header("X-Timestamp", String.valueOf(System.currentTimeMillis()))
+                .servletPath("/v1/accounts/transactions/transfer")
+                .header("X-Signature", sign("POST", "/v1/accounts/transactions/transfer", timestamp, jsonPayload))
+                .header("X-Timestamp", timestamp)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonPayload))
                 .andExpect(status().isOk());
@@ -70,5 +76,13 @@ class SecurityXssIntegrationTest {
         
         // Verificamos que el Sanitizador Global de Jackson haya interceptado y limpiado el texto
         assertEquals(safeConcept, capturedRequest.concept(), "El ataque XSS debió ser neutralizado por el sanitizador.");
+    }
+
+    private String sign(String method, String path, String timestamp, String body) {
+        String secret = securityProperties.getEncryption().getHmacSecret();
+        if (secret == null || secret.isBlank()) {
+            secret = securityProperties.getEncryption().getAesKey();
+        }
+        return HmacSigner.sign(method, path, timestamp, body, secret);
     }
 }

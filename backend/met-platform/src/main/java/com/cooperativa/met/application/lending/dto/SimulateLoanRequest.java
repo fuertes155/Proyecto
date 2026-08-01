@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record SimulateLoanRequest(
-        @NotNull @DecimalMin("500000") @DecimalMax("50000000") BigDecimal amount,
+        @NotNull @DecimalMin("500000") @DecimalMax("60000000") BigDecimal amount,
         @Min(6) @Max(60) Integer termMonths
 ) {
 }

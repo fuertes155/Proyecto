@@ -14,7 +14,7 @@ import java.util.UUID;
 public final class FrenchAmortizationCalculator {
 
     private static final BigDecimal MIN_AMOUNT = new BigDecimal("500000");
-    private static final BigDecimal MAX_AMOUNT = new BigDecimal("50000000");
+    private static final BigDecimal MAX_AMOUNT = new BigDecimal("60000000");
     private static final int MIN_TERM = 6;
     private static final int MAX_TERM = 60;
     private static final BigDecimal DEFAULT_ANNUAL_RATE = new BigDecimal("0.2400");
@@ -113,7 +113,7 @@ public final class FrenchAmortizationCalculator {
     private static void validate(BigDecimal amount, int termMonths) {
         if (amount.compareTo(MIN_AMOUNT) < 0 || amount.compareTo(MAX_AMOUNT) > 0) {
             throw new BusinessRuleException("INVALID_AMOUNT",
-                    "Monto debe estar entre $500.000 y $50.000.000");
+                    "Monto debe estar entre $500.000 y $60.000.000");
         }
         if (termMonths < MIN_TERM || termMonths > MAX_TERM) {
             throw new BusinessRuleException("INVALID_TERM", "Plazo debe estar entre 6 y 60 meses");

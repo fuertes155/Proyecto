@@ -255,7 +255,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 icon: Icons.history,
                 label: 'Movimientos',
                 isActive: activeIndex == 1,
-                onTap: () => context.push('/loans/applications'),
+                onTap: () => context.push('/statement'),
               ),
               _BottomNavItem(
                 icon: Icons.credit_card,
@@ -278,8 +278,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   int _activeTabIndexFromLocation(String location) {
     if (location.startsWith('/home')) return 0;
-    if (location.startsWith('/movements')) return 1;
-    if (location.startsWith('/cards')) return 2;
+    if (location.startsWith('/statement')) return 1;
+    if (location.startsWith('/investments')) return 2;
     if (location.startsWith('/profile')) return 3;
     return 0;
   }

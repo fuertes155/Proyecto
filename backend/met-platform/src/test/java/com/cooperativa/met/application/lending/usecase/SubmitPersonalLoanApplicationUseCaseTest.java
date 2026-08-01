@@ -10,6 +10,7 @@ import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.model.ComplianceListType;
 import com.cooperativa.met.domain.identity.model.ComplianceResult;
+import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.ComplianceCheckPort;
@@ -62,6 +63,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
         activeUser = User.builder()
                 .id(userId)
                 .status(UserStatus.ACTIVE)
+                .kycStatus(KycStatus.APPROVED)
                 .documentNumber("12345678")
                 .firstName("Juan")
                 .lastName("Pérez")
@@ -113,6 +115,18 @@ class SubmitPersonalLoanApplicationUseCaseTest {
                 () -> useCase.execute(userId, buildRequest(BigDecimal.TEN, 12, true)));
 
         assertEquals("USER_NOT_ACTIVE", ex.getCode());
+        verifyNoInteractions(applicationPort);
+    }
+
+    @Test
+    void execute_throwsKycRequired_whenUserHasNotCompletedBiometricKyc() {
+        User activeButNotVerified = activeUser.toBuilder().kycStatus(null).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(activeButNotVerified));
+
+        BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                () -> useCase.execute(userId, buildRequest(BigDecimal.TEN, 12, true)));
+
+        assertEquals("KYC_REQUIRED", ex.getCode());
         verifyNoInteractions(applicationPort);
     }
 

@@ -10,6 +10,8 @@ import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.admin.model.FeeSchedule;
 import com.cooperativa.met.domain.admin.port.FeeScheduleRepositoryPort;
+import com.cooperativa.met.domain.identity.model.KycStatus;
+import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.LoanEligibilityDecision;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
@@ -36,6 +38,7 @@ public class AdminLoanUseCase {
     private final NotificationRepositoryPort notificationRepository;
     private final FeeScheduleRepositoryPort feeRepository;
     private final GuaranteeFundService guaranteeFundService;
+    private final UserRepositoryPort userRepository;
 
     public List<PersonalLoanApplication> getAllLoans() {
         return loanApplicationPort.findAll();
@@ -48,6 +51,13 @@ public class AdminLoanUseCase {
 
         // Si se aprueba, realizar el desembolso
         if (status == LoanApplicationStatus.APPROVED && loan.getStatus() != LoanApplicationStatus.APPROVED) {
+            var user = userRepository.findById(loan.getUserId())
+                    .orElseThrow(() -> new BusinessRuleException("USER_NOT_FOUND", "Usuario no encontrado"));
+            if (user.getKycStatus() != KycStatus.APPROVED) {
+                throw new BusinessRuleException("KYC_REQUIRED",
+                        "No se puede desembolsar: el usuario no tiene la validación de identidad biométrica aprobada");
+            }
+
             BigDecimal fondoGarantias = feeRepository.findVigentes().stream()
                 .filter(f -> "FONDO_GARANTIAS".equals(f.getTipoTarifa()))
                 .findFirst()

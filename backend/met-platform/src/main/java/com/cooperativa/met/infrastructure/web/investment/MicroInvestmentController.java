@@ -66,8 +66,10 @@ public class MicroInvestmentController {
     /** Obtiene el detalle de un portfolio específico. */
     @GetMapping("/portfolio/{portfolioId}")
     public ResponseEntity<PortfolioResponse> getPortfolio(
-            @PathVariable UUID portfolioId) {
-        return ResponseEntity.ok(getPortfolioUseCase.getById(portfolioId));
+            @PathVariable UUID portfolioId,
+            Authentication auth) {
+        UUID userId = (UUID) auth.getPrincipal();
+        return ResponseEntity.ok(getPortfolioUseCase.getById(userId, portfolioId));
     }
 
     /** Cancela un portfolio antes del vencimiento. Solo devuelve el capital. */

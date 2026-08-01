@@ -40,6 +40,7 @@ class EmergencyLockControllerTest {
         String json = "{\"scope\": \"USER\", \"targetId\": \"12345678-1234-1234-1234-123456789012\", \"reason\": \"Suspicious activity\"}";
 
         mockMvc.perform(post("/v1/admin/emergency-lock").with(csrf())
+                .servletPath("/v1/admin/emergency-lock")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isOk())

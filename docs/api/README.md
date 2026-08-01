@@ -22,11 +22,10 @@ Puntos clave de la colección:
 
 Puedes importarla directamente desde Postman seleccionando el archivo anterior.
 
-> ⚠️ **Nota de seguridad**: `HmacSignatureFilter.java` acepta el valor literal `X-Signature: test-skip-hmac`
-> para saltarse la validación de firma, sin ninguna guarda de perfil/entorno en el filtro (solo se usa en
-> tests). Tal como está, cualquier cliente podría usarlo para evadir la integridad HMAC en producción. Vale
-> la pena revisar y restringirlo (p. ej. `@Profile("!prod")` o una bandera de configuración). Esta colección
-> no depende de ese atajo.
+> ✅ El atajo `X-Signature: test-skip-hmac` que existía en `HmacSignatureFilter.java` fue eliminado —
+> ya no hay ningún bypass de la firma HMAC en el filtro. Los tests de integración que lo usaban ahora
+> firman con `HmacSigner` (misma lógica que el filtro) en vez de depender de un backdoor. Esta colección
+> nunca dependió de ese atajo.
 
 ## 2. Swagger / OpenAPI (Desarrollo)
 En el entorno de producción, la documentación de Swagger está **deshabilitada** por razones de seguridad (`springdoc.api-docs.enabled=false`). 

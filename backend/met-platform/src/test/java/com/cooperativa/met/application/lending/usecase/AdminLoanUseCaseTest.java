@@ -9,6 +9,9 @@ import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.admin.model.FeeSchedule;
 import com.cooperativa.met.domain.admin.port.FeeScheduleRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.identity.model.KycStatus;
+import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.lending.model.LoanApplicationStatus;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
@@ -48,6 +51,8 @@ class AdminLoanUseCaseTest {
     private FeeScheduleRepositoryPort feeRepository;
     @Mock
     private GuaranteeFundService guaranteeFundService;
+    @Mock
+    private UserRepositoryPort userRepository;
 
     @InjectMocks
     private AdminLoanUseCase adminLoanUseCase;
@@ -57,12 +62,18 @@ class AdminLoanUseCaseTest {
     private PersonalLoanApplication loanApp;
     private CoreAccount account;
     private FeeSchedule fee;
+    private User kycApprovedUser;
 
     @BeforeEach
     void setUp() {
         loanId = UUID.randomUUID();
         userId = UUID.randomUUID();
-        
+
+        kycApprovedUser = User.builder()
+                .id(userId)
+                .kycStatus(KycStatus.APPROVED)
+                .build();
+
         loanApp = PersonalLoanApplication.builder()
                 .id(loanId)
                 .userId(userId)
@@ -88,9 +99,10 @@ class AdminLoanUseCaseTest {
     void updateLoanStatus_approved_disbursesAndNotifies() {
         // Arrange
         when(loanApplicationPort.findById(loanId)).thenReturn(Optional.of(loanApp));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(kycApprovedUser));
         when(feeRepository.findVigentes()).thenReturn(List.of(fee));
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(account));
-        
+
         PersonalLoanApplication updatedLoanApp = loanApp.toBuilder().status(LoanApplicationStatus.APPROVED).build();
         when(loanApplicationPort.save(any(PersonalLoanApplication.class))).thenReturn(updatedLoanApp);
 
@@ -120,6 +132,7 @@ class AdminLoanUseCaseTest {
         // El saldo bajó desde la solicitud: score 750 (RIESGO_MEDIO, 2x) sobre 100,000 -> máximo 200,000 < 1,000,000
         CoreAccount lowBalanceAccount = account.toBuilder().principalBalance(new BigDecimal("100000.00")).build();
         when(loanApplicationPort.findById(loanId)).thenReturn(Optional.of(loanApp));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(kycApprovedUser));
         when(feeRepository.findVigentes()).thenReturn(List.of(fee));
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(lowBalanceAccount));
 

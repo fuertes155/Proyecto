@@ -3,6 +3,7 @@ package com.cooperativa.met.infrastructure.security;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,13 +28,17 @@ public class DeviceAttestationFilter extends OncePerRequestFilter {
     private static final String ATTESTATION_HEADER = "X-Device-Attestation";
     private static final String PLATFORM_HEADER = "X-Platform"; // 'android' o 'ios'
 
-    // Rutas protegidas de alto riesgo que requieren atestacion de hardware
-    private static final String[] CRITICAL_PATHS = {
-        "/v1/auth/biometric/register",
-        "/v1/loans/apply",
-        "/v1/accounts/transactions/transfer",
-        "/v1/accounts/verify"
-    };
+    // Rutas + método protegidas de alto riesgo que requieren atestacion de hardware.
+    // Deben coincidir EXACTO (método Y path) con los @PostMapping/@GetMapping reales de
+    // los controladores — verificar aquí si se renombra algún endpoint crítico. Solo el
+    // par método+path exacto listado exige atestación; p. ej. GET /v1/loans/applications
+    // (listar) NO debe quedar atrapado por el POST al mismo path (aplicar a un préstamo).
+    private static final Set<String> CRITICAL_METHOD_PATHS = Set.of(
+        "POST /v1/auth/biometric",
+        "POST /v1/loans/applications",
+        "POST /v1/accounts/transactions/transfer",
+        "GET /v1/accounts/verify"
+    );
 
     private final DeviceAttestationService attestationService;
     private final ObjectMapper objectMapper;
@@ -76,8 +81,14 @@ public class DeviceAttestationFilter extends OncePerRequestFilter {
 
     private boolean isCriticalPath(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        for (String path : CRITICAL_PATHS) {
-            if (uri.endsWith(path)) return true;
+        String method = request.getMethod();
+        for (String methodPath : CRITICAL_METHOD_PATHS) {
+            int spaceIdx = methodPath.indexOf(' ');
+            String requiredMethod = methodPath.substring(0, spaceIdx);
+            String requiredPath = methodPath.substring(spaceIdx + 1);
+            if (requiredMethod.equalsIgnoreCase(method) && uri.endsWith(requiredPath)) {
+                return true;
+            }
         }
         return false;
     }

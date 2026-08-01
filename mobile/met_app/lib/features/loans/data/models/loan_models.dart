@@ -21,19 +21,73 @@ class SubmitLoanApplicationRequest {
     required this.amount,
     required this.termMonths,
     required this.purpose,
+    required this.hasAcceptedHabeasData,
     this.annualInterestRate,
   });
 
   final double amount;
   final int termMonths;
   final String purpose;
+  final bool hasAcceptedHabeasData;
   final double? annualInterestRate;
 
   Map<String, dynamic> toJson() => {
         'amount': amount,
         'termMonths': termMonths,
         'purpose': purpose,
+        'hasAcceptedHabeasData': hasAcceptedHabeasData,
         if (annualInterestRate != null) 'annualInterestRate': annualInterestRate,
+      };
+}
+
+class LoanEligibilityRequest {
+  LoanEligibilityRequest({required this.acceptedHabeasData});
+
+  final bool acceptedHabeasData;
+
+  Map<String, dynamic> toJson() => {'acceptedHabeasData': acceptedHabeasData};
+}
+
+/// Límites de crédito personalizados según el score real del usuario en
+/// DataCrédito y su saldo de ahorro (ver `CreditScoringEngine` en backend).
+class LoanEligibility {
+  LoanEligibility({
+    required this.approved,
+    required this.tier,
+    required this.score,
+    required this.maxAmount,
+    required this.maxTermMonths,
+    required this.annualInterestRate,
+    this.reason,
+  });
+
+  factory LoanEligibility.fromJson(Map<String, dynamic> json) {
+    return LoanEligibility(
+      approved: json['approved'] as bool,
+      tier: json['tier'] as String,
+      score: json['score'] as int,
+      maxAmount: (json['maxAmount'] as num).toDouble(),
+      maxTermMonths: json['maxTermMonths'] as int,
+      annualInterestRate: (json['annualInterestRate'] as num).toDouble(),
+      reason: json['reason'] as String?,
+    );
+  }
+
+  final bool approved;
+  final String tier;
+  final int score;
+  final double maxAmount;
+  final int maxTermMonths;
+  final double annualInterestRate;
+  final String? reason;
+
+  String get tierLabel => switch (tier) {
+        'PRIME' => 'Prime',
+        'RIESGO_BAJO' => 'Riesgo bajo',
+        'RIESGO_MEDIO' => 'Riesgo medio',
+        'RIESGO_ALTO' => 'Riesgo alto',
+        'RECHAZADO' => 'No calificas',
+        _ => tier,
       };
 }
 

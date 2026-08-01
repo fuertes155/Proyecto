@@ -73,10 +73,6 @@ class QuickActions extends StatelessWidget {
     );
   }
 
-  void _showTransferSheet(BuildContext context) {
-    context.push('/transfer');
-  }
-
   void _showPaySheet(BuildContext context) {
     _showActionSheet(context, 'Pagar Servicios', Icons.payment, Column(
       children: [
@@ -387,11 +383,6 @@ class QuickActions extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _QuickAction(
-          icon: Icons.swap_horiz,
-          label: 'Transferir',
-          onTap: () => _showTransferSheet(context),
-        ),
         _QuickAction(
           icon: Icons.account_balance_wallet,
           label: 'Depósito',

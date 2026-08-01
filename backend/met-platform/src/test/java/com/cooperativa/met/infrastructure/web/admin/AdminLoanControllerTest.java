@@ -85,6 +85,7 @@ class AdminLoanControllerTest {
         Mockito.when(adminLoanUseCase.updateLoanStatus(eq(loanId), eq(LoanApplicationStatus.APPROVED))).thenReturn(loan);
 
         mockMvc.perform(put("/v1/admin/loans/" + loanId + "/status?status=APPROVED").with(csrf())
+                .servletPath("/v1/admin/loans/" + loanId + "/status")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"));

@@ -2,8 +2,10 @@ package com.cooperativa.met.application.lending.mapper;
 
 import com.cooperativa.met.application.lending.dto.AmortizationInstallmentResponse;
 import com.cooperativa.met.application.lending.dto.LoanApplicationResponse;
+import com.cooperativa.met.application.lending.dto.LoanEligibilityResponse;
 import com.cooperativa.met.application.lending.dto.LoanSimulationResponse;
 import com.cooperativa.met.domain.lending.model.AmortizationInstallment;
+import com.cooperativa.met.domain.lending.model.LoanEligibilityDecision;
 import com.cooperativa.met.domain.lending.model.LoanSimulationResult;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import org.springframework.stereotype.Component;
@@ -59,6 +61,18 @@ public class LendingMapper {
                 application.getRiskTier() != null ? application.getRiskTier().name() : null,
                 application.getSubmittedAt(),
                 List.of()
+        );
+    }
+
+    public LoanEligibilityResponse toResponse(LoanEligibilityDecision decision) {
+        return new LoanEligibilityResponse(
+                decision.isApproved(),
+                decision.getTier().name(),
+                decision.getScore(),
+                decision.getMaxAmount(),
+                decision.getMaxTermMonths(),
+                decision.getAnnualInterestRate(),
+                decision.getReason()
         );
     }
 

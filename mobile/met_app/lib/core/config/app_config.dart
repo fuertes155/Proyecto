@@ -7,16 +7,34 @@ class AppConfig {
     const fromEnv = String.fromEnvironment('API_BASE_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
 
-    // En desarrollo, el backend local corre en 8080.
-    // Ajusta esta URL con --dart-define=API_BASE_URL si tu API está en otro host.
-    return 'http://localhost:8080/api';
+    // 'localhost' NO sirve para Android (ni emulador ni dispositivo físico):
+    // en el emulador se refiere al propio emulador, no al host. Usamos la IP
+    // de la red Wi-Fi del host, que en la práctica también funciona desde el
+    // emulador (su NAT por defecto sale a la red del host), además del
+    // dispositivo físico real conectado a la misma red.
+    //
+    // Si cambias de red Wi-Fi, esta IP cambiará — actualízala (o corre con
+    // --dart-define=API_BASE_URL=http://TU_IP:8080/api). Para el emulador
+    // también puedes forzar --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
+    // si por lo que sea la IP de host no le resuelve.
+    return 'http://192.168.1.34:8080/api';
   }
 
   static String get hmacSecret {
     const fromEnv = String.fromEnvironment('HMAC_SECRET');
     if (fromEnv.isNotEmpty) return fromEnv;
 
-    // Fallback para desarrollo local.
+    // En release NO hay fallback: un build de producción sin --dart-define=HMAC_SECRET=...
+    // firmaría todo el tráfico con un secreto público, inutilizando el control. Mejor que
+    // el build falle en arranque a que salga así a producción en silencio.
+    if (kReleaseMode) {
+      throw StateError(
+        'HMAC_SECRET no fue provisto en el build de release. '
+        'Compila con --dart-define=HMAC_SECRET=<secreto real>.',
+      );
+    }
+
+    // Fallback solo para desarrollo local (debug/profile).
     return 'D3vHmacS3cr3tKey123!@#';
   }
 

@@ -1,9 +1,12 @@
 package com.cooperativa.met.infrastructure.web.lending;
 
 import com.cooperativa.met.application.lending.dto.LoanApplicationResponse;
+import com.cooperativa.met.application.lending.dto.LoanEligibilityRequest;
+import com.cooperativa.met.application.lending.dto.LoanEligibilityResponse;
 import com.cooperativa.met.application.lending.dto.LoanSimulationResponse;
 import com.cooperativa.met.application.lending.dto.SimulateLoanRequest;
 import com.cooperativa.met.application.lending.dto.SubmitLoanApplicationRequest;
+import com.cooperativa.met.application.lending.usecase.GetLoanEligibilityUseCase;
 import com.cooperativa.met.application.lending.usecase.GetPersonalLoanApplicationUseCase;
 import com.cooperativa.met.application.lending.usecase.ListPersonalLoanApplicationsUseCase;
 import com.cooperativa.met.application.lending.usecase.SimulatePersonalLoanUseCase;
@@ -32,10 +35,19 @@ public class PersonalLoanController {
     private final SubmitPersonalLoanApplicationUseCase submitUseCase;
     private final ListPersonalLoanApplicationsUseCase listUseCase;
     private final GetPersonalLoanApplicationUseCase getUseCase;
+    private final GetLoanEligibilityUseCase eligibilityUseCase;
 
     @PostMapping("/simulate")
     public ResponseEntity<LoanSimulationResponse> simulate(@Valid @RequestBody SimulateLoanRequest request) {
         return ResponseEntity.ok(simulateUseCase.execute(request));
+    }
+
+    @PostMapping("/eligibility")
+    public ResponseEntity<LoanEligibilityResponse> eligibility(
+            Authentication authentication,
+            @Valid @RequestBody LoanEligibilityRequest request) {
+        UUID userId = UUID.fromString(authentication.getName());
+        return ResponseEntity.ok(eligibilityUseCase.execute(userId, request));
     }
 
     @PostMapping("/applications")

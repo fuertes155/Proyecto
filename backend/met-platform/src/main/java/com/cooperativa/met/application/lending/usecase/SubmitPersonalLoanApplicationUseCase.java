@@ -6,6 +6,7 @@ import com.cooperativa.met.application.lending.mapper.LendingMapper;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.model.ComplianceListType;
 import com.cooperativa.met.domain.identity.model.ComplianceResult;
+import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.ComplianceCheckPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
@@ -56,6 +57,10 @@ public class SubmitPersonalLoanApplicationUseCase {
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new BusinessRuleException("USER_NOT_ACTIVE", "Cuenta no activa");
+        }
+
+        if (user.getKycStatus() != KycStatus.APPROVED) {
+            throw new BusinessRuleException("KYC_REQUIRED", "Debe completar la validación de identidad biométrica para solicitar un préstamo");
         }
 
         if (applicationPort.hasPendingApplication(userId)) {

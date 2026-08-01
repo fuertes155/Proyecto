@@ -43,6 +43,7 @@ class SecurityIntegrationTest {
         // Escenario 3: Acceder a una ruta pública como el login no debe devolver 401
         // Devolverá 400 Bad Request porque no estamos enviando el body correcto, pero NO 401.
         mockMvc.perform(post("/v1/auth/login")
+                .servletPath("/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(status().isBadRequest());

@@ -104,6 +104,7 @@ class AdminUserControllerTest {
         Mockito.when(adminUserUseCase.updateKycStatus(eq(userId), eq(KycStatus.APPROVED))).thenReturn(user);
 
         mockMvc.perform(put("/v1/admin/users/" + userId + "/kyc?status=APPROVED").with(csrf())
+                .servletPath("/v1/admin/users/" + userId + "/kyc")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.kycStatus").value("APPROVED"));

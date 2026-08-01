@@ -7,6 +7,7 @@ import com.cooperativa.met.application.identity.usecase.LoginUseCase;
 import com.cooperativa.met.domain.identity.model.DocumentType;
 import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.UserStatus;
+import com.cooperativa.met.domain.identity.port.TokenPort;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -41,6 +42,9 @@ class AuthControllerTest {
     @MockBean
     private com.cooperativa.met.application.identity.usecase.LogoutUseCase logoutUseCase;
 
+    @MockBean
+    private TokenPort tokenPort;
+
     @Test
     void shouldReturnTokenOnSuccessfulLogin() throws Exception {
         AuthResponse mockResponse = AuthResponse.of(UUID.randomUUID(), "mocked-jwt-token", "refresh-token", 3600000L);
@@ -48,6 +52,7 @@ class AuthControllerTest {
         Mockito.when(loginUseCase.execute(Mockito.any(LoginRequest.class), Mockito.anyString())).thenReturn(mockResponse);
 
         mockMvc.perform(post("/v1/auth/login").with(csrf())
+                .servletPath("/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"documentType\": \"CC\", \"documentNumber\": \"123456789\", \"pin\": \"1234\", \"deviceId\": \"test-device-id\"}"))
                 .andExpect(status().isOk())
@@ -60,6 +65,7 @@ class AuthControllerTest {
         String invalidJson = "{\"password\": \"password123\"}";
 
         mockMvc.perform(post("/v1/auth/login").with(csrf())
+                .servletPath("/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidJson))
                 .andExpect(status().isBadRequest());
@@ -84,9 +90,10 @@ class AuthControllerTest {
 
         Mockito.when(registerUserUseCase.execute(Mockito.any())).thenReturn(mockResponse);
 
-        String json = "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"john@example.com\", \"phone\": \"+1234567890\", \"documentType\": \"CC\", \"documentNumber\": \"1234567890\", \"pin\": \"1234\", \"deviceId\": \"test\"}";
+        String json = "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"john@example.com\", \"phone\": \"3001234567\", \"documentType\": \"CC\", \"documentNumber\": \"1234567890\", \"pin\": \"1234\", \"deviceId\": \"test\", \"termsAccepted\": true}";
 
         mockMvc.perform(post("/v1/auth/register").with(csrf())
+                .servletPath("/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -94,11 +101,17 @@ class AuthControllerTest {
     }
 
     @Test
-    @org.springframework.security.test.context.support.WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
     void shouldLogoutUser() throws Exception {
         Mockito.doNothing().when(logoutUseCase).execute(Mockito.any(), Mockito.anyString());
+        // JwtAuthenticationFilter (real, no mockeado) valida el header Authorization en
+        // cada request; con un token no reconocido limpia el SecurityContext y responde 401,
+        // sin importar @WithMockUser. Mockeamos TokenPort para que "mock-token" valide igual
+        // que un JWT real en producción.
+        Mockito.when(tokenPort.validateAccessToken("mock-token"))
+                .thenReturn(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
 
         mockMvc.perform(post("/v1/auth/logout").with(csrf())
+                .servletPath("/v1/auth/logout")
                 .header("Authorization", "Bearer mock-token")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

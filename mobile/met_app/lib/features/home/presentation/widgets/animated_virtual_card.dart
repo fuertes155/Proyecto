@@ -176,7 +176,17 @@ class _AnimatedVirtualCardState extends ConsumerState<AnimatedVirtualCard> with 
                   );
                 },
                 loading: () => const CircularProgressIndicator(color: Colors.white),
-                error: (err, stack) => const Text('Error', style: TextStyle(color: Colors.white)),
+                error: (err, stack) => GestureDetector(
+                  onTap: () => ref.read(homeProvider.notifier).refresh(),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.refresh, color: Colors.white, size: 18),
+                      SizedBox(width: 6),
+                      Text('Toca para reintentar', style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
               );
             },
           ),

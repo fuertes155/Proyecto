@@ -3,6 +3,7 @@ package com.cooperativa.met.infrastructure.web.admin;
 import com.cooperativa.met.application.admin.dto.FeeScheduleRequest;
 import com.cooperativa.met.application.admin.usecase.ManageFeesUseCase;
 import com.cooperativa.met.domain.admin.model.FeeSchedule;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -59,8 +62,16 @@ class FeesControllerTest {
                 .andExpect(jsonPath("$[0].tipoTarifa").value("WITHDRAWAL"));
     }
 
+    private UsernamePasswordAuthenticationToken jwtAdminAuth() {
+        // Replica cómo JwtAuthenticationFilter arma la autenticación en producción: el
+        // principal ES el UUID directamente (no un UserDetails), que es lo que exige
+        // (UUID) auth.getPrincipal() en el controlador. @WithMockUser no lo replica.
+        return new UsernamePasswordAuthenticationToken(
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), null,
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+    }
+
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldCreateFee() throws Exception {
         FeeSchedule fee = FeeSchedule.builder()
                 .id(UUID.randomUUID())
@@ -75,9 +86,11 @@ class FeesControllerTest {
 
         Mockito.when(manageFeesUseCase.create(any(UUID.class), any(FeeScheduleRequest.class), anyString())).thenReturn(fee);
 
-        String json = "{\"tipoTarifa\": \"TRANSFER\", \"valor\": 1500, \"descripcion\": \"Transfer fee\", \"esPorcentaje\": false}";
+        String json = "{\"tipoTarifa\": \"TRANSFER\", \"valor\": 1500, \"descripcion\": \"Transfer fee\", \"esPorcentaje\": false, \"vigentDesde\": \"2026-01-01T00:00:00Z\"}";
 
         mockMvc.perform(post("/v1/admin/fees").with(csrf())
+                .with(authentication(jwtAdminAuth()))
+                .servletPath("/v1/admin/fees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())

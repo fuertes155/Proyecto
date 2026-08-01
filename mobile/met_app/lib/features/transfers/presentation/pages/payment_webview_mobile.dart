@@ -25,8 +25,11 @@ class _MobileWebViewPageState extends State<MobileWebViewPage> {
   bool _isLoading = true;
   String? _errorMessage;
 
-  static const _successIndicators = ['metapp://deposit/success', 'deposit/success'];
-  static const _failureIndicators = ['metapp://deposit/failure', 'deposit/failure', 'deposit/cancel'];
+  // Coincidencia EXACTA de esquema+host+path del deep link de retorno — nunca por
+  // substring, para que una redirección maliciosa con "deposit/success" en algún
+  // parámetro de query no pueda hacerse pasar por el retorno real de Wompi.
+  static const _successDeepLink = 'metapp://deposit/success';
+  static const _failureDeepLinks = ['metapp://deposit/failure', 'metapp://deposit/cancel'];
 
   @override
   void initState() {
@@ -38,13 +41,16 @@ class _MobileWebViewPageState extends State<MobileWebViewPage> {
         NavigationDelegate(
           onPageStarted: (url) {
             setState(() => _isLoading = true);
-            _checkCompletion(url);
           },
           onPageFinished: (url) {
             setState(() => _isLoading = false);
-            _checkCompletion(url);
           },
           onNavigationRequest: (request) {
+            // El único punto de confianza para "pago exitoso": el deep link exacto que
+            // Wompi invoca al terminar el checkout. Cualquier otra URL (banco PSE, Nequi,
+            // pasarela de tarjetas, etc.) se deja navegar libremente dentro del WebView,
+            // ya que el checkout legítimamente redirige a decenas de dominios de bancos
+            // que no podemos enumerar de antemano.
             if (request.url.toLowerCase().startsWith('metapp://')) {
               _handleDeepLink(request.url);
               return NavigationDecision.prevent;
@@ -63,21 +69,15 @@ class _MobileWebViewPageState extends State<MobileWebViewPage> {
       ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
-  void _checkCompletion(String url) {
-    final lower = url.toLowerCase();
-    if (_successIndicators.any((i) => lower.contains(i))) {
-      _onSuccess();
-    } else if (_failureIndicators.any((i) => lower.contains(i))) {
-      _onFailure();
-    }
-  }
-
   void _handleDeepLink(String url) {
-    if (_successIndicators.any((i) => url.toLowerCase().contains(i))) {
+    final normalized = url.toLowerCase().split('?').first;
+    if (normalized == _successDeepLink) {
       _onSuccess();
-    } else {
+    } else if (_failureDeepLinks.contains(normalized)) {
       _onFailure();
     }
+    // Cualquier otro esquema metapp:// desconocido se ignora (ya se previno la
+    // navegación); no se interpreta como éxito ni como fallo.
   }
 
   void _onSuccess() {

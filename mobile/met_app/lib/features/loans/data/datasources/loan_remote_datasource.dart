@@ -18,6 +18,12 @@ class LoanRemoteDataSource {
     return LoanSimulationResult.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<LoanEligibility> getEligibility(LoanEligibilityRequest request) async {
+    final response =
+        await _dio.post('/v1/loans/eligibility', data: request.toJson());
+    return LoanEligibility.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<LoanApplication> submitApplication(
       SubmitLoanApplicationRequest request) async {
     final response =

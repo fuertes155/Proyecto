@@ -8,6 +8,8 @@ import com.cooperativa.met.application.compliance.usecase.GetRegulatoryReportUse
 import com.cooperativa.met.application.compliance.usecase.ListRegulatoryReportsUseCase;
 import com.cooperativa.met.domain.compliance.model.ReportStatus;
 import com.cooperativa.met.domain.compliance.model.SupersolidariaReportType;
+import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+import com.cooperativa.met.infrastructure.security.HmacSigner;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -38,6 +40,9 @@ class RegulatoryReportControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private MetSecurityProperties securityProperties;
+
     @MockBean
     private GenerateSupersolidariaReportUseCase generateUseCase;
     @MockBean
@@ -48,7 +53,7 @@ class RegulatoryReportControllerTest {
     private DownloadRegulatoryReportUseCase downloadUseCase;
 
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
+    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldListReportTypes() throws Exception {
         mockMvc.perform(get("/v1/compliance/reports/types")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -57,7 +62,7 @@ class RegulatoryReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
+    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldGenerateReport() throws Exception {
         RegulatoryReportResponse response = new RegulatoryReportResponse(
                 UUID.randomUUID(),
@@ -77,8 +82,12 @@ class RegulatoryReportControllerTest {
         Mockito.when(generateUseCase.execute(any(UUID.class), any(GenerateReportRequest.class))).thenReturn(response);
 
         String json = "{\"reportType\": \"ASOCIADOS\", \"year\": 2026, \"month\": 7}";
+        String timestamp = String.valueOf(System.currentTimeMillis());
 
         mockMvc.perform(post("/v1/compliance/reports/generate").with(csrf())
+                .servletPath("/v1/compliance/reports/generate")
+                .header("X-Signature", sign("POST", "/v1/compliance/reports/generate", timestamp, json))
+                .header("X-Timestamp", timestamp)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -86,7 +95,7 @@ class RegulatoryReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
+    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
     void shouldListReports() throws Exception {
         RegulatoryReportResponse response = new RegulatoryReportResponse(
                 UUID.randomUUID(),
@@ -109,5 +118,13 @@ class RegulatoryReportControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].status").value("COMPLETED"));
+    }
+
+    private String sign(String method, String path, String timestamp, String body) {
+        String secret = securityProperties.getEncryption().getHmacSecret();
+        if (secret == null || secret.isBlank()) {
+            secret = securityProperties.getEncryption().getAesKey();
+        }
+        return HmacSigner.sign(method, path, timestamp, body, secret);
     }
 }

@@ -31,17 +31,10 @@ public class DeviceAttestationService {
         }
 
         try {
-            // TODO: Integrar cliente de Google API y cliente JWT de Apple.
-            // Para la arquitectura actual, simulamos la validación.
-            // Si el token es de "desarrollo", lo permitimos.
-            if ("dev-attestation-token-123".equals(token)) {
-                return true;
-            }
-
-            log.info("Verificando token de integridad en plataforma [{}]: {}", platform, token.substring(0, Math.min(10, token.length())) + "...");
-            
-            // Simulación de respuesta exitosa. En producción esto debe retornar 
-            // el resultado real de la API de Google/Apple.
+            // TODO: Integrar cliente de Google Play Integrity API y Apple App Attest/DeviceCheck.
+            // Sin esa integración, este método NO verifica nada real — solo exige que llegue
+            // algún token no vacío. No confiar en él como control de seguridad hasta implementarlo.
+            log.warn("Atestación de dispositivo no implementada: aceptando token sin verificación real. Plataforma [{}]", platform);
             return true;
         } catch (Exception e) {
             log.error("Error validando integridad del dispositivo", e);

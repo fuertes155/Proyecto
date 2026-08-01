@@ -16,6 +16,8 @@ import com.cooperativa.met.application.solidarity.usecase.RequestMicroLoanUseCas
 import com.cooperativa.met.application.solidarity.usecase.ReviewMicroLoanUseCase;
 import com.cooperativa.met.domain.solidarity.model.GroupStatus;
 import com.cooperativa.met.domain.solidarity.model.MemberRole;
+import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+import com.cooperativa.met.infrastructure.security.HmacSigner;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -45,6 +47,9 @@ class SolidarityControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private MetSecurityProperties securityProperties;
 
     @MockBean private CreateSolidarityGroupUseCase createGroupUseCase;
     @MockBean private JoinSolidarityGroupUseCase joinGroupUseCase;
@@ -82,8 +87,12 @@ class SolidarityControllerTest {
         Mockito.when(createGroupUseCase.execute(any(UUID.class), any(CreateSolidarityGroupRequest.class))).thenReturn(response);
 
         String json = "{\"name\": \"Fondo de Vecinos\", \"description\": \"Fondo para emergencias del barrio\"}";
+        String timestamp = String.valueOf(System.currentTimeMillis());
 
         mockMvc.perform(post("/v1/solidarity/groups").with(csrf())
+                .servletPath("/v1/solidarity/groups")
+                .header("X-Signature", sign("POST", "/v1/solidarity/groups", timestamp, json))
+                .header("X-Timestamp", timestamp)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -116,5 +125,13 @@ class SolidarityControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Fondo de Vecinos"));
+    }
+
+    private String sign(String method, String path, String timestamp, String body) {
+        String secret = securityProperties.getEncryption().getHmacSecret();
+        if (secret == null || secret.isBlank()) {
+            secret = securityProperties.getEncryption().getAesKey();
+        }
+        return HmacSigner.sign(method, path, timestamp, body, secret);
     }
 }

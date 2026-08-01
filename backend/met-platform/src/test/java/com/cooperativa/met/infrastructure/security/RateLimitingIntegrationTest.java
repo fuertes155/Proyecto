@@ -52,6 +52,7 @@ class RateLimitingIntegrationTest {
         for (int i = 0; i < 10; i++) {
             final int attempt = i + 1;
             mockMvc.perform(post("/v1/auth/login")
+                    .servletPath("/v1/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonPayload))
                     .andExpect(result -> {
@@ -66,6 +67,7 @@ class RateLimitingIntegrationTest {
         // Esta petición es la que hace que el contador pase a 11, excediendo el límite configurado de 10.
         // Debe ser rechazada instantáneamente por el filtro de seguridad.
         mockMvc.perform(post("/v1/auth/login")
+                .servletPath("/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonPayload))
                 .andExpect(status().isTooManyRequests());

@@ -8,6 +8,9 @@ import com.cooperativa.met.application.investment.usecase.GetInvestmentPortfolio
 import com.cooperativa.met.application.investment.usecase.GetInvestmentReturnsUseCase;
 import com.cooperativa.met.application.investment.usecase.ListInvestmentInstrumentsUseCase;
 import com.cooperativa.met.domain.investment.model.InvestmentInstrument;
+import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+import com.cooperativa.met.infrastructure.security.HmacSigner;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -38,6 +42,9 @@ class MicroInvestmentControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private MetSecurityProperties securityProperties;
 
     @MockBean
     private ListInvestmentInstrumentsUseCase listInstrumentsUseCase;
@@ -78,8 +85,15 @@ class MicroInvestmentControllerTest {
                 .andExpect(jsonPath("$[0].nombre").value("Agro-Inversión"));
     }
 
+    private UsernamePasswordAuthenticationToken jwtAuth() {
+        // Replica cómo JwtAuthenticationFilter arma la autenticación en producción: el
+        // principal ES el UUID directamente (no un UserDetails), que es lo que exige
+        // (UUID) auth.getPrincipal() en el controlador. @WithMockUser no lo replica.
+        return new UsernamePasswordAuthenticationToken(
+                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"), null, List.of());
+    }
+
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
     void shouldCreatePortfolio() throws Exception {
         PortfolioResponse response = new PortfolioResponse(
                 UUID.randomUUID(),
@@ -96,9 +110,14 @@ class MicroInvestmentControllerTest {
         Mockito.when(createPortfolioUseCase.execute(any(UUID.class), any(CreatePortfolioRequest.class)))
                 .thenReturn(response);
 
-        String json = "{\"totalAmount\": 500000}";
+        String json = "{\"montoTotal\": 500000}";
+        String timestamp = String.valueOf(System.currentTimeMillis());
 
         mockMvc.perform(post("/v1/investments/portfolio").with(csrf())
+                .with(authentication(jwtAuth()))
+                .servletPath("/v1/investments/portfolio")
+                .header("X-Signature", sign("POST", "/v1/investments/portfolio", timestamp, json))
+                .header("X-Timestamp", timestamp)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -106,15 +125,29 @@ class MicroInvestmentControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
     void shouldCancelPortfolio() throws Exception {
         UUID portfolioId = UUID.randomUUID();
 
         Mockito.doNothing().when(cancelUseCase).execute(any(UUID.class), any(UUID.class));
 
-        mockMvc.perform(delete("/v1/investments/portfolio/" + portfolioId).with(csrf())
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String servletPath = "/v1/investments/portfolio/" + portfolioId;
+
+        mockMvc.perform(delete(servletPath).with(csrf())
+                .with(authentication(jwtAuth()))
+                .servletPath(servletPath)
+                .header("X-Signature", sign("DELETE", servletPath, timestamp, ""))
+                .header("X-Timestamp", timestamp)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").exists());
+    }
+
+    private String sign(String method, String path, String timestamp, String body) {
+        String secret = securityProperties.getEncryption().getHmacSecret();
+        if (secret == null || secret.isBlank()) {
+            secret = securityProperties.getEncryption().getAesKey();
+        }
+        return HmacSigner.sign(method, path, timestamp, body, secret);
     }
 }

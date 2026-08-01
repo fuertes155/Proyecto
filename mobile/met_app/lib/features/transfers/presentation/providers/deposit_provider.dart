@@ -12,6 +12,7 @@ class DepositState {
     this.error,
     this.isSuccess = false,
     this.paymentUrl,
+    this.baselineBalance,
   });
 
   final double amount;
@@ -26,6 +27,11 @@ class DepositState {
   /// URL del checkout de Wompi — cuando se establece, la UI navega al WebView.
   final String? paymentUrl;
 
+  /// Saldo de la cuenta justo antes de abrir la pasarela de pago. La pantalla
+  /// de espera compara el saldo actual contra este valor para detectar,
+  /// sin atajos client-side, que el webhook real de Wompi ya acreditó el depósito.
+  final double? baselineBalance;
+
   DepositState copyWith({
     double? amount,
     String? method,
@@ -35,6 +41,7 @@ class DepositState {
     bool? isSuccess,
     String? paymentUrl,
     bool clearPaymentUrl = false,
+    double? baselineBalance,
   }) {
     return DepositState(
       amount: amount ?? this.amount,
@@ -44,6 +51,7 @@ class DepositState {
       error: error,
       isSuccess: isSuccess ?? this.isSuccess,
       paymentUrl: clearPaymentUrl ? null : (paymentUrl ?? this.paymentUrl),
+      baselineBalance: baselineBalance ?? this.baselineBalance,
     );
   }
 }
@@ -81,6 +89,7 @@ class DepositNotifier extends StateNotifier<DepositState> {
 
     try {
       final repository = ref.read(transfersRepositoryProvider);
+      final currentAccount = await repository.getMyAccount();
 
       // Todos los métodos de depósito generan un link de Wompi Checkout
       final url = await repository.generatePseLink(
@@ -88,7 +97,11 @@ class DepositNotifier extends StateNotifier<DepositState> {
         'metapp://deposit/success',
       );
 
-      state = state.copyWith(isLoading: false, paymentUrl: url);
+      state = state.copyWith(
+        isLoading: false,
+        paymentUrl: url,
+        baselineBalance: currentAccount.principalBalance,
+      );
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';
       state = state.copyWith(isLoading: false, error: msg);
@@ -113,12 +126,17 @@ class DepositNotifier extends StateNotifier<DepositState> {
 
     try {
       final repository = ref.read(transfersRepositoryProvider);
+      final currentAccount = await repository.getMyAccount();
       final url = await repository.createNativePseDeposit(
         state.amount,
         state.bankCode!,
         'metapp://deposit/success',
       );
-      state = state.copyWith(isLoading: false, paymentUrl: url);
+      state = state.copyWith(
+        isLoading: false,
+        paymentUrl: url,
+        baselineBalance: currentAccount.principalBalance,
+      );
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';
       state = state.copyWith(isLoading: false, error: msg);

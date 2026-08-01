@@ -25,6 +25,30 @@ class LoanSimulationNotifier extends StateNotifier<AsyncValue<LoanSimulationResu
   void clear() => state = const AsyncValue.data(null);
 }
 
+final loanEligibilityProvider =
+    StateNotifierProvider<LoanEligibilityNotifier, AsyncValue<LoanEligibility?>>((ref) {
+  return LoanEligibilityNotifier(ref.watch(loanRemoteDataSourceProvider));
+});
+
+class LoanEligibilityNotifier extends StateNotifier<AsyncValue<LoanEligibility?>> {
+  LoanEligibilityNotifier(this._dataSource) : super(const AsyncValue.data(null));
+
+  final LoanRemoteDataSource _dataSource;
+
+  Future<void> fetch() async {
+    state = const AsyncValue.loading();
+    try {
+      state = AsyncValue.data(
+        await _dataSource.getEligibility(LoanEligibilityRequest(acceptedHabeasData: true)),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  void clear() => state = const AsyncValue.data(null);
+}
+
 final loanApplicationsProvider = FutureProvider<List<LoanApplication>>((ref) {
   return ref.watch(loanRemoteDataSourceProvider).listApplications();
 });

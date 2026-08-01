@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import '../providers/deposit_provider.dart';
+import '../providers/transfers_provider.dart';
 
 class DepositWaitingPage extends ConsumerStatefulWidget {
   final String method;
@@ -17,40 +18,59 @@ class DepositWaitingPage extends ConsumerStatefulWidget {
 }
 
 class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
-  Timer? _timer;
+  Timer? _countdownTimer;
+  Timer? _pollTimer;
   int _secondsRemaining = 300; // 5 minutes
+  bool _timedOut = false;
 
   @override
   void initState() {
     super.initState();
-    // Simulate webhook arrival after some seconds if keys are not provided yet
-    _startTimer();
-    _simulateWebhookArrival();
+    _startCountdown();
+    _startPolling();
   }
 
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+  void _startCountdown() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         setState(() {
           _secondsRemaining--;
         });
       } else {
         timer.cancel();
+        _pollTimer?.cancel();
+        if (mounted && !ref.read(depositProvider).isSuccess) {
+          setState(() => _timedOut = true);
+        }
       }
     });
   }
 
-  void _simulateWebhookArrival() async {
-    // This is temporary until real Wompi webhook is implemented
-    await Future.delayed(const Duration(seconds: 5));
-    if (mounted) {
-      ref.read(depositProvider.notifier).submitDeposit('3000000000'); // Send dummy phone for now
-    }
+  /// El pago real se confirma vía el webhook de Wompi en el backend, que
+  /// acredita el saldo de la cuenta. Aquí solo observamos el saldo del
+  /// usuario y detectamos ese acredite — no hay ningún atajo client-side.
+  void _startPolling() {
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (!mounted) return;
+      final baseline = ref.read(depositProvider).baselineBalance;
+      if (baseline == null) return; // aún no se cargó el saldo previo al pago
+
+      ref.invalidate(myAccountProvider);
+      final account = await ref.read(myAccountProvider.future);
+
+      if (account.principalBalance >= baseline + widget._amount - 0.01) {
+        timer.cancel();
+        if (mounted) {
+          ref.read(depositProvider.notifier).markSuccess();
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _countdownTimer?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -215,6 +235,20 @@ class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
                         color: Colors.black87,
                       ),
                     ),
+                    if (_timedOut) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'No hemos recibido la confirmación todavía. Si ya pagaste, '
+                        'puede tardar unos minutos más — revisa tu saldo en el inicio.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.orange.shade800, fontSize: 13),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () => context.go('/home'),
+                        child: const Text('Volver al inicio'),
+                      ),
+                    ],
                   ],
                 ),
               ),
