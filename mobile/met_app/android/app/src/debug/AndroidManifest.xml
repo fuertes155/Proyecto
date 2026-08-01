@@ -4,4 +4,16 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application>
+        <!-- El backend de renderizado Impeller deja la pantalla en negro tras
+             que la app vuelve de segundo plano en algunos emuladores/GPUs
+             virtuales, aunque el árbol de widgets de Flutter siga bien por
+             dentro (confirmado con el VM service). Se usa Skia (el backend
+             anterior, más probado en emuladores) solo en debug; en release
+             sigue Impeller por defecto. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
+    </application>
 </manifest>

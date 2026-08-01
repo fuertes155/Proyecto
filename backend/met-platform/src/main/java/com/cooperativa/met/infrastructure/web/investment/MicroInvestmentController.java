@@ -1,7 +1,7 @@
 package com.cooperativa.met.infrastructure.web.investment;
 
 import com.cooperativa.met.application.investment.dto.CreatePortfolioRequest;
-import com.cooperativa.met.application.investment.dto.InvestmentBreakdownItemResponse;
+import com.cooperativa.met.application.investment.dto.InvestmentPortfolioSummaryResponse;
 import com.cooperativa.met.application.investment.dto.PortfolioResponse;
 import com.cooperativa.met.application.investment.usecase.*;
 import com.cooperativa.met.domain.investment.model.InvestmentInstrument;
@@ -26,7 +26,7 @@ import java.util.UUID;
  * GET  /v1/investments/portfolio/{id}       → detalle de un portfolio
  * DELETE /v1/investments/portfolio/{id}     → cancelar portfolio (retira capital)
  * GET  /v1/investments/returns              → historial de rendimientos cobrados
- * GET  /v1/investments/my-breakdown         → a qué deudores está fondeando mi capital (motor P2P)
+ * GET  /v1/investments/my-summary           → resumen agregado de en qué está trabajando mi capital (motor P2P)
  */
 @RestController
 @RequestMapping("/v1/investments")
@@ -38,7 +38,7 @@ public class MicroInvestmentController {
     private final GetInvestmentPortfolioUseCase getPortfolioUseCase;
     private final CancelMicroInvestmentUseCase cancelUseCase;
     private final GetInvestmentReturnsUseCase getReturnsUseCase;
-    private final GetInvestorFundingBreakdownUseCase getFundingBreakdownUseCase;
+    private final GetInvestorPortfolioSummaryUseCase getPortfolioSummaryUseCase;
 
     /** Lista los instrumentos de inversión activos disponibles para el usuario. */
     @GetMapping("/instruments")
@@ -90,10 +90,14 @@ public class MicroInvestmentController {
         return ResponseEntity.ok(getReturnsUseCase.listByUser(userId));
     }
 
-    /** A qué deudores concretos (o al fondo de liquidez) está fondeando el capital del usuario. */
-    @GetMapping("/my-breakdown")
-    public ResponseEntity<List<InvestmentBreakdownItemResponse>> getMyBreakdown(Authentication auth) {
+    /**
+     * Resumen agregado de en qué está trabajando el capital del usuario (activo,
+     * disponible por asignar, recuperado). No incluye a qué socios concretos
+     * quedó emparejado: esa identidad solo la ve un administrador.
+     */
+    @GetMapping("/my-summary")
+    public ResponseEntity<InvestmentPortfolioSummaryResponse> getMySummary(Authentication auth) {
         UUID userId = (UUID) auth.getPrincipal();
-        return ResponseEntity.ok(getFundingBreakdownUseCase.execute(userId));
+        return ResponseEntity.ok(getPortfolioSummaryUseCase.execute(userId));
     }
 }

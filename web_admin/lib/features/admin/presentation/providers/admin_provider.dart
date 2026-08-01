@@ -241,3 +241,25 @@ class RestrictiveListMatchesNotifier extends StateNotifier<AsyncValue<List<Restr
     return result;
   }
 }
+
+// ── Fondo de Garantías ──────────────────────────────────────────────────────
+final guaranteeFundProvider =
+    StateNotifierProvider<GuaranteeFundNotifier, AsyncValue<GuaranteeFundSummary>>((ref) {
+  return GuaranteeFundNotifier(ref.watch(adminRepositoryProvider));
+});
+
+class GuaranteeFundNotifier extends StateNotifier<AsyncValue<GuaranteeFundSummary>> {
+  GuaranteeFundNotifier(this._repo) : super(const AsyncValue.loading()) {
+    load();
+  }
+  final AdminRepository _repo;
+
+  Future<void> load() async {
+    state = const AsyncValue.loading();
+    try {
+      state = AsyncValue.data(await _repo.getGuaranteeFund());
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+}

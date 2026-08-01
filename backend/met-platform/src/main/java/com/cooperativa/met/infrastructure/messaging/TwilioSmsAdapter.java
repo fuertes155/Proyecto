@@ -11,6 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Component
@@ -60,7 +61,7 @@ public class TwilioSmsAdapter implements MessagingPort {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             String auth = accountSid + ":" + authToken;
-            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
             headers.set("Authorization", "Basic " + encodedAuth);
 
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();

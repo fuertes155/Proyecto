@@ -167,7 +167,9 @@ public class WebhookController {
             String dataToHash = timestamp + "." + payload + wompiWebhookSecret;
             String expectedHash = sha256Hex(dataToHash);
 
-            boolean valid = expectedHash.equals(receivedHash);
+            boolean valid = MessageDigest.isEqual(
+                    expectedHash.getBytes(StandardCharsets.UTF_8),
+                    receivedHash.getBytes(StandardCharsets.UTF_8));
             if (!valid) {
                 log.warn("Wompi signature mismatch. Expected: {}, Got: {}", expectedHash, receivedHash);
             }
@@ -190,7 +192,9 @@ public class WebhookController {
             sha256HMAC.init(secretKey);
             byte[] hashBytes = sha256HMAC.doFinal(payload.getBytes(StandardCharsets.UTF_8));
             String expectedSignature = java.util.Base64.getEncoder().encodeToString(hashBytes);
-            return expectedSignature.equals(signatureHeader);
+            return MessageDigest.isEqual(
+                    expectedSignature.getBytes(StandardCharsets.UTF_8),
+                    signatureHeader.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("Error calculating legacy HMAC signature", e);
             return false;

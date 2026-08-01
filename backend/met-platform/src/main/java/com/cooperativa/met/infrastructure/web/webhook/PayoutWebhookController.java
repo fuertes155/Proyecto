@@ -98,7 +98,9 @@ public class PayoutWebhookController {
                 if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
             }
-            boolean valid = hexString.toString().equals(receivedHash);
+            boolean valid = MessageDigest.isEqual(
+                    hexString.toString().getBytes(StandardCharsets.UTF_8),
+                    receivedHash.getBytes(StandardCharsets.UTF_8));
             if (!valid) {
                 log.warn("Firma de webhook de payouts no coincide");
             }

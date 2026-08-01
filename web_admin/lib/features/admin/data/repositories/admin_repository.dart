@@ -157,6 +157,12 @@ class AdminRepository {
     });
   }
 
+  // ── Fondo de Garantías ─────────────────────────────────────────────────────
+  Future<GuaranteeFundSummary> getGuaranteeFund() async {
+    final response = await _adminDio().get('/v1/admin/investments/guarantee-fund');
+    return GuaranteeFundSummary.fromJson(response.data as Map<String, dynamic>);
+  }
+
   // ── Helper ─────────────────────────────────────────────────────────────────
   Dio _adminDio() {
     // Retorna el mismo Dio — el interceptor en api_client_provider

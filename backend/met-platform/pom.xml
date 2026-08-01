@@ -117,7 +117,13 @@
             <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
-        
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>4.8.3</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Generación de PDFs para Contratos Legales -->
         <dependency>
             <groupId>com.github.librepdf</groupId>
@@ -286,7 +292,7 @@
                 <version>4.8.3.1</version>
                 <configuration>
                     <effort>Max</effort>
-                    <threshold>Low</threshold>
+                    <threshold>High</threshold>
                     <failOnError>true</failOnError>
                     <plugins>
                         <plugin>

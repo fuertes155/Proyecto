@@ -12,6 +12,8 @@ public interface GuaranteeFundMovementJpaRepository extends JpaRepository<Guaran
 
     List<GuaranteeFundMovementJpaEntity> findByTransactionReference(UUID transactionReference);
 
+    List<GuaranteeFundMovementJpaEntity> findAllByOrderByCreatedAtDesc();
+
     @Query("SELECT COALESCE(SUM(CASE WHEN m.type = 'CONTRIBUTION' THEN m.amount ELSE -m.amount END), 0) " +
             "FROM GuaranteeFundMovementJpaEntity m")
     BigDecimal calculateBalance();

@@ -44,7 +44,10 @@ jobs:
       - name: Build and test backend
         working-directory: backend
         # mvn verify ejecuta: compile → test → JaCoCo check → OWASP → SpotBugs
-        run: mvn -pl met-platform -am verify
+        # OWASP dependency-check se omite aquí: sin NVD_API_KEY, la NVD devuelve 403/404
+        # y tumba el build en cada push. El escaneo de CVEs ya corre a diario en
+        # security-analysis.yml con continue-on-error, que es donde debe vivir.
+        run: mvn -pl met-platform -am verify -Ddependency-check.skip=true
         env:
           # Base de datos
           DB_HOST: localhost

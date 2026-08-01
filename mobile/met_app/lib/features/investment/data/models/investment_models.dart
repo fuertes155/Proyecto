@@ -1,43 +1,33 @@
-/// Una posición real del motor de distribución P2P: a qué deudor (o al
-/// fondo de liquidez, si aún no fue emparejada) quedó fraccionado el
-/// capital depositado por el usuario.
-class InvestmentBreakdownItem {
-  InvestmentBreakdownItem({
-    required this.fractionId,
-    required this.borrowerName,
-    this.loanId,
-    required this.amount,
-    required this.status,
-    this.matchedAt,
+/// Resumen agregado de en qué está trabajando el capital del usuario dentro
+/// del motor de distribución P2P: cuánto está activo generando rendimiento,
+/// cuánto espera ser asignado y cuánto ya se recuperó. A propósito NO incluye
+/// a qué socios concretos quedó emparejado cada fracción — esa identidad es
+/// información sensible de otro socio y solo la ve un administrador.
+class InvestmentPortfolioSummary {
+  InvestmentPortfolioSummary({
+    required this.totalInvested,
+    required this.activeAmount,
+    required this.availableAmount,
+    required this.paidOffAmount,
+    required this.returnedAmount,
+    required this.loansFundedCount,
   });
 
-  factory InvestmentBreakdownItem.fromJson(Map<String, dynamic> json) {
-    return InvestmentBreakdownItem(
-      fractionId: json['fractionId'] as String,
-      borrowerName: json['borrowerName'] as String,
-      loanId: json['loanId'] as String?,
-      amount: (json['amount'] as num).toDouble(),
-      status: json['status'] as String,
-      matchedAt: json['matchedAt'] as String?,
+  factory InvestmentPortfolioSummary.fromJson(Map<String, dynamic> json) {
+    return InvestmentPortfolioSummary(
+      totalInvested: (json['totalInvested'] as num).toDouble(),
+      activeAmount: (json['activeAmount'] as num).toDouble(),
+      availableAmount: (json['availableAmount'] as num).toDouble(),
+      paidOffAmount: (json['paidOffAmount'] as num).toDouble(),
+      returnedAmount: (json['returnedAmount'] as num).toDouble(),
+      loansFundedCount: json['loansFundedCount'] as int,
     );
   }
 
-  final String fractionId;
-  final String borrowerName;
-  final String? loanId;
-  final double amount;
-
-  /// DISPONIBLE | ACTIVO | PAGADO | DEVUELTO
-  final String status;
-  final String? matchedAt;
-
-  String get statusLabel => switch (status) {
-        'DISPONIBLE' => 'Disponible',
-        'ACTIVO' => 'Activo',
-        'PAGADO' => 'Pagado',
-        'DEVUELTO' => 'Devuelto',
-        _ => status,
-      };
-
-  bool get isLiquidityFund => status == 'DISPONIBLE';
+  final double totalInvested;
+  final double activeAmount;
+  final double availableAmount;
+  final double paidOffAmount;
+  final double returnedAmount;
+  final int loansFundedCount;
 }

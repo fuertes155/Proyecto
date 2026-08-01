@@ -14,11 +14,8 @@ class InvestmentRemoteDataSource {
 
   final Dio _dio;
 
-  Future<List<InvestmentBreakdownItem>> getMyBreakdown() async {
-    final response = await _dio.get('/v1/investments/my-breakdown');
-    final list = response.data as List<dynamic>;
-    return list
-        .map((e) => InvestmentBreakdownItem.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<InvestmentPortfolioSummary> getMySummary() async {
+    final response = await _dio.get('/v1/investments/my-summary');
+    return InvestmentPortfolioSummary.fromJson(response.data as Map<String, dynamic>);
   }
 }

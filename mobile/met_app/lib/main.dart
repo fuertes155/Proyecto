@@ -35,7 +35,12 @@ Future<void> main() async {
         "Skipping Firebase.initializeApp() on web. Configure Firebase web options before enabling Firebase on web.");
   }
 
-  if (!kIsWeb && Platform.isAndroid) {
+  // Solo en release: en algunos emuladores/GPUs, FLAG_SECURE deja la pantalla
+  // pintada con el frame viejo (p. ej. el splash) después de que la app pasa
+  // a segundo plano y vuelve, aunque Flutter ya haya navegado a otra pantalla
+  // por dentro. En producción sí vale la pena (evita capturas de pantallas
+  // con datos financieros); en debug solo estorba la prueba.
+  if (!kIsWeb && Platform.isAndroid && !kDebugMode) {
     try {
       await FlutterWindowManagerPlus.addFlags(FlutterWindowManagerPlus.FLAG_SECURE);
     } catch (e) {

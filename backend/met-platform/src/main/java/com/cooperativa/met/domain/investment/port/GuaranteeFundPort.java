@@ -14,4 +14,7 @@ public interface GuaranteeFundPort {
     BigDecimal getBalance();
 
     List<GuaranteeFundMovement> findByTransactionReference(UUID transactionReference);
+
+    /** Historial completo de movimientos, del más reciente al más antiguo. */
+    List<GuaranteeFundMovement> findAllOrderByCreatedAtDesc();
 }

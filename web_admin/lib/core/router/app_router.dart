@@ -16,6 +16,7 @@ import '../../features/admin/presentation/pages/compliance_page.dart';
 import '../../features/admin/presentation/pages/business/partners_page.dart';
 import '../../features/admin/presentation/pages/business/accounts_page.dart';
 import '../../features/admin/presentation/pages/business/loans_page.dart';
+import '../../features/admin/presentation/pages/guarantee_fund_page.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/admin/login',
@@ -39,6 +40,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/partners', builder: (context, state) => const PartnersPage()),
       GoRoute(path: '/admin/accounts', builder: (context, state) => const AccountsPage()),
       GoRoute(path: '/admin/loans', builder: (context, state) => const LoansPage()),
+      GoRoute(path: '/admin/guarantee-fund', builder: (context, state) => const GuaranteeFundPage()),
     ],
   );
 });

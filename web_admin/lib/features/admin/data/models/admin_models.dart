@@ -301,3 +301,62 @@ class RestrictiveListMatch {
   final String checkedAt;
   final String? details;
 }
+
+// ── Fondo de Garantías ─────────────────────────────────────────────────────
+class GuaranteeFundMovement {
+  GuaranteeFundMovement({
+    required this.id,
+    required this.type,
+    required this.amount,
+    required this.transactionReference,
+    required this.concept,
+    required this.createdAt,
+  });
+
+  factory GuaranteeFundMovement.fromJson(Map<String, dynamic> json) {
+    return GuaranteeFundMovement(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      transactionReference: json['transactionReference'] as String?,
+      concept: json['concept'] as String? ?? '',
+      createdAt: json['createdAt'] as String,
+    );
+  }
+
+  final String id;
+
+  /// CONTRIBUTION | PAYOUT
+  final String type;
+  final double amount;
+  final String? transactionReference;
+  final String concept;
+  final String createdAt;
+
+  bool get isContribution => type == 'CONTRIBUTION';
+}
+
+class GuaranteeFundSummary {
+  GuaranteeFundSummary({
+    required this.balance,
+    required this.coverageRatio,
+    required this.activationDaysLate,
+    required this.movements,
+  });
+
+  factory GuaranteeFundSummary.fromJson(Map<String, dynamic> json) {
+    return GuaranteeFundSummary(
+      balance: (json['balance'] as num).toDouble(),
+      coverageRatio: (json['coverageRatio'] as num).toDouble(),
+      activationDaysLate: json['activationDaysLate'] as int,
+      movements: (json['movements'] as List)
+          .map((e) => GuaranteeFundMovement.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  final double balance;
+  final double coverageRatio;
+  final int activationDaysLate;
+  final List<GuaranteeFundMovement> movements;
+}

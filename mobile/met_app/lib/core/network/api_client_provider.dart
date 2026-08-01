@@ -20,6 +20,37 @@ final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
     receiveTimeout: const Duration(seconds: 30),
   ));
 
+  // Varias requests pueden recibir 401 casi al mismo tiempo (p. ej. al volver
+  // de background con el access token ya vencido); esto evita disparar un
+  // refresh por cada una y en su lugar comparten el mismo intento en curso.
+  Future<String?>? refreshInFlight;
+
+  Future<String?> refreshAccessToken() {
+    return refreshInFlight ??= () async {
+      try {
+        final storage = ref.read(secureStorageProvider);
+        final refreshToken = await storage.readRefreshToken();
+        if (refreshToken == null || refreshToken.isEmpty) return null;
+
+        final refreshDio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl));
+        final response = await refreshDio.post(
+          '/v1/auth/refresh',
+          options: Options(headers: {'Authorization': 'Bearer $refreshToken'}),
+        );
+
+        final newAccessToken = response.data['accessToken'] as String;
+        final newRefreshToken = response.data['refreshToken'] as String;
+        await storage.saveAccessToken(newAccessToken);
+        await storage.saveRefreshToken(newRefreshToken);
+        return newAccessToken;
+      } catch (_) {
+        return null;
+      } finally {
+        refreshInFlight = null;
+      }
+    }();
+  }
+
   dio.interceptors.add(InterceptorsWrapper(
     onRequest: (options, handler) async {
       final storage = ref.read(secureStorageProvider);
@@ -115,7 +146,27 @@ final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
           path.contains('/v1/auth/register') ||
           path.contains('/v1/auth/refresh');
 
-      if (error.response?.statusCode == 401 && !isAuthEntryPoint) {
+      final alreadyRetried = error.requestOptions.extra['retriedAfterRefresh'] == true;
+
+      if (error.response?.statusCode == 401 && !isAuthEntryPoint && !alreadyRetried) {
+        // El access token dura 30 min; en un flujo largo (p. ej. tomar fotos
+        // + firmar en el registro biométrico) es normal que venza a mitad de
+        // camino. En vez de botar al usuario a Login y perder lo que llevaba
+        // hecho, se intenta renovar la sesión sola con el refresh token antes
+        // de rendirse.
+        final newAccessToken = await refreshAccessToken();
+        if (newAccessToken != null) {
+          final retryOptions = error.requestOptions;
+          retryOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+          retryOptions.extra['retriedAfterRefresh'] = true;
+          try {
+            final response = await dio.fetch(retryOptions);
+            return handler.resolve(response);
+          } catch (_) {
+            // Si el reintento también falla, sigue el flujo normal de abajo.
+          }
+        }
+
         await ref.read(authStateProvider.notifier).forceLocalLogout();
         ref.read(sessionExpiredProvider.notifier).state = true;
         ref.read(appRouterProvider).go('/login');

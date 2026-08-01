@@ -44,6 +44,11 @@ class AdminDashboardPage extends ConsumerWidget {
         route: '/admin/risk-rules',
       ),
       _AdminModule(
+        icon: Icons.savings_rounded,
+        label: 'Fondo de\nGarantías',
+        route: '/admin/guarantee-fund',
+      ),
+      _AdminModule(
         icon: Icons.shield_rounded,
         label: 'Cumplimiento\nSARLAFT',
         route: '/admin/compliance',

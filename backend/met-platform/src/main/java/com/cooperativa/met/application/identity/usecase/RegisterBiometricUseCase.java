@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
@@ -31,6 +32,7 @@ import java.util.UUID;
 public class RegisterBiometricUseCase {
 
     private static final BigDecimal MIN_LIVENESS_SCORE = new BigDecimal("0.8500");
+    private static final SecureRandom ACCOUNT_NUMBER_RANDOM = new SecureRandom();
 
     // Firmas binarias (magic bytes) de los formatos de foto que aceptamos.
     // Cualquier otra cosa (PDF, DOCX, etc.) se rechaza aunque el cliente la
@@ -94,7 +96,7 @@ public class RegisterBiometricUseCase {
                 .withStatus(UserStatus.ACTIVE));
                 
         // 🛡️ Create CoreAccount for the user so they can operate financially
-        String accountNumber = "10" + String.format("%08d", new java.security.SecureRandom().nextInt(100000000));
+        String accountNumber = "10" + String.format("%08d", ACCOUNT_NUMBER_RANDOM.nextInt(100000000));
         CoreAccount account = CoreAccount.builder()
                 .id(UUID.randomUUID())
                 .userId(user.getId())

@@ -33,6 +33,11 @@ public class GuaranteeFundRepositoryAdapter implements GuaranteeFundPort {
         return repository.findByTransactionReference(transactionReference).stream().map(this::toModel).toList();
     }
 
+    @Override
+    public List<GuaranteeFundMovement> findAllOrderByCreatedAtDesc() {
+        return repository.findAllByOrderByCreatedAtDesc().stream().map(this::toModel).toList();
+    }
+
     private GuaranteeFundMovementJpaEntity toEntity(GuaranteeFundMovement model) {
         return GuaranteeFundMovementJpaEntity.builder()
                 .id(model.getId())

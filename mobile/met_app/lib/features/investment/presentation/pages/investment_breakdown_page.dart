@@ -3,18 +3,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../data/models/investment_models.dart';
 import '../providers/investment_providers.dart';
 
-/// Muestra, con datos reales del motor de distribución P2P, en qué préstamos
-/// concretos (o en el fondo de liquidez, mientras espera emparejamiento) está
-/// trabajando el capital que el usuario ha depositado.
+/// Muestra un resumen agregado de en qué está trabajando el capital del
+/// usuario dentro del motor de distribución P2P. A propósito NO muestra a
+/// qué socios concretos quedó emparejado cada fracción: la identidad de otro
+/// socio es información sensible y solo la ve un administrador.
 class InvestmentBreakdownPage extends ConsumerWidget {
   const InvestmentBreakdownPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final breakdownAsync = ref.watch(investmentBreakdownProvider);
+    final summaryAsync = ref.watch(investmentSummaryProvider);
     final currency =
         NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
 
@@ -27,8 +27,8 @@ class InvestmentBreakdownPage extends ConsumerWidget {
         foregroundColor: Colors.black87,
       ),
       body: RefreshIndicator(
-        onRefresh: () => ref.refresh(investmentBreakdownProvider.future),
-        child: breakdownAsync.when(
+        onRefresh: () => ref.refresh(investmentSummaryProvider.future),
+        child: summaryAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => ListView(
             children: [
@@ -39,14 +39,14 @@ class InvestmentBreakdownPage extends ConsumerWidget {
               const SizedBox(height: 12),
               Center(
                 child: TextButton(
-                  onPressed: () => ref.invalidate(investmentBreakdownProvider),
+                  onPressed: () => ref.invalidate(investmentSummaryProvider),
                   child: const Text('Reintentar'),
                 ),
               ),
             ],
           ),
-          data: (items) {
-            if (items.isEmpty) {
+          data: (summary) {
+            if (summary.totalInvested <= 0) {
               return ListView(
                 children: [
                   const SizedBox(height: 120),
@@ -60,7 +60,7 @@ class InvestmentBreakdownPage extends ConsumerWidget {
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 32),
                       child: Text(
-                        'Cuando hagas un depósito, verás aquí en qué créditos de la cooperativa está trabajando tu capital.',
+                        'Cuando hagas un depósito, verás aquí un resumen de en qué créditos de la cooperativa está trabajando tu capital.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.black38),
                       ),
@@ -70,43 +70,72 @@ class InvestmentBreakdownPage extends ConsumerWidget {
               );
             }
 
-            final total = items.fold<double>(0, (sum, i) => sum + i.amount);
+            final cards = <_SummaryCardData>[
+              if (summary.activeAmount > 0)
+                _SummaryCardData(
+                  icon: Icons.trending_up,
+                  color: const Color(0xFF2E7D32),
+                  title: 'Generando rendimiento',
+                  subtitle: summary.loansFundedCount > 0
+                      ? 'Financiando a ${summary.loansFundedCount} socio(s) de la cooperativa'
+                      : 'Activo en la cooperativa',
+                  amount: summary.activeAmount,
+                ),
+              if (summary.availableAmount > 0)
+                _SummaryCardData(
+                  icon: Icons.pool,
+                  color: const Color(0xFF1565C0),
+                  title: 'Disponible por asignar',
+                  subtitle: 'Esperando emparejarse con un nuevo crédito',
+                  amount: summary.availableAmount,
+                ),
+              if (summary.paidOffAmount > 0)
+                _SummaryCardData(
+                  icon: Icons.check_circle_outline,
+                  color: Colors.grey.shade700,
+                  title: 'Recuperado',
+                  subtitle: 'Créditos que ya devolvieron el capital',
+                  amount: summary.paidOffAmount,
+                ),
+              if (summary.returnedAmount > 0)
+                _SummaryCardData(
+                  icon: Icons.shield_outlined,
+                  color: const Color(0xFF6A1B9A),
+                  title: 'Cubierto por el fondo de garantías',
+                  subtitle: 'Protegido ante mora prolongada',
+                  amount: summary.returnedAmount,
+                ),
+            ];
 
-            return ListView.builder(
+            return ListView(
               padding: const EdgeInsets.all(16),
-              itemCount: items.length + 2,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      'Tu dinero se ha fraccionado dinámicamente y se encuentra fondeando los siguientes créditos en la cooperativa:',
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
-                  );
-                }
-                if (index == 1) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2C3545),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Total distribuido', style: TextStyle(color: Colors.white70)),
-                        Text(currency.format(total),
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                      ],
-                    ),
-                  );
-                }
-
-                final item = items[index - 2];
-                return _BreakdownCard(item: item, currency: currency, index: index);
-              },
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    'Tu dinero se ha fraccionado dinámicamente entre distintos créditos de la cooperativa. Por seguridad, no mostramos la identidad de los socios que reciben el financiamiento.',
+                    style: TextStyle(fontSize: 15, color: Colors.black54),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2C3545),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Total invertido', style: TextStyle(color: Colors.white70)),
+                      Text(currency.format(summary.totalInvested),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                    ],
+                  ),
+                ),
+                for (int i = 0; i < cards.length; i++)
+                  _SummaryCard(data: cards[i], currency: currency, index: i),
+              ],
             );
           },
         ),
@@ -115,58 +144,62 @@ class InvestmentBreakdownPage extends ConsumerWidget {
   }
 }
 
-class _BreakdownCard extends StatelessWidget {
-  const _BreakdownCard({required this.item, required this.currency, required this.index});
+class _SummaryCardData {
+  const _SummaryCardData({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.subtitle,
+    required this.amount,
+  });
 
-  final InvestmentBreakdownItem item;
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  final double amount;
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({required this.data, required this.currency, required this.index});
+
+  final _SummaryCardData data;
   final NumberFormat currency;
   final int index;
 
   @override
   Widget build(BuildContext context) {
-    final isLate = item.status == 'DEVUELTO';
-    final color = switch (item.status) {
-      'DISPONIBLE' => Colors.blue,
-      'PAGADO' => Colors.grey,
-      'DEVUELTO' => Colors.red,
-      _ => Colors.green,
-    };
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isLate ? Colors.red.withOpacity(0.3) : Colors.transparent),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-            child: Icon(item.isLiquidityFund ? Icons.pool : Icons.person, color: color),
+            decoration: BoxDecoration(color: data.color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(data.icon, color: data.color),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.isLiquidityFund ? item.borrowerName : 'Fondeando a ${item.borrowerName}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
+                Text(data.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text('Estado: ${item.statusLabel}',
-                    style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 13)),
+                Text(data.subtitle,
+                    style: TextStyle(color: Colors.black54, fontSize: 13)),
               ],
             ),
           ),
-          Text(currency.format(item.amount),
+          Text(currency.format(data.amount),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2C3545))),
         ],
       ),
-    ).animate().fadeIn(delay: Duration(milliseconds: 60 * index)).slideX();
+    ).animate().fadeIn(delay: Duration(milliseconds: 80 * index)).slideX();
   }
 }

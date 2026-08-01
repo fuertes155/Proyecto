@@ -25,8 +25,9 @@ public class MockCreditBureauAdapter implements CreditBureauPort {
     public CreditScoreResult checkScore(UUID userId, String nationalId, String firstName, String lastName, LocalDate dateOfBirth) {
         log.info("Mocking credit score check for user {} (nationalId: {})", userId, nationalId);
         
-        // Simulación determinista: generamos un score de 300 a 950 basado en el hash del nationalId
-        int hash = Math.abs(nationalId.hashCode());
+        // Simulación determinista: generamos un score de 300 a 950 basado en el hash del nationalId.
+        // Se usa una máscara de bits en vez de Math.abs(): Math.abs(Integer.MIN_VALUE) sigue siendo negativo.
+        int hash = nationalId.hashCode() & 0x7fffffff;
         int simulatedScore = 300 + (hash % 651); // (950 - 300 + 1) = 651
         
         // Excepciones para QA:
