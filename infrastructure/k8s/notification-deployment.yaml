@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: notifications
-          image: met/notifications:latest
+          image: met/notifications:1.0.0
           ports:
             - containerPort: 8090
           readinessProbe:

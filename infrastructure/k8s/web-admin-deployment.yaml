@@ -17,7 +17,7 @@ spec:
         - name: web-admin
           image: met/web-admin:1.0.0
           ports:
-            - containerPort: 3001
+            - containerPort: 80
           resources:
             requests:
               cpu: "100m"
@@ -36,5 +36,5 @@ spec:
     app: web-admin
   ports:
     - port: 80
-      targetPort: 3001
+      targetPort: 80
   type: ClusterIP

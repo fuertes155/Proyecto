@@ -65,7 +65,7 @@ Copia el hash resultante — lo necesitarás en el paso siguiente.
 cd /opt/met-platform
 
 # Crear el archivo de producción a partir del ejemplo
-cp .env.production .env.prod.local
+cp .env.example .env.prod.local
 
 # Editar con los valores reales
 nano .env.prod.local

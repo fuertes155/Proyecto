@@ -167,7 +167,7 @@ class AdminDashboardPage extends ConsumerWidget {
                       IconButton(
                         onPressed: () async {
                           await ref.read(adminAuthProvider.notifier).logout();
-                          if (context.mounted) context.go('/login');
+                          if (context.mounted) context.go('/admin/login');
                         },
                         icon: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                         tooltip: 'Cerrar sesión',

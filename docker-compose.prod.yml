@@ -2,11 +2,11 @@
 # docker-compose.prod.yml — Stack completo de producción
 # ==============================================================================
 # Uso:
-#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod.local up -d
 #
-# ⚠️  Los frontends (web-admin y web-comercial) están comentados:
-#   - Si los despliegas en hosting estático (Vercel, Netlify, S3), no los necesitas.
-#   - Si los despliegas en tu propio VPS/servidor, descomenta los bloques.
+# ℹ️  Los frontends (web-admin y web-comercial) están incluidos y activos.
+#   - Si los despliegas en hosting estático (Vercel, Netlify, S3) en vez de aquí,
+#     comenta sus bloques de servicio más abajo.
 # ==============================================================================
 
 services:

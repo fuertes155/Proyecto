@@ -5,9 +5,9 @@ metadata:
   namespace: met
 data:
   SPRING_PROFILES_ACTIVE: "prod"
-  DB_HOST: "postgres-service"
+  DB_HOST: "postgres"
   DB_PORT: "5432"
-  REDIS_HOST: "redis-service"
+  REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   SERVER_PORT: "8080"
   RATE_LIMIT_ENABLED: "true"

@@ -51,27 +51,27 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   }'
 ```
 
-### Consultar Perfil
-```bash
-curl -X GET http://localhost:8080/api/v1/profile/me \
-  -H "Authorization: Bearer <TU_ACCESS_TOKEN>"
-```
-
 ### Consultar Cuenta (Balance)
 ```bash
 curl -X GET http://localhost:8080/api/v1/accounts/me \
   -H "Authorization: Bearer <TU_ACCESS_TOKEN>"
 ```
 
-### Solicitar Transferencia (Ejemplo)
+### Transferencia (Ejemplo)
+Primero se solicita el OTP, luego se ejecuta la transferencia con el código recibido:
 ```bash
-curl -X POST http://localhost:8080/api/v1/transfers/request \
+curl -X POST http://localhost:8080/api/v1/accounts/transactions/transfer/otp/request \
+  -H "Authorization: Bearer <TU_ACCESS_TOKEN>"
+
+curl -X POST http://localhost:8080/api/v1/accounts/transactions/transfer \
   -H "Authorization: Bearer <TU_ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{
     "destinationAccountId": "00000000-0000-0000-0000-000000000000",
     "amount": 50000,
-    "concept": "Pago de servicios"
+    "concept": "Pago de servicios",
+    "pin": "<PIN_CIFRADO_CON_RSA>",
+    "otp": "<CODIGO_OTP_RECIBIDO>"
   }'
 ```
-*(Nota: Esto requiere aprobación por OTP para ejecutarse finalmente).*
+*(Nota: el PIN va cifrado con la llave pública de `GET /v1/auth/public-key`, igual que en login/registro).*

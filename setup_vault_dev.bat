@@ -12,8 +12,8 @@ REM =========================================================================
 
 setlocal
 
-REM El token debe coincidir con VAULT_TOKEN del archivo .env de la raiz.
-if "%VAULT_TOKEN%"=="" set "VAULT_TOKEN=root-local-2026"
+REM El token debe coincidir con VAULT_TOKEN del archivo .env de la raiz (default: root).
+if "%VAULT_TOKEN%"=="" set "VAULT_TOKEN=root"
 
 echo Esperando a que Vault inicie...
 timeout /t 5 /nobreak >nul

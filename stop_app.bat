@@ -5,7 +5,7 @@ echo ===================================================
 
 echo.
 echo Deteniendo servicios en Docker...
-docker-compose down
+docker compose down
 
 echo.
 echo Servicios detenidos correctamente.

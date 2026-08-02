@@ -22,10 +22,10 @@ spec:
     - Ingress
     - Egress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: met-proxy
+    # TODO: restringir a los pods/namespace reales del Ingress Controller una vez
+    # instalado (p.ej. ingress-nginx en su propio namespace). Se deja abierto a nivel
+    # de cluster mientras tanto — el enrutamiento externo real lo define ingress.yaml.
+    - from: []
       ports:
         - protocol: TCP
           port: 8080
@@ -44,55 +44,6 @@ spec:
       ports:
         - protocol: TCP
           port: 6379
-    - to:
-        - podSelector:
-            matchLabels:
-              app: met-vault
-      ports:
-        - protocol: TCP
-          port: 8200
-    - to:
-        - podSelector:
-            matchLabels:
-              app: met-notifications
-      ports:
-        - protocol: TCP
-          port: 8090
-    - to:
-        - namespaceSelector: {} # Allow DNS
-      ports:
-        - protocol: UDP
-          port: 53
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: nginx-policy
-  namespace: met
-spec:
-  podSelector:
-    matchLabels:
-      app: met-proxy
-  policyTypes:
-    - Ingress
-    - Egress
-  ingress:
-    - from:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - protocol: TCP
-          port: 80
-        - protocol: TCP
-          port: 443
-  egress:
-    - to:
-        - podSelector:
-            matchLabels:
-              app: met-backend
-      ports:
-        - protocol: TCP
-          port: 8080
     - to:
         - podSelector:
             matchLabels:

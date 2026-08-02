@@ -11,8 +11,8 @@
 # =========================================================================
 set -e
 
-# El token debe coincidir con VAULT_TOKEN del .env de la raíz.
-: "${VAULT_TOKEN:=root-local-2026}"
+# El token debe coincidir con VAULT_TOKEN del .env de la raíz (default: root).
+: "${VAULT_TOKEN:=root}"
 # Sin VAULT_ADDR el CLI asume https:// y falla contra el servidor dev (HTTP).
 VAULT_ENV=(-e VAULT_ADDR=http://127.0.0.1:8200 -e "VAULT_TOKEN=${VAULT_TOKEN}")
 

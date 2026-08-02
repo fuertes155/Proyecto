@@ -14,9 +14,9 @@ DB_USER=${DB_USER:-met}
 
 echo "Ejecutando seed de datos en $DB_HOST:$DB_PORT/$DB_NAME..."
 
-# Usa docker-compose si se encuentra, o psql si está instalado localmente.
-if command -v docker-compose &> /dev/null && docker-compose ps | grep -q postgres; then
-    docker-compose exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" < infrastructure/db/seed/seed_data.sql
+# Usa docker compose si se encuentra, o psql si está instalado localmente.
+if command -v docker &> /dev/null && docker compose ps postgres 2>/dev/null | grep -q postgres; then
+    docker compose exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" < infrastructure/db/seed/seed_data.sql
 elif command -v docker &> /dev/null && docker ps | grep -q postgres; then
     docker exec -i $(docker ps -qf "name=postgres") psql -U "$DB_USER" -d "$DB_NAME" < infrastructure/db/seed/seed_data.sql
 else
