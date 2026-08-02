@@ -285,45 +285,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 }
 
-class _QuickAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
-              border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
-            ),
-            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style:
-                TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8), fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _FeatureCard extends StatelessWidget {
   const _FeatureCard({
     required this.icon,
