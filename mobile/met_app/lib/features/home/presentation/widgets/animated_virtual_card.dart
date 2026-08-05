@@ -153,29 +153,52 @@ class _AnimatedVirtualCardState extends ConsumerState<AnimatedVirtualCard> with 
               final homeState = ref.watch(homeProvider);
               return homeState.when(
                 data: (summary) {
-                  final formattedPrincipal = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(summary.principalBalance);
-                  final formattedInterest = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2).format(summary.interestBalance);
+                  final currency = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 2);
+                  final total = summary.principalBalance + summary.interestBalance;
+                  final formattedTotal = widget.obscureBalance ? '••••••••' : currency.format(total);
+                  final formattedPrincipal = widget.obscureBalance ? '••••••' : currency.format(summary.principalBalance);
+                  final formattedInterest = widget.obscureBalance ? '••••••' : currency.format(summary.interestBalance);
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Capital (Bloqueado): ${widget.obscureBalance ? '••••••••' : formattedPrincipal}',
-                        style: const TextStyle(color: Colors.white70, fontSize: 16),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Intereses (Disponible): ${widget.obscureBalance ? '••••••••' : formattedInterest}',
+                        formattedTotal,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 22,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.5,
                         ),
                       ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildStat('Capital (Bloqueado)', formattedPrincipal),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 30,
+                            color: Colors.white.withOpacity(0.25),
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          Expanded(
+                            child: _buildStat('Intereses (Disponible)', formattedInterest),
+                          ),
+                        ],
+                      ),
                     ],
                   );
                 },
-                loading: () => const CircularProgressIndicator(color: Colors.white),
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                  ),
+                ),
                 error: (err, stack) => GestureDetector(
                   onTap: () => ref.read(homeProvider.notifier).refresh(),
                   child: const Row(
@@ -210,6 +233,28 @@ class _AnimatedVirtualCardState extends ConsumerState<AnimatedVirtualCard> with 
           )
         ],
       ),
+    );
+  }
+
+  Widget _buildStat(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white60, fontSize: 11),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 
