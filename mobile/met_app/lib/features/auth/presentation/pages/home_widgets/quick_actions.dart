@@ -393,11 +393,6 @@ class QuickActions extends StatelessWidget {
           label: 'Retiro',
           onTap: () => context.push('/accounts/external'),
         ),
-        _QuickAction(
-          icon: Icons.description_outlined,
-          label: 'Movimientos',
-          onTap: () => context.push('/statement'),
-        ),
       ],
     );
   }

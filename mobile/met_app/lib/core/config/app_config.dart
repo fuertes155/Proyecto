@@ -17,6 +17,10 @@ class AppConfig {
     // --dart-define=API_BASE_URL=http://TU_IP:8080/api). Para el emulador
     // también puedes forzar --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
     // si por lo que sea la IP de host no le resuelve.
+    if (kIsWeb) {
+      return 'http://localhost:8080/api';
+    }
+
     return 'http://192.168.1.34:8080/api';
   }
 
