@@ -90,9 +90,13 @@ jobs:
           COMPLIANCE_ENTITY_CODE: COOP001
           GEMINI_API_KEY: ""
           SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
-        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
-        continue-on-error: true # Continúa incluso si la base de datos NVD falla al descargar por falta de API Key
-        
+        # NVD_API_KEY es opcional: sin ella, la descarga de la base NVD es lenta/inestable y
+        # puede devolver 403/404 por rate limit — ahí sí queremos tolerar el fallo (infra, no
+        # hallazgo real). Configúrala en Settings → Secrets → Actions como CI_NVD_API_KEY
+        # (https://nvd.nist.gov/developers/request-an-api-key) para activar el bloqueo real.
+        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DnvdApiKey=${{ secrets.CI_NVD_API_KEY }}
+        continue-on-error: ${{ secrets.CI_NVD_API_KEY == '' }} # Solo bloquea el pipeline cuando hay API key real: sin ella no se puede confiar en el resultado (falla por 403/404, no por un CVE real)
+
       - name: Backend & Frontend - SonarQube (SAST)
         # Se requiere configurar SONAR_TOKEN en los Secrets de GitHub
         env:
@@ -120,5 +124,7 @@ jobs:
           SUPERADMIN_PASSWORD_HASH: "$2a$10$dummyHashForCIOnlyNotARealPasswordXXXXXXXXXXXXXXXXXXXX"
         working-directory: ./backend/met-platform
         # mvn sonar:sonar usa las propiedades configuradas en el archivo raíz sonar-project.properties si se le indica
-        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=met-platform -Dsonar.projectName="Met Platform"
-        continue-on-error: true # Continúa en rojo si Sonar_TOKEN no está configurado, para no bloquear tu CI mientras pruebas.
+        # sonar.qualitygate.wait=true hace que el paso espere el resultado del Quality Gate y
+        # falle si no pasa; sin eso, "sonar:sonar" siempre devuelve éxito con solo subir el análisis.
+        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=met-platform -Dsonar.projectName="Met Platform" -Dsonar.qualitygate.wait=true
+        continue-on-error: ${{ secrets.SONAR_TOKEN == '' }} # Solo bloquea el pipeline cuando SONAR_TOKEN está configurado; sin token el paso ni siquiera puede autenticar.

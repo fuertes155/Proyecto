@@ -1,7 +1,7 @@
 # MET Platform
 
-Plataforma financiera digital para una cooperativa (banca cooperativa: cuentas, transferencias,
-ahorro programado, créditos personales, inversiones, solidaridad y cumplimiento regulatorio).
+Plataforma financiera digital (cuentas, transferencias, ahorro programado, créditos personales,
+inversiones, solidaridad y cumplimiento regulatorio).
 
 Monorepo con backend en Java/Spring Boot, apps cliente en Flutter, sitio público en Next.js y un
 microservicio de notificaciones en Go.
@@ -34,7 +34,7 @@ La app móvil (`mobile/met_app`, Flutter) consume el mismo backend vía `http://
 | Ruta | Descripción |
 |---|---|
 | [backend/met-platform](backend/met-platform) | API REST en Spring Boot 3 (Java 17), arquitectura hexagonal (`domain` / `application` / `infrastructure`) |
-| [mobile/met_app](mobile/met_app) | App móvil de clientes de la cooperativa (Flutter) |
+| [mobile/met_app](mobile/met_app) | App móvil de clientes (Flutter) |
 | [web_admin](web_admin) | Panel administrativo web (Flutter Web) |
 | [web_comercial](web_comercial) | Sitio público / comercial (Next.js 16 + React 19) |
 | [services/notification-service](services/notification-service) | Microservicio de push notifications (Go) |

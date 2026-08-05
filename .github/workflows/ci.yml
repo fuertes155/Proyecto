@@ -121,10 +121,11 @@ jobs:
       - name: Install dependencies
         working-directory: web_comercial
         run: npm ci
-      - name: Lint and Build
+      - name: Lint, test and build
         working-directory: web_comercial
         run: |
           npm run lint
+          npm run test
           npm run build
 
   web-admin:

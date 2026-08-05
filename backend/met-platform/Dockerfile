@@ -9,6 +9,11 @@ RUN mvn -f pom.xml -pl met-platform -am package -Dmaven.test.skip=true
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from=builder /build/met-platform/target/*.jar app.jar
+
+# No correr como root: crea un usuario/grupo de sistema dedicado y ejecuta la app con él.
+RUN addgroup -S met && adduser -S met -G met
+COPY --from=builder --chown=met:met /build/met-platform/target/*.jar app.jar
+USER met
+
 EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

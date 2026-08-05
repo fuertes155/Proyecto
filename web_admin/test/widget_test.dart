@@ -1,20 +1,44 @@
-// This is a basic Flutter widget test.
+// Smoke test de SecurityAlertApp: la pantalla de bloqueo que se muestra cuando se detecta
+// un dispositivo comprometido (root/jailbreak). Es la única parte de main.dart que se puede
+// probar sin ProviderScope ni mocks de red/sesión (MetApp sí los necesita — ver TODO abajo).
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+// TODO: agregar tests de MetApp() con ProviderScope(overrides: [...]) mockeando
+// appRouterProvider/sessionProvider una vez existan providers de sesión fácilmente mockeables.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:met_admin/main.dart';
 
 void main() {
-  testWidgets('Dummy smoke test to pass CI', (WidgetTester tester) async {
-    // La app original ya no es el contador por defecto. 
-    // Para probar MetApp() se necesitaría configurar ProviderScope y mocks de dependencias.
-    // Por ahora dejamos un test que pasa automáticamente para no bloquear el CI.
-    expect(true, true);
+  setUp(() {
+    // SecurityAlertApp llama a SystemNavigator.pop() (canal de plataforma) al tocar el botón;
+    // en el entorno de test no hay plataforma real detrás del MethodChannel, así que lo simulamos.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async => null);
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null);
+  });
+
+  testWidgets('SecurityAlertApp muestra la alerta de seguridad y su botón de cierre',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const SecurityAlertApp());
+
+    expect(find.text('Alerta de Seguridad'), findsOneWidget);
+    expect(
+      find.textContaining('dispositivo está modificado (Root/Jailbreak)'),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.security), findsOneWidget);
+
+    final closeButton = find.widgetWithText(ElevatedButton, 'Cerrar Aplicación');
+    expect(closeButton, findsOneWidget);
+
+    // No debe lanzar excepciones al tocar el botón (SystemNavigator.pop mockeado arriba).
+    await tester.tap(closeButton);
+    await tester.pumpAndSettle();
   });
 }

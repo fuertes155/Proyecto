@@ -251,13 +251,28 @@
                             <exclude>**/domain/**/exception/**</exclude>
                         </excludes>
                         <rules>
+                            <!--
+                              Piso de no-regresión, no meta aspiracional.
+                              Medido con `mvn verify` el 2026-08-04 sobre el scope de este `check`
+                              (excludes de arriba aplicados): ~29% de líneas cubiertas.
+                              Se fija en 0.25 para no bloquear el build hoy pero sí evitar que la
+                              cobertura siga bajando. Subir este número a medida que se agreguen
+                              tests es intencional y bienvenido.
+
+                              Paquetes prácticamente sin tests hoy (candidatos a priorizar,
+                              ordenados por riesgo de negocio/cumplimiento):
+                                application.notification  ~0%   application.admin     ~1%
+                                infrastructure.persistence ~1%  application.bank      ~3%
+                                application.compliance    ~3%   application.identity  ~4%
+                                application.report        ~4%   application.legal     ~6%
+                            -->
                             <rule>
                                 <element>BUNDLE</element>
                                 <limits>
                                     <limit>
                                         <counter>LINE</counter>
                                         <value>COVEREDRATIO</value>
-                                        <minimum>0.00</minimum>
+                                        <minimum>0.25</minimum>
                                     </limit>
                                 </limits>
                             </rule>
