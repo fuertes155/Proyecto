@@ -140,11 +140,24 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
       }
 
       final dio = ref.read(apiClientProvider);
-      final authState = ref.read(authStateProvider);
-      final userId = authState.valueOrNull?.id;
 
+      // Android puede matar la app en segundo plano mientras se toman las fotos
+      // (cámara del sistema, equipos con poca RAM): al volver, el estado de sesión
+      // en memoria se perdió pero el token sigue en el almacenamiento seguro.
+      // Restaurar la sesión desde disco antes de continuar.
+      var userId = ref.read(authStateProvider).valueOrNull?.id;
       if (userId == null) {
-        throw Exception('Usuario no autenticado.');
+        await ref.read(authStateProvider.notifier).checkSession();
+        userId = ref.read(authStateProvider).valueOrNull?.id;
+      }
+      if (userId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tu sesión expiró. Inicia sesión de nuevo para continuar.')),
+          );
+          context.go('/login');
+        }
+        return;
       }
 
       final idBase64 = base64Encode(_idImage!);
