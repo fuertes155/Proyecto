@@ -39,6 +39,11 @@ services:
     dockerContext: ./backend
     healthCheckPath: /api/actuator/health
     autoDeploy: true
+    # Solo reconstruir cuando cambie el backend o este blueprint (no en commits de front).
+    buildFilters:
+      paths:
+        - backend/**
+        - render.yaml
     envVars:
       # ── Perfil / arranque ──
       - key: SPRING_PROFILES_ACTIVE
@@ -103,6 +108,26 @@ services:
         sync: false
 
       # ── Correo transaccional (SMTP Gmail) ──
+      # ⚠️ Render BLOQUEA el SMTP saliente (puertos 25/465/587) en todos los planes.
+      # Con esto los correos (OTP de registro, verificación, transferencias, PIN)
+      # NO se envían desde Render. Para producción hay que migrar el envío a un
+      # proveedor por HTTP (Resend / SendGrid / Mailgun API). Mientras tanto:
+      #   - se apaga el health check de mail (si no, /actuator/health cuelga 136s y
+      #     el deploy nunca queda "live"),
+      #   - se acortan los timeouts SMTP para que un envío falle en 5s, no en 2min.
+      - key: MANAGEMENT_HEALTH_MAIL_ENABLED
+        value: "false"
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT
+        value: "5000"
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT
+        value: "5000"
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT
+        value: "5000"
+      # Como el correo no sale de Render, registrar el OTP en los logs cuando el
+      # envío falla — así se pueden probar registro / recuperación de PIN con
+      # `render logs met-backend | grep OTP`. Quitar al conectar un proveedor real.
+      - key: MAIL_LOG_OTP_ON_FAILURE
+        value: "true"
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT
