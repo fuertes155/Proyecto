@@ -1,0 +1,137 @@
+# ==============================================================================
+# render.yaml — MET Platform (backend + PostgreSQL + Key Value/Redis)
+# ------------------------------------------------------------------------------
+# Uso:
+#   Render Dashboard -> New -> Blueprint -> conectar el repo fuertes155/Proyecto
+#   Render leerá este archivo y creará los 3 recursos. Al sincronizar te pedirá
+#   los valores de las variables marcadas "sync: false" (los secretos).
+#
+# Notas:
+#   - Plan "free": el backend Spring Boot es pesado; 512 MB puede quedarse corto
+#     (OOM en el arranque). Si pasa, subir el servicio "met-backend" a Standard.
+#   - El Postgres "free" de Render expira a los 30 días (uno por workspace).
+#   - Wompi va con placeholders de sandbox: los pagos reales no funcionan hasta
+#     poner credenciales reales, pero el backend arranca igual.
+# ==============================================================================
+
+databases:
+  - name: met-postgres
+    plan: free
+    databaseName: met
+    postgresMajorVersion: "16"
+    region: oregon
+
+services:
+  # ─── Key Value (Redis) — rate-limiting y OTP ──────────────────────────────
+  - name: met-keyvalue
+    type: keyvalue
+    plan: free
+    region: oregon
+    ipAllowList: []        # [] = solo accesible desde la red privada de Render
+
+  # ─── Backend (Spring Boot 3 / Java 17, Docker) ────────────────────────────
+  - name: met-backend
+    type: web
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/met-platform/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/actuator/health
+    autoDeploy: true
+    envVars:
+      # ── Perfil / arranque ──
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_CLOUD_VAULT_ENABLED
+        value: "false"
+      - key: JAVA_OPTS
+        value: "-XX:MaxRAMPercentage=55.0 -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dspring.jmx.enabled=false"
+      - key: SERVER_TOMCAT_THREADS_MAX
+        value: "15"
+
+      # ── PostgreSQL (inyectado desde el recurso managed) ──
+      - key: DB_HOST
+        fromDatabase: { name: met-postgres, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: met-postgres, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: met-postgres, property: database }
+      - key: DB_USER
+        fromDatabase: { name: met-postgres, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: met-postgres, property: password }
+
+      # ── Redis / Key Value (Spring toma spring.data.redis.url del connectionString) ──
+      - key: SPRING_DATA_REDIS_URL
+        fromService: { type: keyvalue, name: met-keyvalue, property: connectionString }
+
+      # ── Observabilidad: sin Zipkin desplegado, apagar el tracing ──
+      - key: TRACING_SAMPLE_RATE
+        value: "0"
+      - key: MANAGEMENT_TRACING_ENABLED
+        value: "false"
+
+      # ── CORS: se ajusta a los dominios exactos de Vercel tras desplegar los fronts ──
+      - key: CORS_ORIGINS
+        value: "https://*.vercel.app"
+
+      # ── Central de riesgo en mock (contrato DataCrédito sin firmar) ──
+      - key: CREDIT_BUREAU_PROVIDER
+        value: mock
+
+      # ── Secretos criptográficos (se ingresan en el dashboard) ──
+      - key: JWT_SECRET
+        sync: false
+      - key: AES_KEY
+        sync: false
+      - key: HMAC_SECRET
+        sync: false
+      - key: RSA_PRIVATE_KEY
+        sync: false
+      - key: RSA_PUBLIC_KEY
+        sync: false
+      - key: SUPERADMIN_PASSWORD_HASH
+        sync: false
+
+      # ── Servicio de notificaciones (no desplegado; key autogenerada) ──
+      - key: NOTIFICATION_API_KEY
+        generateValue: true
+
+      # ── IA (Gemini) ──
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # ── Correo transaccional (SMTP Gmail) ──
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+
+      # ── Wompi — PLACEHOLDERS de sandbox (reemplazar con credenciales reales) ──
+      - key: WOMPI_PUBLIC_KEY
+        value: pub_test_placeholder
+      - key: WOMPI_PRIVATE_KEY
+        value: prv_test_placeholder
+      - key: WOMPI_INTEGRITY_SECRET
+        value: int_test_placeholder
+      - key: WOMPI_WEBHOOK_SECRET
+        value: wh_test_placeholder
+      - key: WOMPI_API_URL
+        value: https://sandbox.wompi.co/v1
+      - key: WOMPI_CHECKOUT_URL
+        value: https://checkout.wompi.co/p/
+      - key: WOMPI_PAYOUTS_API_URL
+        value: https://sandbox.wompi.co/v1
+      - key: WOMPI_PAYOUTS_API_KEY
+        value: payouts_test_placeholder
+      - key: WOMPI_PAYOUTS_PRINCIPAL_USER_ID
+        value: principal_test_placeholder
+      - key: WOMPI_PAYOUTS_SOURCE_ACCOUNT_ID
+        value: source_test_placeholder
+      - key: WOMPI_PAYOUTS_WEBHOOK_SECRET
+        value: payouts_wh_test_placeholder
