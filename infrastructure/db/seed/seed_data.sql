@@ -76,7 +76,18 @@ FROM users u
 WHERE u.email = 'user@test.com'
   AND NOT EXISTS (SELECT 1 FROM core_accounts c WHERE c.user_id = u.id);
 
--- 4. Habilitar PSE y payout en el catálogo de bancos (V30 los deja en false),
--- para que el depósito por PSE nativo y los retiros a banco externo tengan
--- bancos para elegir.
-UPDATE banks SET supports_pse = true, supports_payout = true WHERE active = true;
+-- 4. Catálogo de bancos: habilitar PSE + payout y rellenar los códigos Wompi
+-- (con el propio code como placeholder) para que en dev funcionen el depósito
+-- PSE nativo, los retiros a banco externo y la verificación de cuenta bancaria.
+UPDATE banks
+   SET supports_pse = true,
+       supports_payout = true,
+       wompi_pse_code = COALESCE(NULLIF(wompi_pse_code, ''), code),
+       wompi_bank_id  = COALESCE(NULLIF(wompi_bank_id, ''), code)
+ WHERE active = true;
+
+-- 5. Dar "ganancias" (interest_balance) al usuario de prueba: los retiros a banco
+-- externo solo permiten sacar ganancias, no el capital invertido. Sin esto la
+-- pantalla de retiro muestra siempre $0 disponible.
+UPDATE core_accounts SET interest_balance = 25000.00
+ WHERE user_id IN (SELECT id FROM users WHERE email IN ('user@test.com', 'sam33mol4@gmail.com'));
