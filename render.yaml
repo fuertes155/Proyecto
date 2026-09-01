@@ -107,27 +107,27 @@ services:
       - key: GEMINI_API_KEY
         sync: false
 
-      # ── Correo transaccional (SMTP Gmail) ──
-      # ⚠️ Render BLOQUEA el SMTP saliente (puertos 25/465/587) en todos los planes.
-      # Con esto los correos (OTP de registro, verificación, transferencias, PIN)
-      # NO se envían desde Render. Para producción hay que migrar el envío a un
-      # proveedor por HTTP (Resend / SendGrid / Mailgun API). Mientras tanto:
-      #   - se apaga el health check de mail (si no, /actuator/health cuelga 136s y
-      #     el deploy nunca queda "live"),
-      #   - se acortan los timeouts SMTP para que un envío falle en 5s, no en 2min.
+      # ── Correo transaccional ──
+      # ⚠️ Render BLOQUEA el SMTP saliente (25/465/587) en todos los planes, así que
+      # en Render el envío va por la API HTTP de Brevo (met.mail.provider=brevo).
+      # El remitente (MAIL_FROM_ADDRESS o, si no, MAIL_USERNAME) debe estar
+      # verificado en Brevo → Senders (sin dominio propio se verifica por email).
+      - key: MAIL_PROVIDER
+        value: brevo
+      - key: BREVO_API_KEY
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: MET
+      # El health check de mail chequea el JavaMailSender (SMTP), que en Render no
+      # conecta → colgaría 136s y el deploy nunca quedaría "live". Se apaga.
       - key: MANAGEMENT_HEALTH_MAIL_ENABLED
         value: "false"
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT
-        value: "5000"
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT
-        value: "5000"
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT
-        value: "5000"
-      # Como el correo no sale de Render, registrar el OTP en los logs cuando el
-      # envío falla — así se pueden probar registro / recuperación de PIN con
-      # `render logs met-backend | grep OTP`. Quitar al conectar un proveedor real.
+      # Si Brevo falla, registrar el OTP en los logs en vez de romper el flujo
+      # (`render logs met-backend | grep -i otp`). Poner "false" para que un fallo
+      # de envío sea un error real de cara al usuario.
       - key: MAIL_LOG_OTP_ON_FAILURE
         value: "true"
+      # SMTP sigue configurado para desarrollo local / fallback; en Render no se usa.
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT
