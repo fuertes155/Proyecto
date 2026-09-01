@@ -46,8 +46,13 @@ services:
         - render.yaml
     envVars:
       # ── Perfil / arranque ──
+      # prod,demo = producción + pasarela de pago SIMULADA (sin Wompi real).
+      # Ver application-demo.yml. Para Wompi real: dejar solo "prod".
       - key: SPRING_PROFILES_ACTIVE
-        value: prod
+        value: prod,demo
+      # URL pública del backend (para el link a la pantalla de pago simulada).
+      - key: MET_PAYMENTS_MOCK_GATEWAY_BASE_URL
+        value: https://met-backend-y04c.onrender.com
       - key: SPRING_CLOUD_VAULT_ENABLED
         value: "false"
       # Los flags de memoria/JIT viven en el Dockerfile ($JAVA_TUNING). NO definir

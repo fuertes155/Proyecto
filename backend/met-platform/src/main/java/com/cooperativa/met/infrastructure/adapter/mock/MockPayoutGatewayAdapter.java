@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@Profile("dev")
+@Profile("dev | demo")
 @RequiredArgsConstructor
 public class MockPayoutGatewayAdapter implements PayoutGatewayPort {
 

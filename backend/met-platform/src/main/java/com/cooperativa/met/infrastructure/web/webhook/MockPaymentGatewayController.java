@@ -22,7 +22,7 @@ import java.time.Instant;
 
 @RestController
 @RequestMapping("/v1")
-@Profile("dev")
+@Profile("dev | demo")
 @RequiredArgsConstructor
 @Slf4j
 public class MockPaymentGatewayController {

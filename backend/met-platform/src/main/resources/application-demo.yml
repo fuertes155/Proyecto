@@ -1,0 +1,24 @@
+# ==============================================================================
+# Perfil "demo": IGUAL a producción, pero con la pasarela de pago SIMULADA en
+# vez de Wompi real (no hay contrato/credenciales de Wompi todavía).
+#
+# Activar:  SPRING_PROFILES_ACTIVE=prod,demo
+# Requiere: MET_PAYMENTS_MOCK_GATEWAY_BASE_URL = URL pública del backend
+#           (p. ej. https://met-backend-y04c.onrender.com)
+#
+# Qué cambia respecto a prod (por @Profile("dev | demo") / @Profile("!dev & !demo")):
+#   - MockPseGatewayAdapter / MockPayoutGatewayAdapter en vez de los de Wompi.
+#   - MockPaymentGatewayController: sirve /v1/mock-payment-gateway (pantalla
+#     "Confirmar Pago") y /v1/webhooks/mock-payment (acredita el saldo).
+#   - GeneratePseLinkUseCase devuelve el link a esa pantalla (por la env var de arriba).
+#
+# Lo que NO cambia (sigue como prod): seguridad real, rate-limiting, JWT/HMAC,
+# correo por Brevo, Swagger DESACTIVADO, logs en INFO. El perfil "dev" sí
+# aflojaba todo eso; "demo" no.
+# ==============================================================================
+met:
+  dev:
+    # Sin banco real no hay extracto bancario: el monto del micro-depósito de
+    # verificación de cuenta se escribe en los logs para poder confirmarlo en la
+    # app (retiros a banco externo).  `render logs met-backend | grep Micro`
+    log-verification-amount: true
