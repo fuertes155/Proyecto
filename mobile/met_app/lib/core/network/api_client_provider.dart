@@ -1,12 +1,11 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
+import '../platform/platform.dart';
 import '../config/app_config.dart';
 import '../storage/secure_storage_service.dart';
 import '../session/session_expired_provider.dart';
@@ -120,11 +119,7 @@ final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
       // (ej. paquete `device_check` en iOS o `play_integrity` en Android).
       final attestationToken =
           await storage.read(key: 'device_attestation_token');
-      final platformName = kIsWeb
-          ? 'web'
-          : (Platform.isAndroid
-              ? 'android'
-              : (Platform.isIOS ? 'ios' : 'unknown'));
+      final platformName = currentPlatformName();
 
       if (attestationToken != null && attestationToken.isNotEmpty) {
         options.headers['X-Device-Attestation'] = attestationToken;
@@ -176,56 +171,9 @@ final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
     },
   ));
 
-  // 🔒 Fix 2: SSL Pinning Real en Dio (Anti Man-in-the-Middle)
-  if (!kIsWeb) {
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        // Al instanciar SecurityContext con withTrustedRoots: false,
-        // Dart desconfía de TODOS los certificados por defecto (incluso los del OS).
-        // Esto fuerza a que TODAS las conexiones pasen por badCertificateCallback.
-        final SecurityContext context =
-            SecurityContext(withTrustedRoots: false);
-        final client = HttpClient(context: context);
-
-        // Huella dactilar (SHA-256) del certificado público de nuestro servidor en Producción.
-        // Se obtiene desde la configuración de entorno (--dart-define)
-        final String expectedFingerprint = AppConfig.sslFingerprint;
-
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) {
-          // En modo debug aceptamos cualquier certificado (ngrok, tunnels, etc.)
-          if (kDebugMode) return true;
-
-          // Excepción para desarrollo local
-          if (host.contains('localhost') || host.contains('10.0.2.2')) {
-            return true;
-          }
-
-          // Anclaje estricto: Comparamos el hash SHA-256 del certificado recibido
-          // contra nuestra huella esperada (sin importar lo que diga el SO).
-          // NOTA: cert.sha1 o cert.der se usan comúnmente, aquí simulamos una validación
-          // usando el formato estándar o parseándolo.
-
-          // Dart X509Certificate provee sha1 por defecto. Para mayor seguridad,
-          // se extrae el byte array (der) y se calcula el sha256.
-          final digest = sha256.convert(cert.der);
-          final actualFingerprint = digest.bytes
-              .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
-              .join(':');
-
-          if (actualFingerprint == expectedFingerprint) {
-            return true; // Es nuestro servidor legítimo
-          }
-
-          // Si llega aquí, es un ataque MITM o el certificado cambió sin actualizar la app.
-          debugPrint(
-              '🚨 [CRITICAL] SSL Pinning falló. Ataque MITM detectado para host $host');
-          return false; // Rechaza la conexión inmediatamente
-        };
-        return client;
-      },
-    );
-  }
+  // 🔒 SSL Pinning real en Dio (anti man-in-the-middle). En web es no-op: el
+  // navegador no expone la validación de certificados a la app.
+  configureDioSecurity(dio, AppConfig.sslFingerprint);
 
   return dio;
 });
