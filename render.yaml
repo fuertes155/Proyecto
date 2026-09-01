@@ -50,10 +50,10 @@ services:
         value: prod
       - key: SPRING_CLOUD_VAULT_ENABLED
         value: "false"
-      - key: JAVA_OPTS
-        value: "-XX:MaxRAMPercentage=55.0 -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dspring.jmx.enabled=false"
+      # Los flags de memoria/JIT viven en el Dockerfile ($JAVA_TUNING). NO definir
+      # JAVA_OPTS aquí ni en el dashboard: sobreescribiría el afinado para 512 MB.
       - key: SERVER_TOMCAT_THREADS_MAX
-        value: "15"
+        value: "10"
 
       # ── PostgreSQL (inyectado desde el recurso managed) ──
       - key: DB_HOST

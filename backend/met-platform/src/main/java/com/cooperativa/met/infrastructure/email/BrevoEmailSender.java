@@ -4,35 +4,43 @@ import com.cooperativa.met.domain.notification.port.EmailSenderPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Envío de correo por la API HTTP de Brevo (https://api.brevo.com/v3/smtp/email).
  *
  * <p>Se activa con {@code met.mail.provider=brevo}. Pensado para Render, que
- * bloquea el SMTP saliente. El remitente ({@code met.mail.from-address}) debe
- * estar verificado en Brevo (Senders &amp; IP → Senders); sin dominio propio se
- * verifica el correo suelto (p. ej. el Gmail del proyecto) por email.
+ * bloquea el SMTP saliente. Usa el {@link HttpClient} del JDK (sin cargar el
+ * stack de cliente web de Spring) para no inflar la memoria en instancias
+ * chicas.
+ *
+ * <p>El remitente ({@code met.mail.from-address}) debe estar verificado en
+ * Brevo (Senders); sin dominio propio se verifica el correo suelto por email.
  */
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "met.mail.provider", havingValue = "brevo")
 public class BrevoEmailSender implements EmailSenderPort {
 
-    private final RestClient client;
+    private static final URI ENDPOINT = URI.create("https://api.brevo.com/v3/smtp/email");
+
+    private final HttpClient http = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .version(HttpClient.Version.HTTP_1_1)
+            .build();
+
+    private final String apiKey;
     private final String fromEmail;
     private final String fromName;
 
     public BrevoEmailSender(
-            @Value("${met.mail.brevo.api-key}") String apiKey,
+            @Value("${met.mail.brevo.api-key:}") String apiKey,
             @Value("${met.mail.from-address}") String fromEmail,
             @Value("${met.mail.from-name:MET}") String fromName) {
 
@@ -40,17 +48,7 @@ public class BrevoEmailSender implements EmailSenderPort {
             throw new IllegalStateException(
                 "met.mail.brevo.api-key (BREVO_API_KEY) es obligatorio cuando met.mail.provider=brevo");
         }
-
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofSeconds(5));
-        factory.setReadTimeout(Duration.ofSeconds(10));
-
-        this.client = RestClient.builder()
-                .baseUrl("https://api.brevo.com/v3")
-                .defaultHeader("api-key", apiKey.trim())
-                .defaultHeader("accept", MediaType.APPLICATION_JSON_VALUE)
-                .requestFactory(factory)
-                .build();
+        this.apiKey = apiKey.trim();
         this.fromEmail = fromEmail;
         this.fromName = fromName;
         log.info("Email provider: Brevo (from {} <{}>)", fromName, fromEmail);
@@ -58,30 +56,53 @@ public class BrevoEmailSender implements EmailSenderPort {
 
     @Override
     public void sendPlainText(String to, String subject, String body) {
-        Map<String, Object> payload = Map.of(
-                "sender", Map.of("name", fromName, "email", fromEmail),
-                "to", List.of(Map.of("email", to)),
-                "subject", subject,
-                "textContent", body
-        );
+        String payload = "{"
+                + "\"sender\":{\"name\":" + jsonStr(fromName) + ",\"email\":" + jsonStr(fromEmail) + "},"
+                + "\"to\":[{\"email\":" + jsonStr(to) + "}],"
+                + "\"subject\":" + jsonStr(subject) + ","
+                + "\"textContent\":" + jsonStr(body)
+                + "}";
 
+        HttpRequest request = HttpRequest.newBuilder(ENDPOINT)
+                .timeout(Duration.ofSeconds(15))
+                .header("api-key", apiKey)
+                .header("content-type", "application/json")
+                .header("accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .build();
+
+        HttpResponse<String> response;
         try {
-            client.post()
-                    .uri("/smtp/email")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(payload)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, (req, res) -> {
-                        String detail = new String(res.getBody().readAllBytes());
-                        throw new EmailDeliveryException(
-                            "Brevo respondió " + res.getStatusCode() + ": " + detail);
-                    })
-                    .toBodilessEntity();
-            log.info("Brevo email sent to {}", to);
-        } catch (EmailDeliveryException e) {
-            throw e;
+            response = http.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
             throw new EmailDeliveryException("Fallo llamando a la API de Brevo para " + to, e);
         }
+
+        if (response.statusCode() / 100 != 2) {
+            throw new EmailDeliveryException(
+                "Brevo respondió " + response.statusCode() + ": " + response.body());
+        }
+        log.info("Brevo email sent to {}", to);
+    }
+
+    /** Escapa un string como literal JSON (comillas incluidas). */
+    private static String jsonStr(String s) {
+        if (s == null) return "\"\"";
+        StringBuilder sb = new StringBuilder(s.length() + 2).append('"');
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '"'  -> sb.append("\\\"");
+                case '\\' -> sb.append("\\\\");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\t' -> sb.append("\\t");
+                default   -> {
+                    if (c < 0x20) sb.append(String.format("\\u%04x", (int) c));
+                    else sb.append(c);
+                }
+            }
+        }
+        return sb.append('"').toString();
     }
 }
