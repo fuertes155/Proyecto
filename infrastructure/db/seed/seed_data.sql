@@ -5,24 +5,38 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- 1. Admin
+-- 1. Admin  (login: admin / admin123)
+-- La contraseña debe tener >= 8 caracteres (AdminLoginRequest la valida), por eso
+-- 'admin123' y no 'admin'. status DEBE ser 'ACTIVE' (enum AdminStatus = ACTIVE|SUSPENDED);
+-- la migración V21 lo insertaba como 'ACTIVO' y rompía el login con 500.
+-- DO UPDATE (no DO NOTHING) para reparar filas ya creadas por V21 con hash/status malos.
 INSERT INTO admins (username, password_hash, full_name, email, role, status)
 VALUES (
-    'admin', 
-    crypt('admin', gen_salt('bf', 12)), 
-    'Administrador Principal', 
-    'admin@met.coop', 
-    'SUPER_ADMIN', 
+    'admin',
+    crypt('admin123', gen_salt('bf', 12)),
+    'Administrador Principal',
+    'admin@met.coop',
+    'SUPER_ADMIN',
     'ACTIVE'
 )
-ON CONFLICT (username) DO NOTHING;
+ON CONFLICT (username) DO UPDATE
+    SET password_hash = EXCLUDED.password_hash,
+        status        = 'ACTIVE';
 
--- 2. User
--- document_number va cifrado (AES-CBC determinista, ver SearchableCryptoConverter /
--- AesEncryptionAdapter#encryptDeterministic) porque la app siempre cifra el valor antes de
--- comparar en el WHERE; un valor en texto plano aquí nunca haría match con la búsqueda por
--- documento (login, recuperación de PIN, etc.). El valor de abajo es el cifrado de '123456'
--- con la clave de desarrollo AES_KEY='AES_32_BYTES_KEY_FOR_DEV_LOCAL!!' (ver setup_vault_dev.sh).
+-- 2. User  (login: documento 123456 / PIN 1234)
+-- Varias columnas van cifradas en reposo con AES_KEY='AES_32_BYTES_KEY_FOR_DEV_LOCAL!!'
+-- (la clave de dev que siembra setup_vault_dev.sh / .bat). Los valores de abajo YA están
+-- cifrados con esa clave; si cambias AES_KEY hay que regenerarlos:
+--
+--   * document_number -> AesEncryptionAdapter#encryptDeterministic (AES/CBC + HMAC, IV
+--     derivado del texto plano) vía SearchableCryptoConverter. Determinista para poder
+--     buscar por igualdad en el WHERE del login. Cifrado de '123456'.
+--   * first_name / last_name -> AesEncryptionAdapter#encrypt (AES/GCM, IV aleatorio) vía
+--     StandardCryptoConverter. Cifrados de 'Usuario' y 'Test'.
+--   * email y pin_hash NO van cifrados (pin_hash es bcrypt).
+--
+-- Un valor en texto plano en cualquiera de esas columnas revienta al leer la fila
+-- (BufferUnderflowException al intentar descifrar) y el login devuelve 500.
 INSERT INTO users (
     document_type,
     document_number,
@@ -37,10 +51,10 @@ INSERT INTO users (
 )
 VALUES (
     'CC',
-    '4QrcOUm6Wau+VuBX8g+IPhjK+oF3SZmIy71U/tNhaP4=',
+    'sEjUb8t9NnX7/wz4iTa++1cwR1zU98xX/D2Xy5owDNiu1/eoz0vw3yr2l3gVHSB1OUHHgPHXCepY9kq+r/DnKg==',
     'user@test.com',
-    'Usuario',
-    'Test',
+    'vM30R+WEkS8ZfyxRdhua/ehtdtkdmEsDiDHTFewqLIs4C8Y=',
+    'k6WGKoc0nDO82E+XyLnMBG+yDweKTe6DjV2VzSEOZlY=',
     crypt('1234', gen_salt('bf', 12)),
     'ACTIVE',
     'APPROVED',
@@ -48,3 +62,21 @@ VALUES (
     NOW()
 )
 ON CONFLICT (document_type, document_number) DO NOTHING;
+
+-- 3. Billetera (core_accounts) del usuario de prueba.
+-- En el flujo real la cuenta se crea al terminar el registro biométrico
+-- (RegisterBiometricUseCase). El usuario sembrado ya está KYC APPROVED pero sin
+-- cuenta, y sin ella el home (/v1/account/summary) y la elegibilidad de crédito
+-- (/v1/loans/eligibility -> 422 NO_ACCOUNT) fallan. Le damos un saldo de prueba.
+INSERT INTO core_accounts (
+    id, user_id, account_number, principal_balance, interest_balance, status, created_at, updated_at
+)
+SELECT gen_random_uuid(), u.id, '1000000001', 500000.00, 0.00, 'ACTIVE', NOW(), NOW()
+FROM users u
+WHERE u.email = 'user@test.com'
+  AND NOT EXISTS (SELECT 1 FROM core_accounts c WHERE c.user_id = u.id);
+
+-- 4. Habilitar PSE y payout en el catálogo de bancos (V30 los deja en false),
+-- para que el depósito por PSE nativo y los retiros a banco externo tengan
+-- bancos para elegir.
+UPDATE banks SET supports_pse = true, supports_payout = true WHERE active = true;

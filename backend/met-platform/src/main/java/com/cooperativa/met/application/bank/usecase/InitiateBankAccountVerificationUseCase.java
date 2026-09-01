@@ -47,6 +47,11 @@ public class InitiateBankAccountVerificationUseCase {
     private final PayoutGatewayPort payoutGatewayPort;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    /** Solo dev/local: imprime el monto del micro-depósito en logs, ya que sin un
+     *  banco real el usuario no puede verlo en su extracto para confirmarlo. */
+    @org.springframework.beans.factory.annotation.Value("${met.dev.log-verification-amount:false}")
+    private boolean logVerificationAmount;
+
     public void execute(UUID userId, UUID externalBankAccountId) {
         ExternalBankAccount account = externalBankAccountRepository.findById(externalBankAccountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cuenta bancaria no encontrada"));
@@ -69,6 +74,13 @@ public class InitiateBankAccountVerificationUseCase {
 
         int amount = MIN_AMOUNT + secureRandom.nextInt(MAX_AMOUNT - MIN_AMOUNT + 1);
         String reference = "VERIFY-" + account.getId() + "-" + System.currentTimeMillis();
+
+        if (logVerificationAmount) {
+            log.warn("=================================================");
+            log.warn("[DEV] Micro-depósito de verificación para la cuenta {}: monto = {} (centavos)", account.getId(), amount);
+            log.warn("      Confírmalo en la app con ese valor.");
+            log.warn("=================================================");
+        }
 
         PayoutGatewayResult result = payoutGatewayPort.initiatePayout(new PayoutGatewayRequest(
                 reference,

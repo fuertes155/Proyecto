@@ -40,6 +40,15 @@ public class GeneratePseLinkUseCase {
     private String wompiCheckoutUrl;
 
     /**
+     * Si está definido (solo dev, ver .env / docker-compose), los depósitos generan
+     * un link a la pasarela de pago SIMULADA local ({@code /api/v1/mock-payment-gateway})
+     * en vez del checkout real de Wompi. Permite probar el flujo completo de depósito
+     * (incluida la distribución de capital) sin credenciales reales de Wompi.
+     */
+    @Value("${met.payments.mock-gateway-base-url:}")
+    private String mockGatewayBaseUrl;
+
+    /**
      * Genera la URL del checkout de Wompi con firma de integridad SHA-256.
      *
      * @param userId  ID del usuario autenticado
@@ -64,6 +73,22 @@ public class GeneratePseLinkUseCase {
 
         // Referencia única por transacción — incluye userId COMPLETO para el webhook
         String reference = "MET-" + userId.toString() + "-" + System.currentTimeMillis();
+
+        // --- DEV: pasarela de pago simulada ---
+        if (mockGatewayBaseUrl != null && !mockGatewayBaseUrl.isBlank()) {
+            String base = mockGatewayBaseUrl.endsWith("/")
+                    ? mockGatewayBaseUrl.substring(0, mockGatewayBaseUrl.length() - 1)
+                    : mockGatewayBaseUrl;
+            String mockUrl = base + "/api/v1/mock-payment-gateway"
+                    + "?transactionId=" + reference
+                    + "&amount=" + request.getAmount().toPlainString()
+                    + "&userId=" + userId;
+            log.info("[DEV] Generated MOCK payment link for user {} with reference {}", userId, reference);
+            return GeneratePseLinkResponse.builder()
+                    .paymentUrl(mockUrl)
+                    .transactionId(reference)
+                    .build();
+        }
 
         // Firma de integridad SHA-256: reference + amountInCents + currency + integritySecret
         String currency = "COP";

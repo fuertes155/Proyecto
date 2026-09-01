@@ -14,14 +14,28 @@ import 'core/notifications/push_notification_service.dart';
 import 'core/router/app_router.dart';
 import 'core/session/inactivity_detector.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/app_error_widget.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Si el build de una pantalla lanza una excepción no capturada, mostrar una
+  // tarjeta amable en vez del pantallazo rojo con el stacktrace.
+  ErrorWidget.builder = (FlutterErrorDetails details) => AppErrorView(details: details);
+  final priorOnError = FlutterError.onError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // Se registra (consola / Crashlytics a futuro) pero no tumba la app.
+    priorOnError?.call(details);
+  };
 
   // DateFormat con locale explícito (p. ej. 'es_CO' en la pantalla de
   // movimientos) lanza LocaleDataException si esto no se llama antes:
   // los símbolos de mes/día en español no vienen cargados por defecto.
   await initializeDateFormatting('es_CO', null);
+
+  // Carga el override de URL del servidor (pantalla de desarrollador del login)
+  // ANTES de runApp, para que el cliente HTTP se construya con la URL correcta.
+  await AppConfig.loadRuntimeOverrides();
 
   // Inicialización de Firebase
   if (!kIsWeb) {

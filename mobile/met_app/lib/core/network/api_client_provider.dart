@@ -193,6 +193,9 @@ final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
 
         client.badCertificateCallback =
             (X509Certificate cert, String host, int port) {
+          // En modo debug aceptamos cualquier certificado (ngrok, tunnels, etc.)
+          if (kDebugMode) return true;
+
           // Excepción para desarrollo local
           if (host.contains('localhost') || host.contains('10.0.2.2')) {
             return true;

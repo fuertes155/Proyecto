@@ -17,8 +17,16 @@
 -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.0.102</domain>
         <domain includeSubdomains="false">192.168.1.34</domain>
         <domain includeSubdomains="false">10.0.2.2</domain>
         <domain includeSubdomains="false">localhost</domain>
     </domain-config>
+    <!--
+      Fallback: este archivo solo aplica a builds debug. Permitir cleartext hacia
+      cualquier host en debug evita tener que editar esta lista cada vez que cambia
+      la IP/red del PC de desarrollo. El build de release sigue usando el config
+      estricto de src/main/ (sin cleartext).
+    -->
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

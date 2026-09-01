@@ -13,6 +13,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/auth_models.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/error_mapper.dart';
+import '../../../../core/widgets/dev_server_config.dart';
 import '../../../../core/security/behavioral_biometrics_service.dart';
 import '../../../../core/session/session_expired_provider.dart';
 
@@ -472,7 +474,10 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
         friendlyMessage = serverMessage ?? 'Demasiados intentos. Espera unos segundos e inténtalo de nuevo.';
         break;
       default:
-        friendlyMessage = serverMessage ?? 'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
+        // Sin `code` de negocio: suele ser un fallo de red (servidor caído, IP
+        // equivocada, sin Wi-Fi, cleartext bloqueado...). ErrorMapper distingue
+        // esos casos y da un mensaje accionable en vez de "error inesperado".
+        friendlyMessage = serverMessage ?? ErrorMapper.toUserMessage(error);
         _triggerError();
     }
 
@@ -1061,6 +1066,8 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
               ),
             ),
           ),
+          // Botón solo-debug para cambiar la URL del backend sin recompilar.
+          const DevServerFab(),
         ],
       ),
       ),

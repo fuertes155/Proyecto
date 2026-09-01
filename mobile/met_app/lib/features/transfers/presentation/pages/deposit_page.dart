@@ -271,10 +271,13 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                                     );
                                     return;
                                   }
-                                  ref.read(depositProvider.notifier).submitNativePseDeposit();
-                                } else {
-                                  ref.read(depositProvider.notifier).submitDeposit(widget.method);
                                 }
+                                // Todos los métodos (incluido PSE con banco elegido) generan
+                                // un link de pago Wompi Checkout y completan por el WebView.
+                                // El PSE nativo (createNativePseDeposit) requiere sincronizar
+                                // el catálogo con Wompi; mientras no esté, se usa el checkout
+                                // genérico, que soporta PSE igual dentro de la pasarela.
+                                ref.read(depositProvider.notifier).submitDeposit(widget.method);
                               },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).colorScheme.primary,

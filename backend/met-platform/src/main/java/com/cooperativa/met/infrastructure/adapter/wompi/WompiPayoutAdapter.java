@@ -8,6 +8,7 @@ import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -33,6 +34,7 @@ import java.util.Objects;
  */
 @Slf4j
 @Component
+@Profile("!dev")
 @RequiredArgsConstructor
 public class WompiPayoutAdapter implements PayoutGatewayPort {
 
