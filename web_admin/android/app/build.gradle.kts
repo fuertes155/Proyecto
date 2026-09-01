@@ -20,8 +20,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.met"
+        // ID distinto al de mobile/met_app (com.example.met): con el mismo ID Android
+        // trata este APK como una actualización de la app de usuarios y se pisan entre sí.
+        applicationId = "com.example.met.admin"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
