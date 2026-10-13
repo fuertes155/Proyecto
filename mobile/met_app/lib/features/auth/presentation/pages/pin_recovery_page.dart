@@ -222,6 +222,12 @@ class _PinRecoveryPageState extends ConsumerState<PinRecoveryPage> {
             'Hemos enviado un código de 6 dígitos a tu correo electrónico.',
             style: TextStyle(color: Colors.white70, fontSize: 16),
           ),
+          const SizedBox(height: 8),
+          // Las cuentas creadas solo con cédula, nombre y PIN pueden no tener correo aún.
+          const Text(
+            'Si tu cuenta no tiene un correo registrado no recibirás el código: contacta a la cooperativa para restablecer tu PIN.',
+            style: TextStyle(color: Colors.white54, fontSize: 14),
+          ),
           const SizedBox(height: 32),
           TextFormField(
             controller: _otpController,

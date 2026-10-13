@@ -14,7 +14,11 @@
     <name>Met Platform</name>
 
     <properties>
-        <lombok.version>1.18.38</lombok.version>
+        <!-- 1.18.48 es la primera versión con soporte para javac 27, el compilador que trae la
+             extensión "Java" de Oracle para VS Code. Con versiones anteriores esa extensión no
+             puede cargar Lombok y marca como error todos los getters/builders/constructores
+             generados ("cannot find symbol"), aunque Maven compile sin problema. -->
+        <lombok.version>1.18.48</lombok.version>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
     </properties>
 

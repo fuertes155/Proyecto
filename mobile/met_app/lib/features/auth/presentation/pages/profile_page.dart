@@ -9,7 +9,6 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
@@ -52,7 +51,7 @@ class ProfilePage extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                user.email,
+                user.hasEmail ? user.email : 'Agrega tu correo en Mis Datos Personales',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

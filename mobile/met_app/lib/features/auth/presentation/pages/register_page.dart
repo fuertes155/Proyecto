@@ -18,10 +18,7 @@ class RegisterPage extends ConsumerStatefulWidget {
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _documentController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
+  final _fullNameController = TextEditingController();
   final _pinController = TextEditingController();
   String _documentType = 'CC';
   bool _isLoading = false;
@@ -30,10 +27,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   void dispose() {
     _documentController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _fullNameController.dispose();
     _pinController.dispose();
     super.dispose();
   }
@@ -53,32 +47,25 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       await repository.register(RegisterRequest(
         documentType: _documentType,
         documentNumber: _documentController.text.trim(),
-        email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
+        fullName: _fullNameController.text.trim(),
         pin: _pinController.text,
         termsAccepted: _termsAccepted,
       ));
 
       if (!mounted) return;
+      // Sin correo que verificar la cuenta queda activa: se entra de una vez con cédula y PIN.
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registro exitoso. Por favor, verifica tu correo.')),
+        const SnackBar(content: Text('Cuenta creada. Ingresa con tu cédula y tu PIN.')),
       );
-      context.push('/verify-email', extra: {
-        'documentType': _documentType,
-        'documentNumber': _documentController.text.trim(),
-      });
+      context.go('/login');
     } on DioException catch (e) {
       if (!mounted) return;
       final responseData = e.response?.data;
       final errorMsg = responseData is Map ? responseData['message']?.toString() : null;
       final msg = errorMsg ?? e.message ?? e.toString();
-      
+
       String friendlyMsg = msg;
-      if (msg.toLowerCase().contains('correo') || msg.toLowerCase().contains('email')) {
-        friendlyMsg = 'Este correo ya tiene dueño. Por favor, usa otro distinto.';
-      } else if (msg.toLowerCase().contains('documento') || msg.toLowerCase().contains('user_already_exists')) {
+      if (msg.toLowerCase().contains('documento') || msg.toLowerCase().contains('user_already_exists')) {
         friendlyMsg = 'Este documento ya está registrado.';
       }
 
@@ -112,47 +99,35 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             key: _formKey,
             child: Column(
               children: [
-                DropdownButtonFormField<String>(
-                  value: _documentType,
-                  decoration: const InputDecoration(labelText: 'Tipo de documento'),
-                  items: const [
-                    DropdownMenuItem(value: 'CC', child: Text('Cédula de ciudadanía')),
-                    DropdownMenuItem(value: 'CE', child: Text('Cédula de extranjería')),
-                  ],
-                  onChanged: (value) => setState(() => _documentType = value ?? 'CC'),
-                ),
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _documentController,
-                  decoration: const InputDecoration(labelText: 'Número de documento'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Correo electrónico'),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) => v == null || !v.contains('@') ? 'Correo inválido' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(labelText: 'Teléfono (10 dígitos)'),
-                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: _documentType == 'CE' ? 'Número de cédula de extranjería' : 'Número de cédula',
+                  ),
+                  keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  validator: (v) => v == null || v.length != 10 ? 'Teléfono inválido' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _firstNameController,
-                  decoration: const InputDecoration(labelText: 'Nombres'),
                   validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                 ),
-                const SizedBox(height: 16),
+                // El tipo de documento ya no es un campo: se asume cédula de ciudadanía y
+                // quien tenga cédula de extranjería lo indica con este enlace.
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () => setState(() => _documentType = _documentType == 'CC' ? 'CE' : 'CC'),
+                    child: Text(_documentType == 'CC'
+                        ? '¿Tu cédula es de extranjería?'
+                        : 'Usar cédula de ciudadanía'),
+                  ),
+                ),
                 TextFormField(
-                  controller: _lastNameController,
-                  decoration: const InputDecoration(labelText: 'Apellidos'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                  controller: _fullNameController,
+                  decoration: const InputDecoration(labelText: 'Nombre completo'),
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
+                  inputFormatters: [LengthLimitingTextInputFormatter(100)],
+                  validator: (v) => v == null || v.trim().split(RegExp(r'\s+')).length < 2
+                      ? 'Escribe tu nombre y apellido'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

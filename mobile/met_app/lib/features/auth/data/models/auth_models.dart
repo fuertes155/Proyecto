@@ -1,31 +1,25 @@
+/// El registro solo pide cédula, nombre completo y PIN. El backend parte el
+/// nombre en nombres/apellidos; el correo y el celular se agregan después
+/// desde "Mis Datos Personales".
 class RegisterRequest {
   RegisterRequest({
     required this.documentType,
     required this.documentNumber,
-    required this.email,
-    required this.phone,
-    required this.firstName,
-    required this.lastName,
+    required this.fullName,
     required this.pin,
     required this.termsAccepted,
   });
 
   final String documentType;
   final String documentNumber;
-  final String email;
-  final String phone;
-  final String firstName;
-  final String lastName;
+  final String fullName;
   final String pin;
   final bool termsAccepted;
 
   Map<String, dynamic> toJson() => {
         'documentType': documentType,
         'documentNumber': documentNumber,
-        'email': email,
-        'phone': phone,
-        'firstName': firstName,
-        'lastName': lastName,
+        'fullName': fullName,
         'pin': pin,
         'termsAccepted': termsAccepted,
       };
@@ -99,7 +93,8 @@ class UserResponse {
       id: json['id'] as String,
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
-      email: json['email'] as String,
+      // Una cuenta recién creada aún no tiene correo (ver RegisterRequest).
+      email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       status: json['status'] as String,
       kycStatus: json['kycStatus'] as String? ?? 'PENDING',
@@ -119,6 +114,8 @@ class UserResponse {
   final bool pushNotificationsEnabled;
 
   String get fullName => '$firstName $lastName';
+
+  bool get hasEmail => email.isNotEmpty;
 }
 
 class PinRecoveryRequest {

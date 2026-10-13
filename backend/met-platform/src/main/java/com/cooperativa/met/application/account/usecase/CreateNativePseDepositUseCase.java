@@ -65,7 +65,7 @@ public class CreateNativePseDepositUseCase {
         PseTransactionResult result = pseGatewayPort.createPseTransaction(new PseTransactionRequest(
                 reference,
                 request.getAmount(),
-                user.getEmail(),
+                user.requireEmail(),
                 user.getDocumentType().name(),
                 user.getDocumentNumber(),
                 bank.getWompiPseCode(),

@@ -3,7 +3,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:met/features/transfers/domain/repositories/transfers_repository.dart';
 import 'package:met/features/transfers/data/models/verify_recipient_model.dart';
 import 'package:met/features/transfers/data/models/transfer_request_model.dart';
-import 'package:met/features/transfers/data/models/core_account_model.dart';
 
 class MockTransfersRepository extends Mock implements TransfersRepository {}
 

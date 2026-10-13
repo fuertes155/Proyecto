@@ -1,5 +1,6 @@
 package com.cooperativa.met.domain.identity.model;
 
+import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -66,6 +67,23 @@ public class User {
 
     public User withLastKnownDeviceId(String newDeviceId) {
         return this.toBuilder().lastKnownDeviceId(newDeviceId).updatedAt(Instant.now()).build();
+    }
+
+    /**
+     * El registro simplificado (cédula, nombre completo y PIN) no pide correo: el usuario lo
+     * agrega después desde su perfil. Hasta entonces no hay a dónde enviarle códigos OTP ni
+     * alertas de seguridad.
+     */
+    public boolean hasEmail() {
+        return email != null && !email.isBlank();
+    }
+
+    public String requireEmail() {
+        if (!hasEmail()) {
+            throw new BusinessRuleException("EMAIL_REQUIRED",
+                    "Agrega tu correo electrónico en Perfil > Mis Datos Personales para continuar.");
+        }
+        return email;
     }
 
     public boolean isDeviceRecognized(String deviceId) {

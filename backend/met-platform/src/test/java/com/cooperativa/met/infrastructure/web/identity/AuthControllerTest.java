@@ -101,6 +101,36 @@ class AuthControllerTest {
     }
 
     @Test
+    void shouldRegisterUserWithOnlyDocumentFullNameAndPin() throws Exception {
+        UserResponse mockResponse = new UserResponse(
+            UUID.randomUUID(),
+            DocumentType.CC,
+            "1234567890",
+            null,
+            null,
+            "Juan",
+            "Pabón Gómez",
+            UserStatus.ACTIVE,
+            KycStatus.PENDING,
+            true,
+            true,
+            Instant.now()
+        );
+
+        Mockito.when(registerUserUseCase.execute(Mockito.any())).thenReturn(mockResponse);
+
+        // Registro simplificado: sin correo, teléfono ni nombres/apellidos por separado.
+        String json = "{\"documentType\": \"CC\", \"documentNumber\": \"1234567890\", \"fullName\": \"Juan Pabón Gómez\", \"pin\": \"1234\", \"termsAccepted\": true}";
+
+        mockMvc.perform(post("/v1/auth/register").with(csrf())
+                .servletPath("/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
     void shouldLogoutUser() throws Exception {
         Mockito.doNothing().when(logoutUseCase).execute(Mockito.any(), Mockito.anyString());
         // JwtAuthenticationFilter (real, no mockeado) valida el header Authorization en

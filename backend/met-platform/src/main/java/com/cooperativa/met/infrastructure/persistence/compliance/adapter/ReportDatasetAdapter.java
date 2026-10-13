@@ -29,8 +29,10 @@ public class ReportDatasetAdapter implements ReportDatasetPort {
     }
 
     private ReportDataset buildAsociados(int year, int month, String entityCode) {
+        // El correo es opcional desde el registro simplificado (V40): se reporta vacío en vez de
+        // NULL, porque List.of(...) no admite elementos nulos.
         String sql = """
-                SELECT document_type, document_number, first_name, last_name, email, status, kyc_status,
+                SELECT document_type, document_number, first_name, last_name, COALESCE(email, '') AS email, status, kyc_status,
                        TO_CHAR(created_at, 'YYYYMMDD')
                 FROM users
                 WHERE EXTRACT(YEAR FROM created_at) <= ? AND EXTRACT(MONTH FROM created_at) <= ?

@@ -85,7 +85,7 @@ class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
     final currencyFormat = NumberFormat.currency(locale: 'es_CO', symbol: 'COP ', decimalDigits: 2);
     final formattedAmount = currencyFormat.format(widget._amount);
     
-    final state = ref.watch(depositProvider);
+    ref.watch(depositProvider);
 
     ref.listen(depositProvider, (previous, next) {
       if (next.isSuccess && !(previous?.isSuccess ?? false)) {

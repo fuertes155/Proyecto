@@ -5,6 +5,7 @@ import com.cooperativa.met.application.identity.dto.UserResponse;
 import com.cooperativa.met.application.identity.mapper.UserMapper;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.model.KycStatus;
+import com.cooperativa.met.domain.identity.model.PersonName;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.EncryptionPort;
@@ -13,6 +14,7 @@ import com.cooperativa.met.application.identity.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -31,9 +33,12 @@ public class RegisterUserUseCase {
         if (userRepository.existsByDocument(request.documentType(), request.documentNumber())) {
             throw new BusinessRuleException("USER_ALREADY_EXISTS", "El documento ya está registrado");
         }
-        if (userRepository.existsByEmail(request.email())) {
+        // El registro simplificado no trae correo: el usuario lo agrega después desde su perfil.
+        String email = StringUtils.hasText(request.email()) ? request.email() : null;
+        if (email != null && userRepository.existsByEmail(email)) {
             throw new BusinessRuleException("EMAIL_ALREADY_EXISTS", "El correo ya está registrado");
         }
+        PersonName name = resolveName(request);
 
         String plainPin;
         try {
@@ -46,12 +51,13 @@ public class RegisterUserUseCase {
                 .id(UUID.randomUUID())
                 .documentType(request.documentType())
                 .documentNumber(request.documentNumber())
-                .email(request.email())
+                .email(email)
                 .phone(request.phone())
-                .firstName(request.firstName())
-                .lastName(request.lastName())
+                .firstName(name.firstName())
+                .lastName(name.lastName())
                 .pinHash(encryptionPort.hashPin(plainPin))
-                .status(UserStatus.PENDING_VERIFICATION)
+                // Sin correo no hay nada que verificar: la cuenta queda activa de una vez.
+                .status(email != null ? UserStatus.PENDING_VERIFICATION : UserStatus.ACTIVE)
                 .kycStatus(KycStatus.PENDING)
                 .termsAccepted(request.termsAccepted())
                 .termsAcceptedAt(Instant.now())
@@ -60,7 +66,16 @@ public class RegisterUserUseCase {
                 .build();
 
         User savedUser = userRepository.save(user);
-        otpService.generateAndSendEmailVerificationOtp(savedUser.getDocumentNumber(), savedUser.getEmail());
+        if (email != null) {
+            otpService.generateAndSendEmailVerificationOtp(savedUser.getDocumentNumber(), email);
+        }
         return userMapper.toResponse(savedUser);
+    }
+
+    private PersonName resolveName(RegisterUserRequest request) {
+        if (StringUtils.hasText(request.firstName()) && StringUtils.hasText(request.lastName())) {
+            return new PersonName(request.firstName(), request.lastName());
+        }
+        return PersonName.fromFullName(request.fullName());
     }
 }

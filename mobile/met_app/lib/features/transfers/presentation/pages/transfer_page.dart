@@ -424,7 +424,7 @@ class _TransferPageState extends ConsumerState<TransferPage> {
                 ? null 
                 : () async {
                     bool success = await notifier.executeTransfer(_pinController.text);
-                    if (!success && notifier.state.error == 'Se requiere código de seguridad para transferir') {
+                    if (!success && ref.read(transferNotifierProvider).error == 'Se requiere código de seguridad para transferir') {
                        await notifier.requestOtp();
                        notifier.nextStep(); // Mover a step 3 (OTP)
                     }

@@ -84,10 +84,10 @@
                 "register"
               ]
             },
-            "description": "⚠️ El campo `pin` (y `newPin`/`currentPin` cuando aplica) viaja cifrado con RSA-OAEP usando la llave pública del servidor (GET /v1/auth/public-key), NO en texto plano. El valor de este ejemplo es solo un marcador de posición — cífralo antes de enviar (ver mobile/met_app/lib/core/security/rsa_encryption_service.dart para la implementación de referencia).",
+            "description": "⚠️ El campo `pin` (y `newPin`/`currentPin` cuando aplica) viaja cifrado con RSA-OAEP usando la llave pública del servidor (GET /v1/auth/public-key), NO en texto plano. El valor de este ejemplo es solo un marcador de posición — cífralo antes de enviar (ver mobile/met_app/lib/core/security/rsa_encryption_service.dart para la implementación de referencia).\n\nRegistro simplificado: solo se piden documento, `fullName` y PIN. El backend separa `fullName` en nombres y apellidos, y la cuenta queda `ACTIVE` de inmediato. `email` y `phone` son opcionales (el usuario los agrega después con PUT /v1/auth/me); si se envía `email`, la cuenta queda `PENDING_VERIFICATION` hasta verificarlo con el OTP, como antes. `firstName` + `lastName` se siguen aceptando en lugar de `fullName`.",
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\",\n    \"email\": \"usuario@example.com\",\n    \"phone\": \"3001234567\",\n    \"firstName\": \"Juan\",\n    \"lastName\": \"García\",\n    \"pin\": \"<PIN_CIFRADO_RSA_BASE64>\",\n    \"termsAccepted\": true\n}",
+              "raw": "{\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"123456789\",\n    \"fullName\": \"Juan García Pérez\",\n    \"pin\": \"<PIN_CIFRADO_RSA_BASE64>\",\n    \"termsAccepted\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"

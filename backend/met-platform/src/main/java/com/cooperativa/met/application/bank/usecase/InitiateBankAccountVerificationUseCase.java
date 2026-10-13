@@ -79,7 +79,7 @@ public class InitiateBankAccountVerificationUseCase {
                 user.getDocumentType().name(),
                 user.getDocumentNumber(),
                 user.getFirstName() + " " + user.getLastName(),
-                user.getEmail(),
+                user.requireEmail(),
                 account.getId()));
 
         if (result.status() != PayoutGatewayResult.PayoutGatewayStatus.ACCEPTED) {

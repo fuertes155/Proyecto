@@ -35,7 +35,6 @@ public class UserJpaEntity {
     @Column(name = "document_number", nullable = false, length = 255)
     private String documentNumber;
 
-    @Column(nullable = false)
     private String email;
 
     @Convert(converter = SearchableCryptoConverter.class)

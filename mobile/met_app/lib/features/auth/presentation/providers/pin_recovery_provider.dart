@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/auth_models.dart';
 import '../../data/repositories/auth_repository_impl.dart';
-import 'auth_provider.dart';
 
 final pinRecoveryProvider = StateNotifierProvider<PinRecoveryNotifier, PinRecoveryState>((ref) {
   final authRepo = ref.watch(authRepositoryProvider);

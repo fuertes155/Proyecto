@@ -49,7 +49,17 @@ class SecureStorageService {
 
   Future<String?> readUserId() => _storage.read(key: _userIdKey);
 
-  Future<void> clear() => _storage.deleteAll();
+  /// Borra la sesión, pero conserva el identificador del dispositivo. Si también
+  /// se borrara, cada inicio de sesión llegaría con un `device_id` recién
+  /// generado y el backend pediría el código de "dispositivo nuevo" en todos
+  /// los ingresos, no solo cuando el usuario cambia de teléfono.
+  Future<void> clear() async {
+    final deviceId = await _storage.read(key: _deviceIdKey);
+    await _storage.deleteAll();
+    if (deviceId != null) {
+      await _storage.write(key: _deviceIdKey, value: deviceId);
+    }
+  }
   
   // Proxy methods para acceso genérico
   Future<String?> read({required String key}) => _storage.read(key: key);

@@ -13,6 +13,7 @@ import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
 import com.cooperativa.met.application.identity.service.OtpService;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+import com.cooperativa.met.infrastructure.security.PinAttemptService;
 import com.cooperativa.met.application.security.FraudDetectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class LoginUseCase {
     private final NotificationPort notificationPort;
     private final OtpService otpService;
     private final FraudDetectionService fraudDetectionService;
+    private final PinAttemptService pinAttemptService;
 
     @Transactional
     public AuthResponse execute(LoginRequest request, String ip) {
@@ -57,25 +59,31 @@ public class LoginUseCase {
             throw new BusinessRuleException("USER_NOT_ACTIVE", "La cuenta no está activa");
         }
 
+        // 🔒 Bloqueo temporal por intentos fallidos de PIN: el mismo que protege transferencias y
+        // retiros (PinAttemptService, en Redis). Antes el conteo se guardaba en la BD dentro de
+        // esta transacción, que hace rollback al lanzar la excepción: nunca pasaba de 1 y la
+        // cuenta no llegaba a bloquearse. Una cuenta sin correo (registro simplificado) no tiene
+        // OTP de dispositivo, así que este bloqueo es lo que frena adivinar el PIN a la fuerza.
+        pinAttemptService.checkBlocked(user.getId());
+
         boolean authenticated = authenticate(request, user);
         log.debug("Authentication result={} for userId={}", authenticated, user.getId());
 
         if (!authenticated) {
-            int newAttempts = user.getFailedLoginAttempts() + 1;
-            User updatedUser = user.withFailedLoginAttempts(newAttempts);
-            if (newAttempts >= 3) {
-                updatedUser = updatedUser.withStatus(UserStatus.BLOCKED);
-                userRepository.save(updatedUser);
-                notificationPort.sendAccountLockedEmail(updatedUser.getEmail());
-                throw new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos");
-            }
-            userRepository.save(updatedUser);
-            throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas. Intento " + newAttempts + " de 3");
+            pinAttemptService.checkAndRecordFailure(user.getId()); // lanza INVALID_PIN o ACCOUNT_LOCKED
+            // Red de seguridad: el login nunca continúa con un PIN incorrecto.
+            throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
         }
+        pinAttemptService.resetAttempts(user.getId());
 
         // 🛡️ Fix Device Binding: Verificar si es un dispositivo nuevo
         if (!user.isDeviceRecognized(request.deviceId())) {
-            if (request.otpCode() == null || request.otpCode().isBlank()) {
+            if (!user.hasEmail()) {
+                // Registro simplificado: la cuenta todavía no tiene correo, así que no hay a dónde
+                // enviar el código de dispositivo nuevo. Se vincula el dispositivo sin OTP; la
+                // verificación vuelve a exigirse en cuanto el usuario agrega su correo.
+                user = user.withLastKnownDeviceId(request.deviceId());
+            } else if (request.otpCode() == null || request.otpCode().isBlank()) {
                 otpService.generateAndSendOtp(user.getDocumentNumber(), user.getEmail());
                 throw new BusinessRuleException("DEVICE_NOT_RECOGNIZED", "Nuevo dispositivo detectado. Se ha enviado un código de seguridad a tu correo/SMS.");
             } else {
@@ -92,7 +100,7 @@ public class LoginUseCase {
         }
 
         if (user.getFailedLoginAttempts() > 0 || (user.getLastKnownIp() == null || !user.getLastKnownIp().equals(ip))) {
-            if (user.getLastKnownIp() != null && !user.getLastKnownIp().equals(ip)) {
+            if (user.hasEmail() && user.getLastKnownIp() != null && !user.getLastKnownIp().equals(ip)) {
                 notificationPort.sendNewLoginFromNewIpEmail(user.getEmail(), ip);
             }
             userRepository.save(user.withFailedLoginAttempts(0).withLastKnownIp(ip));

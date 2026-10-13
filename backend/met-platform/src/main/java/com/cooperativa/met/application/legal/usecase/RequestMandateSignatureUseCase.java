@@ -25,7 +25,7 @@ public class RequestMandateSignatureUseCase {
                 .orElseThrow(() -> new BusinessRuleException("USR_01", "Usuario no encontrado"));
 
         // Se reusa el OtpService para enviar el OTP al correo
-        otpService.generateAndSendOtp(user.getDocumentNumber(), user.getEmail());
+        otpService.generateAndSendOtp(user.getDocumentNumber(), user.requireEmail());
         
         // Retornamos un ID de transacción para que el cliente lo mande en la confirmación.
         // Como el OtpService actual usa el documentNumber como llave en Redis, 

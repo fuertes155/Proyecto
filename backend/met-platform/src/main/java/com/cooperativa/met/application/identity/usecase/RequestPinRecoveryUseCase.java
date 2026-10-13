@@ -18,7 +18,10 @@ public class RequestPinRecoveryUseCase {
     public void execute(PinRecoveryRequest request) {
         // Responde igual exista o no el documento, para no permitir enumerar usuarios
         // registrados a través de este endpoint público. Solo se envía el OTP si hay match.
+        // Una cuenta sin correo (registro simplificado) no tiene a dónde recibir el código: se
+        // trata igual que un documento inexistente.
         userRepository.findByDocument(request.getDocumentType(), request.getDocumentNumber())
+                .filter(user -> user.hasEmail())
                 .ifPresent(user -> otpService.generateAndSendOtp(request.getDocumentNumber(), user.getEmail()));
     }
 }
