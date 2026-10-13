@@ -16,4 +16,11 @@ COPY --from=builder --chown=met:met /build/met-platform/target/*.jar app.jar
 USER met
 
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+
+# Flags de memoria/JIT afinados para instancias chicas (Render free = 512 MB):
+# heap ~50% del contenedor, SerialGC (menos overhead que G1 en heaps chicos),
+# metaspace y code-cache acotados, JIT solo C1 (menos RAM y arranque más rápido).
+# $JAVA_OPTS al final permite sobreescribir; en Render conviene NO definir
+# JAVA_OPTS para que estos valores manden.
+ENV JAVA_TUNING="-XX:MaxRAMPercentage=50.0 -XX:+UseSerialGC -XX:MaxMetaspaceSize=140m -XX:ReservedCodeCacheSize=40m -XX:TieredStopAtLevel=1 -Xss384k -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dspring.jmx.enabled=false"
+ENTRYPOINT ["sh", "-c", "java $JAVA_TUNING $JAVA_OPTS -jar app.jar"]

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Solo builds debug (vive en src/debug/): permite tráfico HTTP sin TLS.
+  Necesario para apuntar la app admin a un backend de desarrollo por http://
+  (IP LAN o localhost). El build release usa el config estricto de src/main/.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -55,12 +55,16 @@ public class AesEncryptionAdapter implements EncryptionPort {
     public void init() {
         INSTANCE = this;
         try {
-            String b64Priv = securityProperties.getEncryption().getRsaPrivateKey();
-            String b64Pub = securityProperties.getEncryption().getRsaPublicKey();
+            // Las variables de entorno suelen llegar con saltos de línea o espacios
+            // (p. ej. al pegar la clave en un textarea del panel del hosting). El
+            // decodificador estricto de Base64 revienta con "incorrect ending byte",
+            // así que se limpian los espacios en blanco antes de decodificar.
+            String b64Priv = stripWhitespace(securityProperties.getEncryption().getRsaPrivateKey());
+            String b64Pub = stripWhitespace(securityProperties.getEncryption().getRsaPublicKey());
 
             if (b64Priv != null && !b64Priv.isBlank() && b64Pub != null && !b64Pub.isBlank()) {
                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                this.rsaPrivateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(b64Priv)));
+                this.rsaPrivateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getMimeDecoder().decode(b64Priv)));
                 this.rsaPublicKeyBase64 = b64Pub;
             } else {
                 // Generate on the fly for development
@@ -73,6 +77,10 @@ public class AesEncryptionAdapter implements EncryptionPort {
         } catch (Exception e) {
             throw new IllegalStateException("Failed to initialize RSA keys", e);
         }
+    }
+
+    private static String stripWhitespace(String value) {
+        return value == null ? null : value.replaceAll("\\s", "");
     }
 
     @Override

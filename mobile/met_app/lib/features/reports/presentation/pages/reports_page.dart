@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/platform/platform.dart';
 import '../../../../core/widgets/accessible_button.dart';
 import '../providers/reports_provider.dart';
 
@@ -93,14 +90,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     if (bytes == null) return;
 
     final extension = _format == 'xlsx' ? 'xlsx' : 'pdf';
+    final mimeType = _format == 'xlsx'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
     final fileName =
         'reporte_${DateFormat('yyyyMMdd').format(_from)}_a_${DateFormat('yyyyMMdd').format(_to)}.$extension';
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$fileName');
-    await file.writeAsBytes(bytes, flush: true);
 
     if (!mounted) return;
-    await Share.shareXFiles([XFile(file.path)], text: 'Reporte de cuenta MET');
+    await saveAndShareBytes(bytes, fileName, mimeType);
   }
 
   @override

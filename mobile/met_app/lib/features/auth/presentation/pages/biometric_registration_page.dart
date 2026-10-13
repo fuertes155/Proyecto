@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -25,9 +24,11 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
   final ImagePicker _picker = ImagePicker();
   final GlobalKey _signatureBoundaryKey = GlobalKey();
 
-  File? _idImage;
-  File? _idBackImage;
-  File? _selfieImage;
+  // Bytes de cada foto (no `File`: el navegador no tiene `dart:io`). Se leen al
+  // momento de capturar y se envían en base64 al backend.
+  Uint8List? _idImage;
+  Uint8List? _idBackImage;
+  Uint8List? _selfieImage;
   final List<Offset?> _signaturePoints = [];
   bool _isLoading = false;
 
@@ -81,21 +82,27 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
     final XFile? image = await _pickFromCamera();
     if (image == null) return;
     if (!_isValidPhoto(image)) return _rejectNonPhoto();
-    setState(() => _idImage = File(image.path));
+    final bytes = await image.readAsBytes();
+    if (!mounted) return;
+    setState(() => _idImage = bytes);
   }
 
   Future<void> _takeIdBackPhoto() async {
     final XFile? image = await _pickFromCamera();
     if (image == null) return;
     if (!_isValidPhoto(image)) return _rejectNonPhoto();
-    setState(() => _idBackImage = File(image.path));
+    final bytes = await image.readAsBytes();
+    if (!mounted) return;
+    setState(() => _idBackImage = bytes);
   }
 
   Future<void> _takeSelfie() async {
     final XFile? image = await _pickFromCamera(device: CameraDevice.front);
     if (image == null) return;
     if (!_isValidPhoto(image)) return _rejectNonPhoto();
-    setState(() => _selfieImage = File(image.path));
+    final bytes = await image.readAsBytes();
+    if (!mounted) return;
+    setState(() => _selfieImage = bytes);
   }
 
   void _clearSignature() {
@@ -133,20 +140,29 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
       }
 
       final dio = ref.read(apiClientProvider);
-      final authState = ref.read(authStateProvider);
-      final userId = authState.valueOrNull?.id;
 
+      // Android puede matar la app en segundo plano mientras se toman las fotos
+      // (cámara del sistema, equipos con poca RAM): al volver, el estado de sesión
+      // en memoria se perdió pero el token sigue en el almacenamiento seguro.
+      // Restaurar la sesión desde disco antes de continuar.
+      var userId = ref.read(authStateProvider).valueOrNull?.id;
       if (userId == null) {
-        throw Exception('Usuario no autenticado.');
+        await ref.read(authStateProvider.notifier).checkSession();
+        userId = ref.read(authStateProvider).valueOrNull?.id;
+      }
+      if (userId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tu sesión expiró. Inicia sesión de nuevo para continuar.')),
+          );
+          context.go('/login');
+        }
+        return;
       }
 
-      final idBytes = await _idImage!.readAsBytes();
-      final idBackBytes = await _idBackImage!.readAsBytes();
-      final selfieBytes = await _selfieImage!.readAsBytes();
-
-      final idBase64 = base64Encode(idBytes);
-      final idBackBase64 = base64Encode(idBackBytes);
-      final selfieBase64 = base64Encode(selfieBytes);
+      final idBase64 = base64Encode(_idImage!);
+      final idBackBase64 = base64Encode(_idBackImage!);
+      final selfieBase64 = base64Encode(_selfieImage!);
       final signatureBase64 = base64Encode(signatureBytes);
 
       await dio.post('/v1/auth/biometric', data: {
@@ -185,7 +201,7 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
     }
   }
 
-  Widget _buildPhotoSlot(String title, String subtitle, IconData icon, File? imageFile, VoidCallback onTap) {
+  Widget _buildPhotoSlot(String title, String subtitle, IconData icon, Uint8List? imageFile, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -202,7 +218,7 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
           ),
           image: imageFile != null
               ? DecorationImage(
-                  image: FileImage(imageFile),
+                  image: MemoryImage(imageFile),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.3), BlendMode.darken),
                 )

@@ -1,12 +1,11 @@
 package com.cooperativa.met.application.identity.service;
 
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.notification.port.EmailSenderPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -18,11 +17,8 @@ import java.time.Duration;
 public class OtpService {
 
     private final StringRedisTemplate redisTemplate;
-    private final JavaMailSender mailSender;
+    private final EmailSenderPort emailSender;
     private final SecureRandom secureRandom = new SecureRandom();
-
-    @Value("${met.mail.from-address}")
-    private String fromAddress;
 
     // Solo development/local (ver application-dev.yml). En producción debe quedar en false
     // para que un fallo de envío se reporte como error real en vez de exponer el OTP en logs.
@@ -52,13 +48,11 @@ public class OtpService {
 
         // Send Email
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromAddress);
-            message.setTo(email);
-            message.setSubject("Tu código de recuperación de PIN");
-            message.setText("Hola,\n\nHas solicitado recuperar tu PIN. Tu código de verificación es: " + otpCode +
-                            "\n\nEste código expirará en 5 minutos.\nSi no fuiste tú, ignora este mensaje.\n\nSaludos,\nEquipo de Finanzas");
-            mailSender.send(message);
+            emailSender.sendPlainText(
+                email,
+                "Tu código de recuperación de PIN",
+                "Hola,\n\nHas solicitado recuperar tu PIN. Tu código de verificación es: " + otpCode +
+                    "\n\nEste código expirará en 5 minutos.\nSi no fuiste tú, ignora este mensaje.\n\nSaludos,\nEquipo de Finanzas");
             log.info("OTP Email sent successfully to {}", email);
         } catch (Exception e) {
             log.error("Failed to send OTP Email to {}", email, e);
@@ -106,13 +100,11 @@ public class OtpService {
         redisTemplate.delete(OTP_ATTEMPTS_PREFIX + documentNumber);
 
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromAddress);
-            message.setTo(email);
-            message.setSubject("Verificación de Correo Electrónico");
-            message.setText("Hola,\n\nTu código de verificación de correo es: " + otpCode +
-                            "\n\nEste código expirará en 5 minutos.\n\nSaludos,\nEquipo MET");
-            mailSender.send(message);
+            emailSender.sendPlainText(
+                email,
+                "Verificación de Correo Electrónico",
+                "Hola,\n\nTu código de verificación de correo es: " + otpCode +
+                    "\n\nEste código expirará en 5 minutos.\n\nSaludos,\nEquipo MET");
             log.info("Email Verification OTP sent successfully to {}", email);
         } catch (Exception e) {
             log.error("Failed to send Email Verification OTP to {}", email, e);

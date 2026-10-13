@@ -106,12 +106,19 @@ met:
       rsa-private-key: ${RSA_PRIVATE_KEY:}
       rsa-public-key: ${RSA_PUBLIC_KEY:}
   mail:
+    # Proveedor de envío: 'smtp' (JavaMailSender, para local) o 'brevo' (API HTTP,
+    # para Render que bloquea el SMTP saliente). Ver SmtpEmailSender / BrevoEmailSender.
+    provider: ${MAIL_PROVIDER:smtp}
+    brevo:
+      # API key de Brevo (Settings → SMTP & API → API Keys). Obligatoria si provider=brevo.
+      api-key: ${BREVO_API_KEY:}
+    # Nombre visible del remitente.
+    from-name: ${MAIL_FROM_NAME:MET}
     # Remitente real de los correos transaccionales (OTP, verificación, alertas).
-    # Con SMTP de Gmail el remitente DEBE coincidir con la cuenta autenticada (MAIL_USERNAME);
-    # si no coincide, Gmail rompe el alineamiento SPF/DKIM y el correo cae a spam o se rechaza
-    # del lado del receptor (por eso los correos de verificación no llegaban a Gmail).
-    # Al migrar a un proveedor transaccional (SES/SendGrid/Postmark) con dominio propio,
-    # sobreescribe esto con MAIL_FROM_ADDRESS en vez de depender de MAIL_USERNAME.
+    # Con SMTP de Gmail el remitente DEBE coincidir con la cuenta autenticada (MAIL_USERNAME).
+    # Con Brevo sin dominio propio: verifica esta dirección en Brevo (Senders) — llega un
+    # correo de confirmación. Al tener dominio propio, verifica el dominio (DNS) y usa
+    # no-reply@tudominio.com vía MAIL_FROM_ADDRESS.
     from-address: ${MAIL_FROM_ADDRESS:${MAIL_USERNAME:no-reply@met.com}}
     # Si el envío falla, por defecto se debe lanzar un error real (no se oculta el fallo al usuario).
     # Solo development/local activa el fallback que imprime el OTP en logs (ver application-dev.yml).

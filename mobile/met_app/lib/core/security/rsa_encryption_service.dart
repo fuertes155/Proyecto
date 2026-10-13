@@ -70,6 +70,11 @@ class RsaEncryptionService {
       final publicKey = parser.parse(pem) as RSAPublicKey;
 
       _encrypter = Encrypter(RSA(publicKey: publicKey));
+    } on DioException {
+      // Fallo de red/servidor (sin conexión, timeout, IP equivocada, 5xx...).
+      // Se re-lanza tal cual para que ErrorMapper lo traduzca a un mensaje
+      // accionable ("Sin conexión al servidor...") en vez de un genérico.
+      rethrow;
     } catch (e) {
       throw Exception('Error al obtener la llave pública del servidor: $e');
     }

@@ -1,0 +1,26 @@
+# Mantiene despierto el backend free de Render (se duerme tras ~15 min sin
+# tráfico y tarda ~4 min en arrancar en frío). Hace un ping al health cada
+# ~10 min. GitHub puede retrasar los cron bajo carga; si necesitas algo
+# 100% fiable, usa un monitor externo (UptimeRobot / cron-job.org) o sube
+# el servicio a un plan de pago.
+name: keep-backend-warm
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend health
+        run: |
+          code=$(curl -sS -m 300 -o /dev/null -w "%{http_code}" \
+            https://met-backend-y04c.onrender.com/api/actuator/health || echo 000)
+          echo "health -> $code"
+          test "$code" = "200"

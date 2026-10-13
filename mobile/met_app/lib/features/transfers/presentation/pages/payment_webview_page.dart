@@ -87,7 +87,11 @@ class _PaymentWebViewPageState extends ConsumerState<PaymentWebViewPage> {
       if (userId == null) return;
 
       final dio = ref.read(apiClientProvider);
-      final txId = 'TEST-${DateTime.now().millisecondsSinceEpoch}';
+      // Reusar el transactionId del link de pago si viene (pasarela simulada):
+      // así este webhook es idempotente con el que envía la propia pantalla de
+      // la pasarela y NO se acredita el depósito dos veces.
+      final txId = Uri.parse(widget.paymentUrl).queryParameters['transactionId']
+          ?? 'TEST-${DateTime.now().millisecondsSinceEpoch}';
       await dio.post('/v1/webhooks/mock-payment', data: {
         'event': 'transaction.updated',
         'data': {

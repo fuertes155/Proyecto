@@ -1,41 +1,33 @@
 package com.cooperativa.met.infrastructure.adapter;
 
 import com.cooperativa.met.domain.identity.port.NotificationPort;
+import com.cooperativa.met.domain.notification.port.EmailSenderPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 /**
  * Adaptador de infraestructura que implementa {@link NotificationPort}
- * usando Spring Mail (JavaMailSender) para el envío de emails de seguridad.
+ * delegando el envío en {@link EmailSenderPort} (SMTP en local, Brevo en Render).
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class EmailNotificationAdapter implements NotificationPort {
 
-    private final JavaMailSender mailSender;
-
-    @Value("${met.mail.from-address}")
-    private String fromAddress;
+    private final EmailSenderPort emailSender;
 
     @Override
     public void sendAccountLockedEmail(String email) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromAddress);
-            message.setTo(email);
-            message.setSubject("Cuenta Bloqueada");
-            message.setText(
+            emailSender.sendPlainText(
+                email,
+                "Cuenta Bloqueada",
                 "Hola,\n\n" +
                 "Tu cuenta ha sido bloqueada tras 3 intentos fallidos de inicio de sesión.\n\n" +
                 "Por favor, contacta a soporte para desbloquearla.\n\n" +
                 "Saludos,\nEquipo MET"
             );
-            mailSender.send(message);
             log.info("Account locked email sent successfully");
         } catch (Exception e) {
             log.error("Failed to send account locked email: {}", e.getMessage());
@@ -45,17 +37,14 @@ public class EmailNotificationAdapter implements NotificationPort {
     @Override
     public void sendNewLoginFromNewIpEmail(String email, String ip) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromAddress);
-            message.setTo(email);
-            message.setSubject("Alerta de Seguridad: Nuevo inicio de sesión");
-            message.setText(
+            emailSender.sendPlainText(
+                email,
+                "Alerta de Seguridad: Nuevo inicio de sesión",
                 "Hola,\n\n" +
-                "Hemos detectado un inicio de sesión en tu cuenta desde una nueva ubicación.\n" +
+                "Hemos detectado un inicio de sesión en tu cuenta desde una nueva ubicación (IP: " + ip + ").\n" +
                 "Si no fuiste tú, por favor cambia tu PIN inmediatamente y contacta a soporte.\n\n" +
                 "Saludos,\nEquipo de Seguridad MET"
             );
-            mailSender.send(message);
             log.info("New IP login alert email sent successfully");
         } catch (Exception e) {
             log.error("Failed to send new IP login alert email: {}", e.getMessage());
