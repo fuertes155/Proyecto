@@ -12,7 +12,14 @@ REM =========================================================================
 
 setlocal
 
-REM El token debe coincidir con VAULT_TOKEN del archivo .env de la raiz (default: root).
+REM El token debe coincidir con VAULT_TOKEN del archivo .env de la raiz (default: root),
+REM porque docker compose arranca Vault con ese mismo valor. Si no viene ya como variable
+REM de entorno se lee del .env; con un token distinto Vault responde 403 "permission denied".
+if "%VAULT_TOKEN%"=="" if exist "%~dp0.env" (
+    for /f "usebackq tokens=1,* delims==" %%a in ("%~dp0.env") do (
+        if /i "%%a"=="VAULT_TOKEN" set "VAULT_TOKEN=%%b"
+    )
+)
 if "%VAULT_TOKEN%"=="" set "VAULT_TOKEN=root"
 
 echo Esperando a que Vault inicie...

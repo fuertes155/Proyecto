@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
+import '../config/app_config.dart';
+
 final secureStorageProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService();
 });
@@ -49,15 +51,26 @@ class SecureStorageService {
 
   Future<String?> readUserId() => _storage.read(key: _userIdKey);
 
-  /// Borra la sesión, pero conserva el identificador del dispositivo. Si también
-  /// se borrara, cada inicio de sesión llegaría con un `device_id` recién
-  /// generado y el backend pediría el código de "dispositivo nuevo" en todos
-  /// los ingresos, no solo cuando el usuario cambia de teléfono.
+  // Claves que pertenecen al dispositivo y no a la sesión: sobreviven al cierre
+  // de sesión.
+  //  - device_id: si se borrara, cada inicio de sesión llegaría con un id recién
+  //    generado y el backend pediría el código de "dispositivo nuevo" en todos
+  //    los ingresos, no solo cuando el usuario cambia de teléfono.
+  //  - URL del servidor configurada en la pantalla de desarrollador: si se
+  //    borrara, la app volvería a la IP por defecto después de cada logout.
+  static const _deviceScopedKeys = [_deviceIdKey, AppConfig.devApiBaseUrlKey];
+
+  /// Borra la sesión (tokens y cualquier otro dato guardado) conservando solo
+  /// las claves de [_deviceScopedKeys].
   Future<void> clear() async {
-    final deviceId = await _storage.read(key: _deviceIdKey);
+    final kept = <String, String>{};
+    for (final key in _deviceScopedKeys) {
+      final value = await _storage.read(key: key);
+      if (value != null) kept[key] = value;
+    }
     await _storage.deleteAll();
-    if (deviceId != null) {
-      await _storage.write(key: _deviceIdKey, value: deviceId);
+    for (final entry in kept.entries) {
+      await _storage.write(key: entry.key, value: entry.value);
     }
   }
   

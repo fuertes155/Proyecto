@@ -59,7 +59,9 @@ services:
       redis:
         condition: service_healthy
     environment:
-      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom"
+      # La imagen ya trae -XX:+UseSerialGC en $JAVA_TUNING; con dos recolectores a la vez la JVM
+      # no arranca, así que para usar G1 hay que apagar primero el de la imagen.
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:-UseSerialGC -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom"
       SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       DB_PORT: 5432

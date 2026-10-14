@@ -99,6 +99,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             key: _formKey,
             child: Column(
               children: [
+                // El socio elige el tipo de cédula: el backend identifica al usuario por
+                // tipo + número, y el login pide la misma elección.
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Tipo de cédula', style: Theme.of(context).textTheme.labelLarge),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'CC', label: Text('Ciudadanía')),
+                      ButtonSegment(value: 'CE', label: Text('Extranjería')),
+                    ],
+                    selected: {_documentType},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (selection) => setState(() => _documentType = selection.first),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _documentController,
                   decoration: InputDecoration(
@@ -108,17 +128,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                 ),
-                // El tipo de documento ya no es un campo: se asume cédula de ciudadanía y
-                // quien tenga cédula de extranjería lo indica con este enlace.
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () => setState(() => _documentType = _documentType == 'CC' ? 'CE' : 'CC'),
-                    child: Text(_documentType == 'CC'
-                        ? '¿Tu cédula es de extranjería?'
-                        : 'Usar cédula de ciudadanía'),
-                  ),
-                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _fullNameController,
                   decoration: const InputDecoration(labelText: 'Nombre completo'),

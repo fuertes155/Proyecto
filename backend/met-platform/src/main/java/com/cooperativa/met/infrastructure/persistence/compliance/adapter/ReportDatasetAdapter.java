@@ -29,7 +29,7 @@ public class ReportDatasetAdapter implements ReportDatasetPort {
     }
 
     private ReportDataset buildAsociados(int year, int month, String entityCode) {
-        // El correo es opcional desde el registro simplificado (V40): se reporta vacío en vez de
+        // El correo es opcional desde el registro simplificado (V44): se reporta vacío en vez de
         // NULL, porque List.of(...) no admite elementos nulos.
         String sql = """
                 SELECT document_type, document_number, first_name, last_name, COALESCE(email, '') AS email, status, kyc_status,

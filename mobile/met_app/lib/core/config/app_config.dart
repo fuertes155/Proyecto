@@ -8,7 +8,8 @@ class AppConfig {
   // pantalla de desarrollador del login. Sobrescribe la IP por defecto sin
   // recompilar el APK — útil con Tailscale (IP fija por dispositivo) o al
   // cambiar de red Wi-Fi.
-  static const String _devApiBaseUrlKey = 'dev_api_base_url';
+  // Pública porque SecureStorageService.clear() debe conservarla al cerrar sesión.
+  static const String devApiBaseUrlKey = 'dev_api_base_url';
 
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
@@ -19,7 +20,7 @@ class AppConfig {
   /// para que el cliente HTTP (Dio) se construya ya con la URL correcta.
   static Future<void> loadRuntimeOverrides() async {
     try {
-      final saved = await _storage.read(key: _devApiBaseUrlKey);
+      final saved = await _storage.read(key: devApiBaseUrlKey);
       if (saved != null && saved.trim().isNotEmpty) {
         _runtimeApiBaseUrl = saved.trim();
       }
@@ -33,10 +34,10 @@ class AppConfig {
   static Future<void> setDevApiBaseUrl(String? url) async {
     final value = url?.trim() ?? '';
     if (value.isEmpty) {
-      await _storage.delete(key: _devApiBaseUrlKey);
+      await _storage.delete(key: devApiBaseUrlKey);
       _runtimeApiBaseUrl = null;
     } else {
-      await _storage.write(key: _devApiBaseUrlKey, value: value);
+      await _storage.write(key: devApiBaseUrlKey, value: value);
       _runtimeApiBaseUrl = value;
     }
   }

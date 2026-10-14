@@ -78,3 +78,7 @@ build_log*.txt
 # K8s Secrets
 infrastructure/k8s/secrets-filled.yaml
 infrastructure/k8s/sealed-secrets.yaml
+
+# Volcados de fallos de la JVM (se generan cuando Java se queda sin memoria)
+hs_err_pid*.log
+replay_pid*.log
