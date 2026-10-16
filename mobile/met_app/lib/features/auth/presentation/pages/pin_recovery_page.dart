@@ -76,7 +76,7 @@ class _PinRecoveryPageState extends ConsumerState<PinRecoveryPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.9),
+                  color: Colors.red.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -341,14 +341,12 @@ class _PinRecoveryPageState extends ConsumerState<PinRecoveryPage> {
                       }
                       if (_newPinController.text.length == 4) {
                         final success = await notifier.resetPin(_otpController.text, _newPinController.text);
-                        if (success) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('PIN actualizado correctamente', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
-                            );
-                            context.go('/login');
-                          }
-                        }
+                        // `context` es el de esta pantalla (State): su guarda es `mounted`.
+                        if (!success || !mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('PIN actualizado correctamente', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+                        );
+                        context.go('/login');
                       }
                     },
               style: ElevatedButton.styleFrom(

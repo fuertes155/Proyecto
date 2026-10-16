@@ -86,6 +86,9 @@ class UserResponse {
     required this.kycStatus,
     required this.emailNotificationsEnabled,
     required this.pushNotificationsEnabled,
+    this.documentType = 'CC',
+    this.documentNumber = '',
+    this.biometricLoginEnabled = false,
   });
 
   factory UserResponse.fromJson(Map<String, dynamic> json) {
@@ -100,6 +103,9 @@ class UserResponse {
       kycStatus: json['kycStatus'] as String? ?? 'PENDING',
       emailNotificationsEnabled: json['emailNotificationsEnabled'] as bool? ?? true,
       pushNotificationsEnabled: json['pushNotificationsEnabled'] as bool? ?? true,
+      documentType: json['documentType'] as String? ?? 'CC',
+      documentNumber: json['documentNumber'] as String? ?? '',
+      biometricLoginEnabled: json['biometricLoginEnabled'] as bool? ?? false,
     );
   }
 
@@ -112,6 +118,10 @@ class UserResponse {
   final String kycStatus;
   final bool emailNotificationsEnabled;
   final bool pushNotificationsEnabled;
+  final String documentType;
+  final String documentNumber;
+  /// La huella está activada en el servidor (en este u otro celular: solo hay una activa).
+  final bool biometricLoginEnabled;
 
   String get fullName => '$firstName $lastName';
 

@@ -2,6 +2,7 @@ package com.cooperativa.met.application.account.usecase;
 
 import com.cooperativa.met.application.account.dto.CreateNativePseDepositRequest;
 import com.cooperativa.met.application.account.dto.CreateNativePseDepositResponse;
+import com.cooperativa.met.application.account.service.PaymentReturnUrlResolver;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.bank.model.Bank;
@@ -40,6 +41,7 @@ public class CreateNativePseDepositUseCase {
     private final UserRepositoryPort userRepository;
     private final BankRepositoryPort bankRepository;
     private final PseGatewayPort pseGatewayPort;
+    private final PaymentReturnUrlResolver returnUrlResolver;
 
     public CreateNativePseDepositResponse execute(UUID userId, CreateNativePseDepositRequest request) {
         CoreAccount account = accountRepository.findByUserId(userId)
@@ -66,10 +68,12 @@ public class CreateNativePseDepositUseCase {
                 reference,
                 request.getAmount(),
                 user.requireEmail(),
+                fullName(user),
+                user.getPhone(),
                 user.getDocumentType().name(),
                 user.getDocumentNumber(),
                 bank.getWompiPseCode(),
-                buildRedirectUrl(userId, request.getReturnUrl()),
+                returnUrlResolver.resolve(userId, request.getReturnUrl()),
                 "Recarga MET"));
 
         log.info("Transacción PSE nativa creada para usuario {} banco {} reference {}", userId, bank.getCode(), reference);
@@ -81,11 +85,9 @@ public class CreateNativePseDepositUseCase {
                 .build();
     }
 
-    private String buildRedirectUrl(UUID userId, String returnUrl) {
-        if (returnUrl != null && !returnUrl.isBlank()
-                && (returnUrl.startsWith("https://met-platform.com") || returnUrl.startsWith("metapp://"))) {
-            return returnUrl;
-        }
-        return "metapp://deposit/success?userId=" + userId;
+    private static String fullName(User user) {
+        String first = user.getFirstName() == null ? "" : user.getFirstName().trim();
+        String last = user.getLastName() == null ? "" : user.getLastName().trim();
+        return (first + " " + last).trim();
     }
 }

@@ -65,7 +65,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         data: {'message': text},
       );
 
-      final replyText = response.data['reply'] as String? ?? 'Sin respuesta';
+      final replyText = (response.data as Map<String, dynamic>)['reply'] as String? ?? 'Sin respuesta';
       state = ChatState([...newMessages, ChatMessage(replyText, false)], false,
           showQuickOptions: false);
     } catch (_) {

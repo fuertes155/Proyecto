@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/auth_models.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/services/biometric_login_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 import '../../../../core/storage/secure_storage_service.dart';
@@ -45,6 +46,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
       );
       await _repository.loginWithPin(enhancedRequest);
       final profile = await _repository.getProfile();
+      try {
+        await _ref.read(biometricLoginServiceProvider).forgetIfBelongsToAnother(
+              documentType: request.documentType,
+              documentNumber: request.documentNumber,
+            );
+      } catch (_) {
+        // Limpiar la huella de otra persona es secundario: no debe impedir el ingreso.
+      }
       state = AsyncValue.data(profile);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -62,11 +71,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
         deviceId: deviceId,
         biometricPayload: request.biometricPayload,
       );
-      final response = await _repository.loginWithBiometric(enhancedRequest);
-      if (response == null) {
-        state = AsyncValue.error('Autenticación biométrica cancelada', StackTrace.current);
-        return;
-      }
+      await _repository.loginWithBiometric(enhancedRequest);
       final profile = await _repository.getProfile();
       state = AsyncValue.data(profile);
     } catch (error, stackTrace) {
@@ -92,7 +97,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
       final updatedUser = await _repository.updateProfile(email: email, phone: phone);
       state = AsyncValue.data(updatedUser);
     } catch (error) {
-      throw error;
+      rethrow;
     }
   }
 
@@ -100,7 +105,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
     try {
       await _repository.updatePin(currentPin: currentPin, newPin: newPin);
     } catch (error) {
-      throw error;
+      rethrow;
     }
   }
 
@@ -109,7 +114,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
       final updatedUser = await _repository.updateNotifications(emailEnabled: emailEnabled, pushEnabled: pushEnabled);
       state = AsyncValue.data(updatedUser);
     } catch (error) {
-      throw error;
+      rethrow;
     }
   }
 

@@ -32,6 +32,8 @@ import com.cooperativa.met.application.identity.usecase.ResetPinWithOtpUseCase;
 import com.cooperativa.met.application.identity.usecase.VerifyEmailUseCase;
 import com.cooperativa.met.application.identity.usecase.ResendEmailOtpUseCase;
 import com.cooperativa.met.application.identity.usecase.LogoutUseCase;
+import com.cooperativa.met.application.identity.usecase.ManageBiometricLoginUseCase;
+import com.cooperativa.met.application.identity.dto.EnableBiometricLoginRequest;
 import com.cooperativa.met.application.identity.dto.UpdateProfileRequest;
 import com.cooperativa.met.application.identity.dto.UpdatePinRequest;
 import com.cooperativa.met.application.identity.dto.UpdateNotificationsRequest;
@@ -40,6 +42,7 @@ import com.cooperativa.met.application.identity.dto.PinRecoveryResetRequest;
 import com.cooperativa.met.application.identity.dto.VerifyEmailRequest;
 import com.cooperativa.met.application.identity.dto.ResendEmailOtpRequest;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +66,7 @@ public class AuthController {
     private final VerifyEmailUseCase verifyEmailUseCase;
     private final ResendEmailOtpUseCase resendEmailOtpUseCase;
     private final LogoutUseCase logoutUseCase;
+    private final ManageBiometricLoginUseCase manageBiometricLoginUseCase;
 
     @GetMapping("/public-key")
     public ResponseEntity<Map<String, String>> getPublicKey() {
@@ -141,6 +145,23 @@ public class AuthController {
             @Valid @RequestBody UpdatePinRequest request) {
         UUID userId = UUID.fromString(authentication.getName());
         updatePinUseCase.execute(userId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    /** Activa el ingreso con huella en este celular (pide el PIN actual). */
+    @PutMapping("/biometric-login")
+    public ResponseEntity<Void> enableBiometricLogin(
+            Authentication authentication,
+            @Valid @RequestBody EnableBiometricLoginRequest request) {
+        UUID userId = UUID.fromString(authentication.getName());
+        manageBiometricLoginUseCase.enable(userId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/biometric-login")
+    public ResponseEntity<Void> disableBiometricLogin(Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        manageBiometricLoginUseCase.disable(userId);
         return ResponseEntity.ok().build();
     }
 

@@ -35,6 +35,8 @@ public class AuditLogService {
     public static final String LOAN_SUBMITTED       = "LOAN_SUBMITTED";
     public static final String ADMIN_LOGIN          = "ADMIN_LOGIN";
     public static final String PROFILE_UPDATED      = "PROFILE_UPDATED";
+    public static final String BIOMETRIC_LOGIN_ENABLED  = "BIOMETRIC_LOGIN_ENABLED";
+    public static final String BIOMETRIC_LOGIN_DISABLED = "BIOMETRIC_LOGIN_DISABLED";
 
     /**
      * Registra un evento de auditoría de forma asíncrona (no bloquea el hilo principal).

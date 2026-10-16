@@ -23,7 +23,7 @@ class AuditLogPage extends ConsumerWidget {
         ]),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
             onPressed: () => ref.read(auditLogProvider.notifier).load(),
           ),
         ],
@@ -32,7 +32,7 @@ class AuditLogPage extends ConsumerWidget {
         loading: () =>
             Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
         data: (data) {
           final entries = (data['data'] as List? ?? [])
               .map((e) => AuditLogEntry.fromJson(e as Map<String, dynamic>))
@@ -48,9 +48,9 @@ class AuditLogPage extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(isDark ? 0.1 : 0.05),
+                  color: primaryColor.withValues(alpha: isDark ? 0.1 : 0.05),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: primaryColor.withOpacity(0.3)),
+                  border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -62,7 +62,7 @@ class AuditLogPage extends ConsumerWidget {
                             color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w600)),
                     const Spacer(),
                     Text('Pág. ${page + 1}',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 13)),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
                   ],
                 ),
               ),
@@ -84,16 +84,16 @@ class AuditLogPage extends ConsumerWidget {
                           ? () => ref.read(auditLogProvider.notifier).prevPage()
                           : null,
                       icon: const Icon(Icons.chevron_left_rounded),
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     Text('Página ${page + 1}',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7))),
                     IconButton(
                       onPressed: entries.length == 20
                           ? () => ref.read(auditLogProvider.notifier).nextPage()
                           : null,
                       icon: const Icon(Icons.chevron_right_rounded),
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ],
                 ),
@@ -129,9 +129,9 @@ class _AuditCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.04 : 0.02),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +141,7 @@ class _AuditCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(entry.accion,
@@ -152,7 +152,7 @@ class _AuditCard extends StatelessWidget {
               const Spacer(),
               Text(ts,
                   style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                       fontSize: 11, fontFamily: 'monospace')),
             ],
           ),
@@ -161,11 +161,11 @@ class _AuditCard extends StatelessWidget {
             Row(
               children: [
                 Text('${entry.entidadAfectada}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12)),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
                 if (entry.idEntidad != null)
                   Text(' → ${entry.idEntidad}',
                       style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.35),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),
                           fontSize: 11, fontFamily: 'monospace')),
               ],
             ),
@@ -173,7 +173,7 @@ class _AuditCard extends StatelessWidget {
           if (entry.motivo != null) ...[
             const SizedBox(height: 4),
             Text(entry.motivo!,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8), fontSize: 12,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 12,
                     fontStyle: FontStyle.italic)),
           ],
           if (entry.ipOrigen != null) ...[
@@ -181,11 +181,11 @@ class _AuditCard extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.location_on_rounded,
-                    size: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
+                    size: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
                 const SizedBox(width: 4),
                 Text(entry.ipOrigen!,
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                         fontSize: 11, fontFamily: 'monospace')),
               ],
             ),

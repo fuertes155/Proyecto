@@ -57,17 +57,70 @@ class _SplashPageState extends ConsumerState<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.account_balance, size: 72, semanticLabel: 'Logo cooperativa'),
-            SizedBox(height: 24),
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Cargando tu billetera cooperativa...', style: TextStyle(fontSize: 18)),
-          ],
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        // Mismo degradado que el login, para que la entrada a la app se sienta continua.
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF637C5A), Color(0xFF415739)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Spacer(flex: 3),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      blurRadius: 30,
+                      offset: const Offset(0, 14),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 116,
+                    height: 116,
+                    // El PNG original mide 6250 px: se decodifica al tamaño en que se muestra.
+                    cacheWidth: 348,
+                    semanticLabel: 'Logo de Met',
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.account_balance, size: 72, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Met',
+                style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Ahorro, crédito e inversión',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.78), fontSize: 15),
+              ),
+              const Spacer(flex: 4),
+              const SizedBox(
+                width: 26,
+                height: 26,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Preparando tu cuenta…',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.72), fontSize: 13),
+              ),
+              const SizedBox(height: 36),
+            ],
+          ),
         ),
       ),
     );

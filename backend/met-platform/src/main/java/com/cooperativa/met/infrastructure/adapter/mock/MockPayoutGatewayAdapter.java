@@ -7,21 +7,21 @@ import com.cooperativa.met.domain.bank.port.PayoutGatewayRequest;
 import com.cooperativa.met.domain.bank.port.PayoutGatewayResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Implementación DEV de {@link PayoutGatewayPort}. Sustituye a
- * {@code WompiPayoutAdapter} cuando el perfil activo es "dev": acepta todos los
+ * {@code WompiPayoutAdapter} con {@code met.payments.payout-gateway=mock} (perfiles dev, demo y sandbox): acepta todos los
  * payouts (retiros y micro-depósitos de verificación de cuenta) sin llamar a
  * Wompi. Permite probar el flujo completo de retiro a banco externo y de
  * verificación de cuenta bancaria en local.
  */
 @Slf4j
 @Component
-@Profile("dev | demo")
+@ConditionalOnProperty(name = "met.payments.payout-gateway", havingValue = "mock")
 @RequiredArgsConstructor
 public class MockPayoutGatewayAdapter implements PayoutGatewayPort {
 

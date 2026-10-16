@@ -5,7 +5,12 @@ abstract class AuthRepository {
 
   Future<AuthResponse> loginWithPin(LoginRequest request);
 
-  Future<AuthResponse?> loginWithBiometric(LoginRequest request);
+  Future<AuthResponse> loginWithBiometric(LoginRequest request);
+
+  /// Activa el ingreso con huella: el servidor confirma el [pin] y guarda el hash de [biometricToken].
+  Future<void> enableBiometricLogin({required String pin, required String biometricToken});
+
+  Future<void> disableBiometricLogin();
 
   Future<UserResponse> getProfile();
 

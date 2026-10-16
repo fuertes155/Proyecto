@@ -1,8 +1,8 @@
 package com.cooperativa.met.infrastructure.web.admin;
 
+import com.cooperativa.met.application.admin.dto.AdminUserResponse;
 import com.cooperativa.met.application.identity.usecase.AdminUserUseCase;
 import com.cooperativa.met.domain.identity.model.KycStatus;
-import com.cooperativa.met.domain.identity.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,16 +18,14 @@ public class AdminUserController {
     private final AdminUserUseCase adminUserUseCase;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = adminUserUseCase.getAllUsers();
-        // Nota: En producción esto debería retornar un DTO en vez del Dominio,
-        // pero para MVP usamos el Dominio.
-        return ResponseEntity.ok(users);
+    public ResponseEntity<List<AdminUserResponse>> getAllUsers() {
+        return ResponseEntity.ok(adminUserUseCase.getAllUsers().stream()
+                .map(AdminUserResponse::from)
+                .toList());
     }
 
     @PutMapping("/{userId}/kyc")
-    public ResponseEntity<User> updateKycStatus(@PathVariable UUID userId, @RequestParam KycStatus status) {
-        User updated = adminUserUseCase.updateKycStatus(userId, status);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<AdminUserResponse> updateKycStatus(@PathVariable UUID userId, @RequestParam KycStatus status) {
+        return ResponseEntity.ok(AdminUserResponse.from(adminUserUseCase.updateKycStatus(userId, status)));
     }
 }

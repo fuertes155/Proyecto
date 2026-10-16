@@ -1,3 +1,5 @@
+// Script de consola (se ejecuta con `dart fix_colors.dart`): imprimir es su salida.
+// ignore_for_file: avoid_print
 import 'dart:io';
 
 void main() {
@@ -43,6 +45,6 @@ void main() {
     content = content.replaceAll('Color(0xFF141D2B)', 'const Color(0xFF121212)');
 
     file.writeAsStringSync(content);
-    print('Updated \${file.path}');
+    print('Updated ${file.path}');
   }
 }

@@ -25,7 +25,7 @@ class GuaranteeFundPage extends ConsumerWidget {
         ]),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
             onPressed: () => ref.read(guaranteeFundProvider.notifier).load(),
             tooltip: 'Refrescar',
           ),
@@ -34,7 +34,7 @@ class GuaranteeFundPage extends ConsumerWidget {
       body: state.when(
         loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
         data: (summary) => RefreshIndicator(
           onRefresh: () => ref.read(guaranteeFundProvider.notifier).load(),
           child: ListView(
@@ -54,7 +54,7 @@ class GuaranteeFundPage extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Text('Todavía no hay movimientos registrados.',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
                 )
               else
                 ...summary.movements.map((m) => _MovementTile(movement: m)),
@@ -83,7 +83,7 @@ class _BalanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Saldo disponible', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          const Text('Saldo disponible', style: TextStyle(color: Colors.white70, fontSize: 13)),
           const SizedBox(height: 6),
           Text(
             formatCop(summary.balance),
@@ -158,14 +158,14 @@ class _MovementTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.15)),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.15)),
             child: Icon(
               movement.isContribution ? Icons.add_rounded : Icons.remove_rounded,
               color: color,
@@ -184,7 +184,7 @@ class _MovementTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   movement.createdAt.substring(0, 16).replaceFirst('T', ' · '),
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 11),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 11),
                 ),
               ],
             ),

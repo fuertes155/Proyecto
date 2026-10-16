@@ -15,6 +15,12 @@ class SecureStorageService {
   static const _deviceIdKey = 'device_id';
   static const _lastActivityKey = 'last_activity_at';
 
+  // Ingreso con huella: llave aleatoria (el servidor guarda solo su hash) y el documento al que
+  // pertenece, para entrar sin escribir la cédula.
+  static const _biometricTokenKey = 'biometric_token';
+  static const _biometricDocumentTypeKey = 'biometric_document_type';
+  static const _biometricDocumentNumberKey = 'biometric_document_number';
+
   /// Tiempo máximo de inactividad antes de cerrar sesión (5 minutos)
   static const _sessionTimeoutMinutes = 15;
 
@@ -58,7 +64,15 @@ class SecureStorageService {
   //    los ingresos, no solo cuando el usuario cambia de teléfono.
   //  - URL del servidor configurada en la pantalla de desarrollador: si se
   //    borrara, la app volvería a la IP por defecto después de cada logout.
-  static const _deviceScopedKeys = [_deviceIdKey, AppConfig.devApiBaseUrlKey];
+  //  - Huella: se usa justamente para el siguiente ingreso, que siempre ocurre
+  //    después de cerrar sesión.
+  static const _deviceScopedKeys = [
+    _deviceIdKey,
+    AppConfig.devApiBaseUrlKey,
+    _biometricTokenKey,
+    _biometricDocumentTypeKey,
+    _biometricDocumentNumberKey,
+  ];
 
   /// Borra la sesión (tokens y cualquier otro dato guardado) conservando solo
   /// las claves de [_deviceScopedKeys].
@@ -74,6 +88,30 @@ class SecureStorageService {
     }
   }
   
+  Future<void> saveBiometricCredential({
+    required String token,
+    required String documentType,
+    required String documentNumber,
+  }) async {
+    await _storage.write(key: _biometricTokenKey, value: token);
+    await _storage.write(key: _biometricDocumentTypeKey, value: documentType);
+    await _storage.write(key: _biometricDocumentNumberKey, value: documentNumber);
+  }
+
+  Future<({String token, String documentType, String documentNumber})?> readBiometricCredential() async {
+    final token = await _storage.read(key: _biometricTokenKey);
+    final documentType = await _storage.read(key: _biometricDocumentTypeKey);
+    final documentNumber = await _storage.read(key: _biometricDocumentNumberKey);
+    if (token == null || documentType == null || documentNumber == null) return null;
+    return (token: token, documentType: documentType, documentNumber: documentNumber);
+  }
+
+  Future<void> deleteBiometricCredential() async {
+    await _storage.delete(key: _biometricTokenKey);
+    await _storage.delete(key: _biometricDocumentTypeKey);
+    await _storage.delete(key: _biometricDocumentNumberKey);
+  }
+
   // Proxy methods para acceso genérico
   Future<String?> read({required String key}) => _storage.read(key: key);
   Future<void> write({required String key, required String value}) => _storage.write(key: key, value: value);

@@ -23,14 +23,14 @@ class OperationLimitsPage extends ConsumerWidget {
         ]),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
             onPressed: () => ref.read(operationLimitsProvider.notifier).load(),
           ),
         ],
       ),
       body: limitsState.when(
         loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
-        error: (e, _) => Center(child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+        error: (e, _) => Center(child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
         data: (limits) {
           // Excluir PURCHASE y deduplicar por tipoOperacion
           final seen = <String>{};
@@ -74,7 +74,7 @@ class OperationLimitsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+            child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -122,15 +122,15 @@ class OperationLimitsPage extends ConsumerWidget {
       style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 13),
-        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 20),
+        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13),
+        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 20),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.06 : 0.03),
+        fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.06 : 0.03),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.05))),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5)),
@@ -179,9 +179,9 @@ class _LimitCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(isDark ? 0.3 : 0.4)),
+        border: Border.all(color: color.withValues(alpha: isDark ? 0.3 : 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +191,7 @@ class _LimitCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle, color: color.withOpacity(0.15)),
+                    shape: BoxShape.circle, color: color.withValues(alpha: 0.15)),
                 child: Icon(icon, color: color, size: 22),
               ),
               const SizedBox(width: 12),
@@ -209,7 +209,7 @@ class _LimitCard extends StatelessWidget {
                     Text(
                       limit.tipoOperacion,
                       style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                           fontSize: 11,
                           letterSpacing: 0.5),
                     ),
@@ -217,7 +217,7 @@ class _LimitCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.edit_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), size: 20),
+                icon: Icon(Icons.edit_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), size: 20),
                 onPressed: onEdit,
                 tooltip: 'Editar límites',
               ),
@@ -244,9 +244,9 @@ class _LimitRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 16),
+        Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 16),
         const SizedBox(width: 8),
-        Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 13)),
+        Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(value,

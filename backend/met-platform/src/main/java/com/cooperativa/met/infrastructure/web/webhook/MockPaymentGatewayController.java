@@ -8,7 +8,7 @@ import com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +22,7 @@ import java.time.Instant;
 
 @RestController
 @RequestMapping("/v1")
-@Profile("dev | demo")
+@ConditionalOnProperty(name = "met.payments.gateway", havingValue = "mock")
 @RequiredArgsConstructor
 @Slf4j
 public class MockPaymentGatewayController {

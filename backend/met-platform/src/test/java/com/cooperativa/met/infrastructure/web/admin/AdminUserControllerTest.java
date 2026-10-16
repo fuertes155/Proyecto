@@ -69,7 +69,14 @@ class AdminUserControllerTest {
         mockMvc.perform(get("/v1/admin/users")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].firstName").value("AdminUser"));
+                .andExpect(jsonPath("$[0].firstName").value("AdminUser"))
+                .andExpect(jsonPath("$[0].documentNumber").value("123456"))
+                // Credenciales y datos de pago nunca deben llegar al navegador del administrador.
+                .andExpect(jsonPath("$[0].pinHash").doesNotExist())
+                .andExpect(jsonPath("$[0].biometricHash").doesNotExist())
+                .andExpect(jsonPath("$[0].paymentCardToken").doesNotExist())
+                .andExpect(jsonPath("$[0].lastKnownIp").doesNotExist())
+                .andExpect(jsonPath("$[0].lastKnownDeviceId").doesNotExist());
     }
 
     @Test
@@ -106,6 +113,7 @@ class AdminUserControllerTest {
                 .servletPath("/v1/admin/users/" + userId + "/kyc")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.kycStatus").value("APPROVED"));
+                .andExpect(jsonPath("$.kycStatus").value("APPROVED"))
+                .andExpect(jsonPath("$.pinHash").doesNotExist());
     }
 }

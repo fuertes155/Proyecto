@@ -162,17 +162,37 @@ met:
     max-requests: ${RATE_LIMIT_MAX_REQUESTS:10}
     # Ventana de tiempo en segundos (60 = 10 intentos por minuto por IP)
     window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:60}
+  payments:
+    # Pasarela de depósitos: "wompi" (sandbox o producción, según WOMPI_API_URL y las
+    # llaves) o "mock" (pasarela simulada; los perfiles dev y demo la activan).
+    gateway: ${MET_PAYMENTS_GATEWAY:wompi}
+    # Pasarela de retiros a banco externo ("Pagos a Terceros"): "wompi" o "mock".
+    payout-gateway: ${MET_PAYMENTS_PAYOUT_GATEWAY:wompi}
   wompi:
-    # Credenciales del comercio - obtenerlas en dashboard.wompi.co
+    # Credenciales del comercio: dashboard.wompi.co → Desarrolladores.
+    # Sandbox: pub_test_… / prv_test_… · Producción: pub_prod_… / prv_prod_…
     public-key: ${WOMPI_PUBLIC_KEY}
     private-key: ${WOMPI_PRIVATE_KEY}
-    # Secret de integridad (para calcular el hash SHA-256 del link de pago)
+    # Secreto de integridad (test_integrity_… / prod_integrity_…): firma SHA-256 del
+    # link de pago y de cada POST /transactions.
     integrity-secret: ${WOMPI_INTEGRITY_SECRET}
-    # Secret para validar firmas de webhooks entrantes de Wompi
+    # Secreto de EVENTOS (test_events_… / prod_events_…): valida el checksum de los
+    # webhooks entrantes de Wompi.
     webhook-secret: ${WOMPI_WEBHOOK_SECRET}
+    # Sandbox: https://sandbox.wompi.co/v1 · Producción: https://production.wompi.co/v1
     api-url: ${WOMPI_API_URL:https://sandbox.wompi.co/v1}
-    # URL base del checkout Wompi (donde el usuario completa el pago)
+    # URL base del checkout Wompi (donde el usuario completa el pago); la misma en ambos ambientes
     checkout-url: ${WOMPI_CHECKOUT_URL:https://checkout.wompi.co/p/}
+    # A dónde vuelve el usuario al terminar de pagar. Recomendado:
+    # https://<host público del backend>/api/v1/payments/wompi/return
+    # Vacío = deep link metapp://deposit/success (Android no tiene ese esquema registrado).
+    redirect-url: ${WOMPI_REDIRECT_URL:}
+    # Al arrancar, traer el catálogo de bancos PSE de Wompi (el perfil sandbox lo activa).
+    sync-banks-on-startup: ${WOMPI_SYNC_BANKS_ON_STARTUP:false}
+    pse:
+      # Consultas a GET /transactions/{id} esperando la URL del banco (async_payment_url).
+      poll-attempts: ${WOMPI_PSE_POLL_ATTEMPTS:10}
+      poll-interval-ms: ${WOMPI_PSE_POLL_INTERVAL_MS:1000}
     payouts:
       # Producto "Pagos a Terceros" de Wompi — API distinta a la de Checkout,
       # con sus propias credenciales (API Key + Principal User ID) y, muy

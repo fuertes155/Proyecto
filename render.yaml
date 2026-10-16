@@ -10,8 +10,9 @@
 #   - Plan "free": el backend Spring Boot es pesado; 512 MB puede quedarse corto
 #     (OOM en el arranque). Si pasa, subir el servicio "met-backend" a Standard.
 #   - El Postgres "free" de Render expira a los 30 días (uno por workspace).
-#   - Wompi va con placeholders de sandbox: los pagos reales no funcionan hasta
-#     poner credenciales reales, pero el backend arranca igual.
+#   - Wompi: las 4 llaves van en el dashboard de Render (sync: false). Son
+#     obligatorias para arrancar; con SPRING_PROFILES_ACTIVE=prod,sandbox los
+#     depósitos van contra el sandbox real de Wompi (sin dinero real).
 # ==============================================================================
 
 databases:
@@ -46,8 +47,9 @@ services:
         - render.yaml
     envVars:
       # ── Perfil / arranque ──
-      # prod,demo = producción + pasarela de pago SIMULADA (sin Wompi real).
-      # Ver application-demo.yml. Para Wompi real: dejar solo "prod".
+      # prod,demo    = producción + pasarela de pago SIMULADA (sin Wompi real). Ver application-demo.yml.
+      # prod,sandbox = producción + SANDBOX REAL de Wompi (llaves pub_test_…). Ver application-sandbox.yml.
+      # prod         = Wompi de producción (llaves pub_prod_… y WOMPI_API_URL de producción).
       - key: SPRING_PROFILES_ACTIVE
         value: prod,demo
       # URL pública del backend (para el link a la pantalla de pago simulada).
@@ -142,19 +144,23 @@ services:
       - key: MAIL_PASSWORD
         sync: false
 
-      # ── Wompi — PLACEHOLDERS de sandbox (reemplazar con credenciales reales) ──
+      # ── Wompi — llaves en el dashboard de Render (sync: false: el blueprint no las pisa) ──
+      # Sandbox: pub_test_… / prv_test_… / test_integrity_… / test_events_… (secreto de EVENTOS)
       - key: WOMPI_PUBLIC_KEY
-        value: pub_test_placeholder
+        sync: false
       - key: WOMPI_PRIVATE_KEY
-        value: prv_test_placeholder
+        sync: false
       - key: WOMPI_INTEGRITY_SECRET
-        value: int_test_placeholder
+        sync: false
       - key: WOMPI_WEBHOOK_SECRET
-        value: wh_test_placeholder
+        sync: false
       - key: WOMPI_API_URL
         value: https://sandbox.wompi.co/v1
       - key: WOMPI_CHECKOUT_URL
         value: https://checkout.wompi.co/p/
+      # Página a la que Wompi devuelve al usuario tras pagar.
+      - key: WOMPI_REDIRECT_URL
+        value: https://met-backend-y04c.onrender.com/api/v1/payments/wompi/return
       - key: WOMPI_PAYOUTS_API_URL
         value: https://sandbox.wompi.co/v1
       - key: WOMPI_PAYOUTS_API_KEY

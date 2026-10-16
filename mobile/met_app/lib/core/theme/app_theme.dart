@@ -13,7 +13,11 @@ class AppTheme {
   static const Color secondaryColor = Color(0xFF9CB794);
   static const Color errorColor = Color(0xFFD32F2F);
 
-  static ThemeData get lightTheme {
+  static ThemeData get lightTheme => lightThemeWith(GoogleFonts.outfitTextTheme);
+
+  /// Mismo tema con otra fuente: en tests google_fonts no puede descargar Outfit.
+  @visibleForTesting
+  static ThemeData lightThemeWith(TextTheme Function(TextTheme) font) {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: const Color(0xFFF5F7FA), // Light background
@@ -34,7 +38,7 @@ class AppTheme {
         foregroundColor: Colors.black87,
         elevation: 0,
       ),
-      textTheme: GoogleFonts.outfitTextTheme(
+      textTheme: font(
         const TextTheme(
           headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87),
           titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.black87),
@@ -68,7 +72,10 @@ class AppTheme {
     );
   }
 
-  static ThemeData get darkTheme {
+  static ThemeData get darkTheme => darkThemeWith(GoogleFonts.outfitTextTheme);
+
+  @visibleForTesting
+  static ThemeData darkThemeWith(TextTheme Function(TextTheme) font) {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: const Color(0xFF121212),
@@ -84,7 +91,7 @@ class AppTheme {
         onSurface: Colors.white,
         outline: Colors.white24,
       ),
-      textTheme: GoogleFonts.outfitTextTheme(
+      textTheme: font(
         const TextTheme(
           headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
           titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white),
@@ -107,7 +114,7 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         labelStyle: const TextStyle(fontSize: 16, color: Colors.white54),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
       ),
     );
   }

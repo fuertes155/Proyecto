@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart';
 
 class QuickActions extends StatelessWidget {
   const QuickActions({super.key, required this.onTapMore});
@@ -23,7 +22,7 @@ class QuickActions extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 20,
                 spreadRadius: 5,
               )
@@ -37,7 +36,7 @@ class QuickActions extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -45,7 +44,7 @@ class QuickActions extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 32),
@@ -73,27 +72,15 @@ class QuickActions extends StatelessWidget {
     );
   }
 
-  void _showPaySheet(BuildContext context) {
-    _showActionSheet(context, 'Pagar Servicios', Icons.payment, Column(
-      children: [
-        _buildTextField(context, 'Referencia de pago', Icons.receipt_long_outlined),
-        const SizedBox(height: 16),
-        _buildTextField(context, 'Valor a pagar (\$)', Icons.attach_money, isNumeric: true),
-        const SizedBox(height: 24),
-        _buildPrimaryButton(context, 'Buscar Factura', () => Navigator.pop(context)),
-      ]
-    ));
-  }
-
   void _showDepositSheet(BuildContext context) {
-    _showActionSheet(context, 'Depósito', Icons.account_balance_wallet, Column(
+    _showActionSheet(context, 'Recargar tu cuenta', Icons.account_balance_wallet, Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildDepositMethodTile(
           context,
           'Nequi',
           'Normalmente en 5 minutos | Depósito más rápido',
-          Text('Nequi', style: TextStyle(color: Color(0xFFE10098), fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.5)),
+          const Text('Nequi', style: TextStyle(color: Color(0xFFE10098), fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.5)),
         ),
         
         _buildSectionHeader(context, 'BANCO'),
@@ -101,16 +88,16 @@ class QuickActions extends StatelessWidget {
           context,
           'Bre-B',
           'Instantáneo',
-          Text('Bre-B', style: TextStyle(color: Color(0xFF00C853), fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Bre-B', style: TextStyle(color: Color(0xFF00C853), fontWeight: FontWeight.bold, fontSize: 16)),
         ),
         _buildDepositMethodTile(
           context,
           'Bancolombia',
           'PSE | Normalmente en 10 minutos',
           Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Color(0xFFFFD100), borderRadius: BorderRadius.circular(6)),
-            child: Text('Bc', style: TextStyle(color: Color(0xFF002855), fontWeight: FontWeight.w900, fontSize: 16)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: const Color(0xFFFFD100), borderRadius: BorderRadius.circular(6)),
+            child: const Text('Bc', style: TextStyle(color: Color(0xFF002855), fontWeight: FontWeight.w900, fontSize: 16)),
           ),
           method: 'PSE',
           bankHint: 'Bancolombia',
@@ -120,9 +107,9 @@ class QuickActions extends StatelessWidget {
           'Davivienda',
           'PSE | Normalmente en 10 minutos',
           Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Color(0xFFEE3831), borderRadius: BorderRadius.circular(6)),
-            child: Text('Dv', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: const Color(0xFFEE3831), borderRadius: BorderRadius.circular(6)),
+            child: const Text('Dv', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
           ),
           method: 'PSE',
           bankHint: 'Davivienda',
@@ -132,9 +119,9 @@ class QuickActions extends StatelessWidget {
           'BBVA',
           'PSE | Normalmente en 10 minutos',
           Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Color(0xFF004481), borderRadius: BorderRadius.circular(6)),
-            child: Text('BBVA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: const Color(0xFF004481), borderRadius: BorderRadius.circular(6)),
+            child: const Text('BBVA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
           ),
           method: 'PSE',
           bankHint: 'BBVA',
@@ -144,9 +131,9 @@ class QuickActions extends StatelessWidget {
           'Banco de Bogotá',
           'PSE | Normalmente en 10 minutos',
           Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Color(0xFFDA291C), borderRadius: BorderRadius.circular(6)),
-            child: Text('BB', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: const Color(0xFFDA291C), borderRadius: BorderRadius.circular(6)),
+            child: const Text('BB', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
           ),
           method: 'PSE',
           bankHint: 'Bogotá',
@@ -156,9 +143,9 @@ class QuickActions extends StatelessWidget {
           'Otro banco (PSE)',
           'Elige tu banco entre más de 14 disponibles',
           Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Color(0xFF003057), borderRadius: BorderRadius.circular(20)),
-            child: Text('PSE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: const Color(0xFF003057), borderRadius: BorderRadius.circular(20)),
+            child: const Text('PSE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
           ),
           method: 'PSE',
         ),
@@ -169,9 +156,9 @@ class QuickActions extends StatelessWidget {
           'Tarjeta de crédito/débito',
           'Visa, Mastercard y más | Al instante',
           Container(
-            padding: EdgeInsets.all(6),
-            decoration: BoxDecoration(color: Color(0xFF1A1F71), borderRadius: BorderRadius.circular(8)),
-            child: Icon(Icons.credit_card, color: Colors.white, size: 20),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(color: const Color(0xFF1A1F71), borderRadius: BorderRadius.circular(8)),
+            child: const Icon(Icons.credit_card, color: Colors.white, size: 20),
           ),
         ),
 
@@ -180,7 +167,7 @@ class QuickActions extends StatelessWidget {
           context,
           'Daviplata',
           'Normalmente en 10 minutos',
-          Text('DaviPlata', style: TextStyle(color: Color(0xFFED1C24), fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
+          const Text('DaviPlata', style: TextStyle(color: Color(0xFFED1C24), fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
         ),
 
         _buildSectionHeader(context, 'EFECTIVO'),
@@ -189,25 +176,25 @@ class QuickActions extends StatelessWidget {
           'Efecty',
           'Hasta 5 minutos',
           Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Color(0xFFFFCC00), borderRadius: BorderRadius.circular(4)),
-            child: Text('efecty', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: const Color(0xFFFFCC00), borderRadius: BorderRadius.circular(4)),
+            child: const Text('efecty', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
           ),
         ),
         _buildDepositMethodTile(
           context,
           'Puntored',
           'Hasta 5 minutos',
-          Text('puntored', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.5)),
+          const Text('puntored', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.5)),
         ),
         _buildDepositMethodTile(
           context,
           'Baloto',
           'Hasta 5 minutos',
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            decoration: BoxDecoration(color: Color(0xFFE30613), borderRadius: BorderRadius.circular(4)),
-            child: Text('Baloto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(color: const Color(0xFFE30613), borderRadius: BorderRadius.circular(4)),
+            child: const Text('Baloto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13, fontStyle: FontStyle.italic)),
           ),
         ),
         _buildDepositMethodTile(
@@ -215,9 +202,9 @@ class QuickActions extends StatelessWidget {
           'Gana',
           'Hasta 5 minutos',
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: Color(0xFF00A651), borderRadius: BorderRadius.circular(4)),
-            child: Text('gana', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14)),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(color: const Color(0xFF00A651), borderRadius: BorderRadius.circular(4)),
+            child: const Text('gana', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14)),
           ),
         ),
         _buildDepositMethodTile(
@@ -225,9 +212,9 @@ class QuickActions extends StatelessWidget {
           'Corresponsal Bancolombia',
           'Paga en efectivo en un punto Bancolombia',
           Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Color(0xFFFFD100), borderRadius: BorderRadius.circular(4)),
-            child: Text('BC', style: TextStyle(color: Color(0xFF003057), fontWeight: FontWeight.w900, fontSize: 14)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: const Color(0xFFFFD100), borderRadius: BorderRadius.circular(4)),
+            child: const Text('BC', style: TextStyle(color: Color(0xFF003057), fontWeight: FontWeight.w900, fontSize: 14)),
           ),
         ),
       ]
@@ -242,7 +229,7 @@ class QuickActions extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           letterSpacing: 1.2,
         ),
       ),
@@ -261,13 +248,13 @@ class QuickActions extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark 
-            ? Theme.of(context).colorScheme.onSurface.withOpacity(0.05)
+            ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)
             : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).brightness == Brightness.dark 
-              ? Theme.of(context).colorScheme.onSurface.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.2)
+              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)
+              : Colors.grey.withValues(alpha: 0.2)
         ),
       ),
       child: Material(
@@ -291,7 +278,7 @@ class QuickActions extends StatelessWidget {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withOpacity(0.9)
+                        ? Colors.white.withValues(alpha: 0.9)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -315,7 +302,7 @@ class QuickActions extends StatelessWidget {
                         subtitle,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -323,7 +310,7 @@ class QuickActions extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ],
             ),
@@ -333,67 +320,52 @@ class QuickActions extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(BuildContext context, String label, IconData icon, {bool isNumeric = false}) {
-    return TextField(
-      keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
-      inputFormatters: isNumeric ? [FilteringTextInputFormatter.digitsOnly] : null,
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
-        ),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.02),
-      ),
-    );
-  }
-
-  Widget _buildPrimaryButton(BuildContext context, String text, VoidCallback onPressed) {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _QuickAction(
-          icon: Icons.account_balance_wallet,
-          label: 'Depósito',
-          onTap: () => _showDepositSheet(context),
-        ),
-        _QuickAction(
-          icon: Icons.arrow_upward,
-          label: 'Retiro',
-          onTap: () => context.push('/accounts/external'),
-        ),
-      ],
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+      decoration: BoxDecoration(
+        color: isDark ? scheme.surfaceContainer : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: scheme.onSurface.withValues(alpha: isDark ? 0.08 : 0.05)),
+        boxShadow: isDark
+            ? null
+            : [BoxShadow(color: Colors.black.withValues(alpha: 0.035), blurRadius: 12, offset: const Offset(0, 2))],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.add_rounded,
+              label: 'Recargar',
+              onTap: () => _showDepositSheet(context),
+            ),
+          ),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.swap_horiz_rounded,
+              label: 'Transferir',
+              onTap: () => context.push('/transfer'),
+            ),
+          ),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.north_east_rounded,
+              label: 'Retirar',
+              onTap: () => context.push('/accounts/external'),
+            ),
+          ),
+          Expanded(
+            child: _QuickAction(
+              icon: Icons.grid_view_rounded,
+              label: 'Más',
+              onTap: onTapMore,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -411,27 +383,41 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
-              border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
-            ),
-            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 24),
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: isDark ? 0.18 : 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: scheme.primary, size: 26),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: scheme.onSurface.withValues(alpha: 0.85),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style:
-                TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8), fontSize: 13),
-          ),
-        ],
+        ),
       ),
     );
   }

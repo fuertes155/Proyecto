@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:local_auth/local_auth.dart';
 
 import '../../../../core/storage/secure_storage_service.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -10,16 +9,14 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
     ref.watch(authRemoteDataSourceProvider),
     ref.watch(secureStorageProvider),
-    LocalAuthentication(),
   );
 });
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this._remote, this._storage, this._localAuth);
+  AuthRepositoryImpl(this._remote, this._storage);
 
   final AuthRemoteDataSource _remote;
   final SecureStorageService _storage;
-  final LocalAuthentication _localAuth;
 
   @override
   Future<UserResponse> register(RegisterRequest request) {
@@ -37,17 +34,10 @@ class AuthRepositoryImpl implements AuthRepository {
     return response;
   }
 
+  /// La huella ya se confirmó en el celular antes de llegar aquí (ver BiometricLoginService):
+  /// pedirla de nuevo mostraría el diálogo del sistema dos veces seguidas.
   @override
-  Future<AuthResponse?> loginWithBiometric(LoginRequest request) async {
-    final canCheck = await _localAuth.canCheckBiometrics;
-    if (!canCheck) return null;
-
-    final authenticated = await _localAuth.authenticate(
-      localizedReason: 'Autentícate para acceder a tu cuenta',
-      options: const AuthenticationOptions(biometricOnly: true),
-    );
-    if (!authenticated) return null;
-
+  Future<AuthResponse> loginWithBiometric(LoginRequest request) async {
     final response = await _remote.login(request);
     await _storage.saveTokens(
       accessToken: response.accessToken,
@@ -56,6 +46,13 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     return response;
   }
+
+  @override
+  Future<void> enableBiometricLogin({required String pin, required String biometricToken}) =>
+      _remote.enableBiometricLogin(pin: pin, biometricToken: biometricToken);
+
+  @override
+  Future<void> disableBiometricLogin() => _remote.disableBiometricLogin();
 
   @override
   Future<UserResponse> getProfile() => _remote.getProfile();

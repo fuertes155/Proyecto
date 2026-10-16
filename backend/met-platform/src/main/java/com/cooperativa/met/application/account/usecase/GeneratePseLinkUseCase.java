@@ -2,17 +2,19 @@ package com.cooperativa.met.application.account.usecase;
 
 import com.cooperativa.met.application.account.dto.GeneratePseLinkRequest;
 import com.cooperativa.met.application.account.dto.GeneratePseLinkResponse;
+import com.cooperativa.met.application.account.service.PaymentReturnUrlResolver;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.infrastructure.adapter.wompi.WompiSignatures;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.UUID;
 
 /**
@@ -28,7 +30,10 @@ import java.util.UUID;
 @Slf4j
 public class GeneratePseLinkUseCase {
 
+    private static final String CURRENCY = "COP";
+
     private final CoreAccountRepositoryPort accountRepository;
+    private final PaymentReturnUrlResolver returnUrlResolver;
 
     @Value("${met.wompi.public-key}")
     private String wompiPublicKey;
@@ -39,11 +44,15 @@ public class GeneratePseLinkUseCase {
     @Value("${met.wompi.checkout-url:https://checkout.wompi.co/p/}")
     private String wompiCheckoutUrl;
 
+    /** "wompi" (sandbox o producción, según llaves y URL) o "mock" (pasarela simulada local). */
+    @Value("${met.payments.gateway:wompi}")
+    private String paymentsGateway;
+
     /**
-     * Si está definido (solo dev, ver .env / docker-compose), los depósitos generan
-     * un link a la pasarela de pago SIMULADA local ({@code /api/v1/mock-payment-gateway})
+     * Con {@code met.payments.gateway=mock} y esta URL definida (dev/demo), los depósitos
+     * generan un link a la pasarela de pago SIMULADA ({@code /api/v1/mock-payment-gateway})
      * en vez del checkout real de Wompi. Permite probar el flujo completo de depósito
-     * (incluida la distribución de capital) sin credenciales reales de Wompi.
+     * (incluida la distribución de capital) sin credenciales de Wompi.
      */
     @Value("${met.payments.mock-gateway-base-url:}")
     private String mockGatewayBaseUrl;
@@ -67,15 +76,14 @@ public class GeneratePseLinkUseCase {
             throw new BusinessRuleException("DEP_ERR_03", "Tu cuenta no está activa");
         }
 
-        // Wompi requiere el monto en centavos (COP no tiene centavos, pero la API usa enteros)
-        // Para COP: monto * 100 (Wompi trata todos los montos como la unidad mínima)
+        // Wompi recibe los montos en centavos, también para COP: monto * 100
         long amountInCents = request.getAmount().multiply(BigDecimal.valueOf(100)).longValue();
 
         // Referencia única por transacción — incluye userId COMPLETO para el webhook
         String reference = "MET-" + userId.toString() + "-" + System.currentTimeMillis();
 
-        // --- DEV: pasarela de pago simulada ---
-        if (mockGatewayBaseUrl != null && !mockGatewayBaseUrl.isBlank()) {
+        // --- DEV/DEMO: pasarela de pago simulada ---
+        if ("mock".equalsIgnoreCase(paymentsGateway) && mockGatewayBaseUrl != null && !mockGatewayBaseUrl.isBlank()) {
             String base = mockGatewayBaseUrl.endsWith("/")
                     ? mockGatewayBaseUrl.substring(0, mockGatewayBaseUrl.length() - 1)
                     : mockGatewayBaseUrl;
@@ -90,18 +98,15 @@ public class GeneratePseLinkUseCase {
                     .build();
         }
 
-        // Firma de integridad SHA-256: reference + amountInCents + currency + integritySecret
-        String currency = "COP";
-        String integritySignature = generateIntegritySignature(reference, amountInCents, currency);
+        String integritySignature = WompiSignatures.integrity(reference, amountInCents, CURRENCY, wompiIntegritySecret);
 
-        // URL del checkout de Wompi con todos los parámetros
         String paymentUrl = wompiCheckoutUrl
-                + "?public-key=" + wompiPublicKey
-                + "&currency=" + currency
+                + "?public-key=" + encode(wompiPublicKey)
+                + "&currency=" + CURRENCY
                 + "&amount-in-cents=" + amountInCents
-                + "&reference=" + reference
+                + "&reference=" + encode(reference)
                 + "&signature:integrity=" + integritySignature
-                + "&redirect-url=" + buildRedirectUrl(userId, request.getReturnUrl());
+                + "&redirect-url=" + encode(returnUrlResolver.resolve(userId, request.getReturnUrl()));
 
         log.info("Generated Wompi checkout link for user {} with reference {}", userId, reference);
 
@@ -111,41 +116,7 @@ public class GeneratePseLinkUseCase {
                 .build();
     }
 
-    /**
-     * Calcula la firma de integridad SHA-256 requerida por Wompi.
-     * Formato: SHA256(reference + amountInCents + currency + integritySecret)
-     */
-    private String generateIntegritySignature(String reference, long amountInCents, String currency) {
-        try {
-            String data = reference + amountInCents + currency + wompiIntegritySecret;
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(data.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hashBytes) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (Exception e) {
-            log.error("Error generating integrity signature", e);
-            throw new BusinessRuleException("DEP_ERR_04", "Error generando la firma de pago");
-        }
-    }
-
-    /**
-     * Construye la URL de retorno a la que Wompi redirigirá al usuario
-     * luego de completar el pago.
-     */
-    private String buildRedirectUrl(UUID userId, String returnUrl) {
-        if (returnUrl != null && !returnUrl.isBlank()) {
-            if (returnUrl.startsWith("https://met-platform.com") || returnUrl.startsWith("metapp://")) {
-                return returnUrl;
-            } else {
-                log.warn("Blocked unvalidated redirect attempt to: {}", returnUrl);
-            }
-        }
-        // URL de retorno por defecto: app móvil deep link
-        return "metapp://deposit/success?userId=" + userId;
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

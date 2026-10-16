@@ -22,6 +22,11 @@ management:
       enabled: false
 
 met:
+  payments:
+    # Pasarela simulada (/api/v1/mock-payment-gateway). Para probar contra el sandbox
+    # real de Wompi activa además el perfil "sandbox" (p. ej. SPRING_PROFILES_ACTIVE=dev,sandbox).
+    gateway: ${MET_PAYMENTS_GATEWAY:mock}
+    payout-gateway: ${MET_PAYMENTS_PAYOUT_GATEWAY:mock}
   security:
     jwt:
       secret: ${JWT_SECRET}

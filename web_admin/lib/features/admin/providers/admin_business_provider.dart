@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../../core/config/app_config.dart';
 
 // Definición básica de los modelos para el Panel Administrativo
 class UserModel {
@@ -62,8 +65,11 @@ class LoanModel {
 }
 
 final adminApiClientProvider = Provider<Dio>((ref) {
-  const baseUrl = String.fromEnvironment('API_URL', defaultValue: 'http://localhost:8080/api/v1/admin');
-  
+  // Misma URL base que el resto del panel (AppConfig). API_URL se sigue aceptando porque
+  // publicar-apks.ps1 la pasa al compilar la APK de administrador.
+  const fromEnv = String.fromEnvironment('API_URL');
+  final baseUrl = fromEnv.isNotEmpty ? fromEnv : '${AppConfig.apiBaseUrl}/v1/admin';
+
   final dio = Dio(BaseOptions(
     baseUrl: baseUrl,
     connectTimeout: const Duration(seconds: 5),
@@ -91,8 +97,8 @@ final usersProvider = FutureProvider<List<UserModel>>((ref) async {
     final List data = response.data;
     return data.map((json) => UserModel.fromJson(json)).toList();
   } catch (e) {
-    print('Error fetching users: $e');
-    throw e;
+    debugPrint('Error fetching users: $e');
+    rethrow;
   }
 });
 
@@ -103,8 +109,8 @@ final accountsProvider = FutureProvider<List<AccountModel>>((ref) async {
     final List data = response.data;
     return data.map((json) => AccountModel.fromJson(json)).toList();
   } catch (e) {
-    print('Error fetching accounts: $e');
-    throw e;
+    debugPrint('Error fetching accounts: $e');
+    rethrow;
   }
 });
 
@@ -138,8 +144,8 @@ final loansProvider = FutureProvider<List<LoanModel>>((ref) async {
     final List data = response.data;
     return data.map((json) => LoanModel.fromJson(json)).toList();
   } catch (e) {
-    print('Error fetching loans: $e');
-    throw e;
+    debugPrint('Error fetching loans: $e');
+    rethrow;
   }
 });
 

@@ -184,8 +184,10 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
       }
     } on DioException catch (e) {
       if (mounted) {
+        final data = e.response?.data;
+        final serverMessage = data is Map ? data['message'] as String? : null;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.response?.data?['message'] ?? e.message}')),
+          SnackBar(content: Text('Error: ${serverMessage ?? e.message}')),
         );
       }
     } catch (e) {
@@ -208,19 +210,19 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
         width: double.infinity,
         height: 180,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: imageFile != null
               ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.outline.withOpacity(0.5),
+              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
             width: 2,
           ),
           image: imageFile != null
               ? DecorationImage(
                   image: MemoryImage(imageFile),
                   fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.3), BlendMode.darken),
+                  colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.3), BlendMode.darken),
                 )
               : null,
         ),
@@ -289,7 +291,7 @@ class _BiometricRegistrationPageState extends ConsumerState<BiometricRegistratio
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: _hasSignature ? primaryColor : Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                color: _hasSignature ? primaryColor : Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                 width: 2,
               ),
             ),

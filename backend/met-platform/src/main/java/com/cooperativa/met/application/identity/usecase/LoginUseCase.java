@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
 
 @Slf4j
@@ -138,11 +140,15 @@ public class LoginUseCase {
 
     private boolean authenticate(LoginRequest request, User user) {
         if (StringUtils.hasText(request.biometricPayload())) {
-            if (user.getBiometricHash() == null) {
+            // Sin huella activada (ver ManageBiometricLoginUseCase) no hay con qué comparar.
+            if (!StringUtils.hasText(user.getBiometricHash())) {
                 return false;
             }
             String payloadHash = encryptionPort.hashBiometric(request.biometricPayload());
-            return payloadHash.equals(user.getBiometricHash());
+            // Comparación en tiempo constante: no revela cuántos caracteres coinciden.
+            return MessageDigest.isEqual(
+                    payloadHash.getBytes(StandardCharsets.UTF_8),
+                    user.getBiometricHash().getBytes(StandardCharsets.UTF_8));
         }
         if (StringUtils.hasText(request.pin())) {
             try {

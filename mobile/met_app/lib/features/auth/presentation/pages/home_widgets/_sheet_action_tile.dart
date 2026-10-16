@@ -20,12 +20,12 @@ class SheetActionTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.42,
+        width: (MediaQuery.of(context).size.width - 44) / 2,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +33,7 @@ class SheetActionTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
@@ -51,7 +51,7 @@ class SheetActionTile extends StatelessWidget {
             Text(
               subtitle,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 12,
               ),
             ),

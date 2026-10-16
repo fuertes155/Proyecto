@@ -73,9 +73,9 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
+                color: primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryColor.withOpacity(0.3)),
+                border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -86,7 +86,7 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
                       'Esta acción invalidará las credenciales actuales del usuario '
                       'y le enviará un correo con un enlace seguro para establecer '
                       'una nueva contraseña y PIN biométrico.',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 13),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
                     ),
                   ),
                 ],
@@ -158,7 +158,7 @@ class _InputField extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 fontSize: 14,
                 fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
@@ -167,16 +167,16 @@ class _InputField extends StatelessWidget {
           maxLines: maxLines,
           style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+            prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
             filled: true,
-            fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.02),
+            fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.02),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.05)),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),

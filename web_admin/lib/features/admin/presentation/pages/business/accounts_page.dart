@@ -41,7 +41,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Buscar por número de cuenta, propietario o cédula...',
-                prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+                prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
                 suffixIcon: _query.isEmpty
                     ? null
                     : IconButton(
@@ -52,14 +52,14 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                         }),
                       ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.02),
+                fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.02),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.05)),
+                  borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -97,15 +97,15 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                     final user = data['user'] as UserModel;
                     return Card(
                       elevation: 0,
-                      color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: primary.withOpacity(0.2)),
+                        side: BorderSide(color: primary.withValues(alpha: 0.2)),
                       ),
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: primary.withOpacity(0.2),
+                          backgroundColor: primary.withValues(alpha: 0.2),
                           child: Icon(Icons.account_balance_wallet, color: primary),
                         ),
                         title: Text('Cuenta: ${account.accountNumber}', style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -122,7 +122,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                             ),
                             Chip(
                               label: Text(account.status, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
-                              backgroundColor: account.status == 'ACTIVE' ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                              backgroundColor: account.status == 'ACTIVE' ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
                               side: BorderSide.none,
                               padding: EdgeInsets.zero,
                               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

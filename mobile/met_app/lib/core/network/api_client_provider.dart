@@ -37,8 +37,9 @@ final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
           options: Options(headers: {'Authorization': 'Bearer $refreshToken'}),
         );
 
-        final newAccessToken = response.data['accessToken'] as String;
-        final newRefreshToken = response.data['refreshToken'] as String;
+        final data = response.data as Map<String, dynamic>;
+        final newAccessToken = data['accessToken'] as String;
+        final newRefreshToken = data['refreshToken'] as String;
         await storage.saveAccessToken(newAccessToken);
         await storage.saveRefreshToken(newRefreshToken);
         return newAccessToken;

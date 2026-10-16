@@ -128,6 +128,23 @@ npm install
 npm run dev   # http://localhost:3000
 ```
 
+### Panel administrativo por web
+
+La gestión administrativa se hace desde el navegador con `web_admin` (Flutter Web); no hace
+falta instalar la APK de administrador.
+
+- **En este equipo:** `panel_admin_web.bat` compila el panel y lo sirve en
+  `http://localhost:8081/admin/` (contenedor `admin-web`, que reenvía `/api` al backend).
+  Requiere el backend arriba. En desarrollo: usuario `admin` / `admin123`.
+- **Producción (VPS):** `docker-compose.prod.yml` ya lo publica en `https://tu-dominio/admin/`
+  a través de nginx (ver [docs/DEPLOY.md](docs/DEPLOY.md)).
+- **Otro hosting (p. ej. Vercel):** compila con
+  `flutter build web --release --dart-define=API_BASE_URL=https://<backend>/api` y agrega ese
+  dominio a `CORS_ORIGINS` del backend.
+
+Si el panel se sirve en el mismo dominio que el backend, no hace falta `API_BASE_URL`: usa `/api`
+de ese mismo dominio.
+
 ### Todo en uno (Windows, dev)
 
 `start_app.bat` encadena los pasos 2-4 y luego lanza `flutter run` para la app móvil.
@@ -173,7 +190,9 @@ Para Kubernetes, los manifiestos están en [infrastructure/k8s](infrastructure/k
 
 ## Integraciones externas
 
-- **Wompi** — pasarela de pagos (checkout + payouts).
+- **Wompi** — pasarela de pagos (checkout + payouts). `dev` usa una pasarela simulada; para
+  probar contra el sandbox real usa el perfil `sandbox` (`SPRING_PROFILES_ACTIVE=dev,sandbox`).
+  Guía paso a paso: [docs/WOMPI-SANDBOX.md](docs/WOMPI-SANDBOX.md).
 - **DataCrédito Experian** — consulta de central de riesgo. `CREDIT_BUREAU_PROVIDER=mock` en dev
   (el contrato con el proveedor real aún no está firmado; no asumas detalles del adaptador real
   sin confirmarlo).

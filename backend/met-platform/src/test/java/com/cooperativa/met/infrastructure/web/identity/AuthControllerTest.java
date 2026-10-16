@@ -85,7 +85,8 @@ class AuthControllerTest {
             KycStatus.PENDING,
             true,
             true,
-            Instant.now()
+            Instant.now(),
+            false
         );
 
         Mockito.when(registerUserUseCase.execute(Mockito.any())).thenReturn(mockResponse);
@@ -114,7 +115,8 @@ class AuthControllerTest {
             KycStatus.PENDING,
             true,
             true,
-            Instant.now()
+            Instant.now(),
+            false
         );
 
         Mockito.when(registerUserUseCase.execute(Mockito.any())).thenReturn(mockResponse);

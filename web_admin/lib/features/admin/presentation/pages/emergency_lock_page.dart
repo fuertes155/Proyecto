@@ -47,12 +47,12 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
         ]),
         content: Text(
           'Esta acción suspenderá el acceso del usuario indicado de forma inmediata.\n\nMotivo: ${_reasonCtrl.text}\nAlcance: $_scope',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8)),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+            child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -164,7 +164,7 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                     elevation: 8,
-                    shadowColor: primaryColor.withOpacity(0.5),
+                    shadowColor: primaryColor.withValues(alpha: 0.5),
                   ),
                   icon: _isLoading
                       ? SizedBox(width: 20, height: 20,
@@ -183,20 +183,20 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
   }
 
   Widget _buildLabel(String text, BuildContext context) => Text(text,
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w600));
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13, fontWeight: FontWeight.w600));
 
   InputDecoration _inputDeco(String hint, IconData icon, BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
-        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
+        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.02),
+        fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.02),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.1 : 0.05))),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.1 : 0.05))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5)),
@@ -216,9 +216,9 @@ class _WarningBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: primaryColor.withOpacity(isDark ? 0.15 : 0.1),
+        color: primaryColor.withValues(alpha: isDark ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: primaryColor.withOpacity(0.4)),
+        border: Border.all(color: primaryColor.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -226,7 +226,7 @@ class _WarningBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(text,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.85), fontSize: 12, height: 1.4)),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85), fontSize: 12, height: 1.4)),
           ),
         ],
       ),
@@ -261,18 +261,18 @@ class _ScopeOption extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: selected
-              ? primaryColor.withOpacity(0.2)
-              : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.04 : 0.02),
+              ? primaryColor.withValues(alpha: 0.2)
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
               color: selected
-                  ? primaryColor.withOpacity(0.7)
-                  : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.1 : 0.05)),
+                  ? primaryColor.withValues(alpha: 0.7)
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.1 : 0.05)),
         ),
         child: Row(
           children: [
             Icon(icon,
-                color: selected ? primaryColor : Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 24),
+                color: selected ? primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 24),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -280,11 +280,11 @@ class _ScopeOption extends StatelessWidget {
                 children: [
                   Text(label,
                       style: TextStyle(
-                          color: selected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: selected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   Text(subtitle,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), fontSize: 11)),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11)),
                 ],
               ),
             ),

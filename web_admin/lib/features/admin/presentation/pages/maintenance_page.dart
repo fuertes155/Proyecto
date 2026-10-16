@@ -23,7 +23,7 @@ class MaintenancePage extends ConsumerWidget {
         ]),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
             onPressed: () => ref.read(maintenanceProvider.notifier).load(),
           ),
         ],
@@ -32,12 +32,12 @@ class MaintenancePage extends ConsumerWidget {
         loading: () =>
             Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
         data: (windows) {
           if (windows.isEmpty) {
             return Center(
               child: Text('No hay ventanas de mantenimiento configuradas.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
             );
           }
           return ListView.builder(
@@ -65,10 +65,10 @@ class _MaintenanceCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-            color: window.activo ? color.withOpacity(0.5) : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.05)),
+            color: window.activo ? color.withValues(alpha: 0.5) : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,11 +80,11 @@ class _MaintenanceCard extends ConsumerWidget {
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: window.activo
-                        ? color.withOpacity(0.2)
-                        : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03)),
+                        ? color.withValues(alpha: 0.2)
+                        : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03)),
                 child: Icon(
                     window.activo ? Icons.build_rounded : Icons.power_off_rounded,
-                    color: window.activo ? color : Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                    color: window.activo ? color : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                     size: 22),
               ),
               const SizedBox(width: 12),
@@ -144,10 +144,10 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.access_time_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 16),
+        Icon(Icons.access_time_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 16),
         const SizedBox(width: 8),
         Text(label,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 13)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(value.replaceAll('T', ' ').length > 19 ? value.replaceAll('T', ' ').substring(0, 19) : value,

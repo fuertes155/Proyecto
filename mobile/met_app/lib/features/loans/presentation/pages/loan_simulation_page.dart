@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -237,9 +236,9 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -393,9 +392,9 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: AppTheme.primaryColor,
-              inactiveTrackColor: AppTheme.primaryColor.withOpacity(0.2),
+              inactiveTrackColor: AppTheme.primaryColor.withValues(alpha: 0.2),
               thumbColor: AppTheme.primaryColor,
-              overlayColor: AppTheme.primaryColor.withOpacity(0.1),
+              overlayColor: AppTheme.primaryColor.withValues(alpha: 0.1),
               trackHeight: 8,
             ),
             child: Slider(
@@ -432,9 +431,9 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: AppTheme.primaryColor,
-              inactiveTrackColor: AppTheme.primaryColor.withOpacity(0.2),
+              inactiveTrackColor: AppTheme.primaryColor.withValues(alpha: 0.2),
               thumbColor: AppTheme.primaryColor,
-              overlayColor: AppTheme.primaryColor.withOpacity(0.1),
+              overlayColor: AppTheme.primaryColor.withValues(alpha: 0.1),
               trackHeight: 8,
             ),
             child: Slider(
@@ -463,7 +462,7 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             ),
           ),
 

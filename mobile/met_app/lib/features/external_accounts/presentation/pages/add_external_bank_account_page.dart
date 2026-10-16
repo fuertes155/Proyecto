@@ -95,7 +95,7 @@ class _AddExternalBankAccountPageState extends ConsumerState<AddExternalBankAcco
                     style: TextStyle(color: Theme.of(context).colorScheme.error),
                   ),
                   data: (banks) => DropdownButtonFormField<String>(
-                    value: _bankCode,
+                    initialValue: _bankCode,
                     decoration: const InputDecoration(labelText: 'Banco'),
                     items: banks
                         .map((bank) => DropdownMenuItem(value: bank.code, child: Text(bank.name)))
@@ -105,7 +105,7 @@ class _AddExternalBankAccountPageState extends ConsumerState<AddExternalBankAcco
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _accountType,
+                  initialValue: _accountType,
                   decoration: const InputDecoration(labelText: 'Tipo de cuenta'),
                   items: const [
                     DropdownMenuItem(value: 'SAVINGS', child: Text('Ahorros')),

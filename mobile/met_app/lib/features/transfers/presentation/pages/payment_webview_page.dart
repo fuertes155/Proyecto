@@ -159,7 +159,7 @@ class _PaymentWebViewPageState extends ConsumerState<PaymentWebViewPage> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0044ff).withOpacity(0.15),
+                      color: const Color(0xFF0044ff).withValues(alpha: 0.15),
                       blurRadius: 24,
                       spreadRadius: 4,
                     ),
@@ -215,7 +215,7 @@ class _PaymentWebViewPageState extends ConsumerState<PaymentWebViewPage> {
                         ? null
                         : () async {
                             await _simulateApprovalIfDebug();
-                            if (!mounted) return;
+                            if (!context.mounted) return;
                             context.pushReplacement('/deposit/waiting', extra: {
                               'method': widget.method,
                               'amount': widget.amount,

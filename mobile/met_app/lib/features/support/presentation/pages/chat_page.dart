@@ -63,8 +63,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: primary.withOpacity(0.2),
-                border: Border.all(color: primary.withOpacity(0.5)),
+                color: primary.withValues(alpha: 0.2),
+                border: Border.all(color: primary.withValues(alpha: 0.5)),
               ),
               child: Icon(Icons.support_agent_rounded, color: primary, size: 20),
             ),
@@ -77,7 +77,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 Text('En línea • Cooperativa MET',
                     style: TextStyle(
                         fontSize: 11,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55))),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55))),
               ],
             ),
           ],
@@ -138,7 +138,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 color: Theme.of(context).colorScheme.surface,
                 border: Border(
                     top: BorderSide(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08))),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08))),
               ),
               child: Row(
                 children: [
@@ -151,11 +151,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       decoration: InputDecoration(
                         hintText: 'Escribe tu mensaje...',
                         hintStyle: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                             fontSize: 14),
                         filled: true,
                         fillColor:
-                            Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.06 : 0.04),
+                            Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.06 : 0.04),
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: OutlineInputBorder(
@@ -172,11 +172,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [primary, primary.withOpacity(0.75)],
+                        colors: [primary, primary.withValues(alpha: 0.75)],
                       ),
                       boxShadow: [
                         BoxShadow(
-                            color: primary.withOpacity(0.4),
+                            color: primary.withValues(alpha: 0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 2)),
                       ],
@@ -219,13 +219,13 @@ class _MessageBubble extends StatelessWidget {
           gradient: isUser
               ? LinearGradient(colors: [
                   primary,
-                  primary.withOpacity(0.85),
+                  primary.withValues(alpha: 0.85),
                 ])
               : null,
           color: isUser
               ? null
               : (isDark
-                  ? Colors.white.withOpacity(0.07)
+                  ? Colors.white.withValues(alpha: 0.07)
                   : Colors.grey.shade100),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
@@ -237,11 +237,11 @@ class _MessageBubble extends StatelessWidget {
               ? null
               : Border.all(
                   color: isDark
-                      ? Colors.white.withOpacity(0.08)
+                      ? Colors.white.withValues(alpha: 0.08)
                       : Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
-              color: (isUser ? primary : Colors.black).withOpacity(0.08),
+              color: (isUser ? primary : Colors.black).withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -281,9 +281,9 @@ class _QuickChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(isDark ? 0.15 : 0.08),
+          color: color.withValues(alpha: isDark ? 0.15 : 0.08),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.4)),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
         ),
         child: Text(
           label,
@@ -331,9 +331,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: widget.color.withOpacity(0.1),
+          color: widget.color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: widget.color.withOpacity(0.2)),
+          border: Border.all(color: widget.color.withValues(alpha: 0.2)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

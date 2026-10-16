@@ -24,7 +24,7 @@ class RiskRulesPage extends ConsumerWidget {
         ]),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
             onPressed: () => ref.read(riskRulesProvider.notifier).load(),
           ),
         ],
@@ -33,12 +33,12 @@ class RiskRulesPage extends ConsumerWidget {
         loading: () =>
             Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
         data: (rules) {
           if (rules.isEmpty) {
             return Center(
                 child: Text('No hay reglas configuradas',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))));
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -65,10 +65,10 @@ class _RiskRuleCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-            color: rule.activo ? color.withOpacity(0.5) : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.05)),
+            color: rule.activo ? color.withValues(alpha: 0.5) : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,10 +80,10 @@ class _RiskRuleCard extends ConsumerWidget {
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: rule.activo
-                        ? color.withOpacity(0.2)
-                        : Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03)),
+                        ? color.withValues(alpha: 0.2)
+                        : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03)),
                 child: Icon(Icons.security_rounded,
-                    color: rule.activo ? color : Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 22),
+                    color: rule.activo ? color : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -98,7 +98,7 @@ class _RiskRuleCard extends ConsumerWidget {
                     if (rule.descripcion != null)
                       Text(rule.descripcion!,
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12)),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
                   ],
                 ),
               ),
@@ -170,10 +170,10 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.code_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), size: 16),
+        Icon(Icons.code_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 16),
         const SizedBox(width: 8),
         Text(label,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 13)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(_formatValue(value),

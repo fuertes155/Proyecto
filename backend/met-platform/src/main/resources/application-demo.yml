@@ -6,7 +6,7 @@
 # Requiere: MET_PAYMENTS_MOCK_GATEWAY_BASE_URL = URL pública del backend
 #           (p. ej. https://met-backend-y04c.onrender.com)
 #
-# Qué cambia respecto a prod (por @Profile("dev | demo") / @Profile("!dev & !demo")):
+# Qué cambia respecto a prod (por met.payments.gateway / payout-gateway = mock, ver abajo):
 #   - MockPseGatewayAdapter / MockPayoutGatewayAdapter en vez de los de Wompi.
 #   - MockPaymentGatewayController: sirve /v1/mock-payment-gateway (pantalla
 #     "Confirmar Pago") y /v1/webhooks/mock-payment (acredita el saldo).
@@ -17,6 +17,11 @@
 # aflojaba todo eso; "demo" no.
 # ==============================================================================
 met:
+  payments:
+    # Pasarela simulada (/api/v1/mock-payment-gateway). Para probar contra el sandbox
+    # real de Wompi activa además el perfil "sandbox" (p. ej. SPRING_PROFILES_ACTIVE=dev,sandbox).
+    gateway: ${MET_PAYMENTS_GATEWAY:mock}
+    payout-gateway: ${MET_PAYMENTS_PAYOUT_GATEWAY:mock}
   dev:
     # Sin banco real no hay extracto bancario: el monto del micro-depósito de
     # verificación de cuenta se escribe en los logs para poder confirmarlo en la

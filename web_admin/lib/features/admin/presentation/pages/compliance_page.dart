@@ -45,7 +45,7 @@ class _CompliancePageState extends ConsumerState<CompliancePage> with SingleTick
         bottom: TabBar(
           controller: _tabController,
           labelColor: primaryColor,
-          unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           indicatorColor: primaryColor,
           tabs: const [
             Tab(text: 'Alertas'),
@@ -97,7 +97,7 @@ class _AlertsTab extends ConsumerWidget {
                   child: ChoiceChip(
                     label: Text(_statusLabels[s] ?? s),
                     selected: selected,
-                    selectedColor: primaryColor.withOpacity(0.2),
+                    selectedColor: primaryColor.withValues(alpha: 0.2),
                     onSelected: (_) => ref.read(complianceAlertStatusFilterProvider.notifier).state = s,
                   ),
                 );
@@ -109,7 +109,7 @@ class _AlertsTab extends ConsumerWidget {
           child: alertsState.when(
             loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
             error: (e, _) => Center(
-                child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+                child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
             data: (data) {
               final items = (data['items'] as List? ?? [])
                   .map((e) => ComplianceAlert.fromJson(e as Map<String, dynamic>))
@@ -119,7 +119,7 @@ class _AlertsTab extends ConsumerWidget {
               if (items.isEmpty) {
                 return Center(
                   child: Text('No hay alertas ${(_statusLabels[currentStatus] ?? '').toLowerCase()}',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
                 );
               }
 
@@ -131,7 +131,7 @@ class _AlertsTab extends ConsumerWidget {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text('$total alerta(s)',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 13)),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
                     );
                   }
                   return _AlertCard(alert: items[i - 1]);
@@ -165,9 +165,9 @@ class _AlertCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.04 : 0.02),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,14 +176,14 @@ class _AlertCard extends ConsumerWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
                 child: Text(alert.alertTypeLabel,
                     style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
               const Spacer(),
               Text(ts,
                   style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4), fontSize: 11, fontFamily: 'monospace')),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11, fontFamily: 'monospace')),
             ],
           ),
           const SizedBox(height: 10),
@@ -191,12 +191,12 @@ class _AlertCard extends ConsumerWidget {
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
           Text(alert.description,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75), fontSize: 13)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75), fontSize: 13)),
           if (alert.status != 'OPEN') ...[
             const SizedBox(height: 8),
             Text('Estado: ${alert.status}${alert.resolutionNotes != null ? ' — ${alert.resolutionNotes}' : ''}',
                 style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12, fontStyle: FontStyle.italic)),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12, fontStyle: FontStyle.italic)),
           ],
           if (alert.status == 'OPEN' || alert.status == 'UNDER_REVIEW') ...[
             const SizedBox(height: 12),
@@ -287,7 +287,7 @@ class _RestrictiveListsTab extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'Screening contra OFAC y la Lista Consolidada de la ONU. Las listas se refrescan solas cada noche.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12),
                 ),
               ),
               const SizedBox(width: 8),
@@ -319,12 +319,12 @@ class _RestrictiveListsTab extends ConsumerWidget {
           child: matchesState.when(
             loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
             error: (e, _) => Center(
-                child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+                child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
             data: (matches) {
               if (matches.isEmpty) {
                 return Center(
                   child: Text('Sin coincidencias en listas restrictivas',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
                 );
               }
               return ListView.builder(
@@ -353,9 +353,9 @@ class _MatchCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.04 : 0.02),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -373,7 +373,7 @@ class _MatchCard extends StatelessWidget {
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 2),
                 Text('Lista ${match.listType} · ${match.checkedAt.replaceAll('T', ' ').substring(0, 19)}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
               ],
             ),
           ),

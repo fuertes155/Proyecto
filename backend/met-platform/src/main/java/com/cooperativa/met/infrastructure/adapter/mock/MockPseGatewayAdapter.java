@@ -8,14 +8,14 @@ import com.cooperativa.met.domain.bank.port.BankRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Implementación DEV de {@link PseGatewayPort}. Sustituye a {@code WompiPseAdapter}
- * cuando el perfil activo es "dev": el catálogo de bancos sale de la BD local y la
+ * con {@code met.payments.gateway=mock} (perfiles dev y demo): el catálogo de bancos sale de la BD local y la
  * transacción PSE redirige a la pasarela de pago SIMULADA
  * ({@code /api/v1/mock-payment-gateway}), que al confirmar dispara el webhook
  * {@code /api/v1/webhooks/mock-payment} y acredita el depósito.
@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@Profile("dev | demo")
+@ConditionalOnProperty(name = "met.payments.gateway", havingValue = "mock")
 @RequiredArgsConstructor
 public class MockPseGatewayAdapter implements PseGatewayPort {
 

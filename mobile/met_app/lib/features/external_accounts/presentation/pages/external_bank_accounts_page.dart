@@ -53,20 +53,20 @@ class _ExternalBankAccountsPageState extends ConsumerState<ExternalBankAccountsP
         ),
         data: (accounts) {
           if (accounts.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(24),
+            return const Padding(
+              padding: EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.account_balance_outlined, size: 72),
-                  const SizedBox(height: 16),
-                  const Text(
+                  Icon(Icons.account_balance_outlined, size: 72),
+                  SizedBox(height: 16),
+                  Text(
                     'Aún no tienes cuentas bancarias registradas',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     'Registra una cuenta a tu propio nombre para poder retirar tu saldo.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16),

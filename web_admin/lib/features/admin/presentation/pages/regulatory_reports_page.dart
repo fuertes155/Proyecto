@@ -117,7 +117,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
                     const SizedBox(height: 8),
                     Text(
                       'Selecciona el tipo de informe que deseas extraer de la base de datos central. Todas las descargas quedan registradas en el log de auditoría por motivos de seguridad.',
-                      style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+                      style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                     ),
                     const SizedBox(height: 32),
                     Text(
@@ -180,7 +180,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isSelected ? primary.withOpacity(isDark ? 0.2 : 0.1) : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
+            color: isSelected ? primary.withValues(alpha: isDark ? 0.2 : 0.1) : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected ? primary : Colors.transparent,
@@ -192,7 +192,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: isSelected ? primary : (isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05)),
+                  color: isSelected ? primary : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05)),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -219,7 +219,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
                       report['subtitle']!,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -228,7 +228,7 @@ class _RegulatoryReportsPageState extends State<RegulatoryReportsPage> {
               if (isSelected)
                 Icon(Icons.check_circle_rounded, color: primary)
               else
-                Icon(Icons.circle_outlined, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+                Icon(Icons.circle_outlined, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
             ],
           ),
         ),

@@ -48,15 +48,15 @@ class InvestmentBreakdownPage extends ConsumerWidget {
           data: (summary) {
             if (summary.totalInvested <= 0) {
               return ListView(
-                children: [
-                  const SizedBox(height: 120),
-                  const Icon(Icons.savings_outlined, size: 64, color: Colors.black26),
-                  const SizedBox(height: 16),
-                  const Center(
+                children: const [
+                  SizedBox(height: 120),
+                  Icon(Icons.savings_outlined, size: 64, color: Colors.black26),
+                  SizedBox(height: 16),
+                  Center(
                     child: Text('Aún no tienes dinero trabajando', style: TextStyle(fontSize: 18, color: Colors.black54)),
                   ),
-                  const SizedBox(height: 8),
-                  const Center(
+                  SizedBox(height: 8),
+                  Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 32),
                       child: Text(
@@ -175,13 +175,13 @@ class _SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: data.color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: data.color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(data.icon, color: data.color),
           ),
           const SizedBox(width: 16),
@@ -192,7 +192,7 @@ class _SummaryCard extends StatelessWidget {
                 Text(data.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
                 Text(data.subtitle,
-                    style: TextStyle(color: Colors.black54, fontSize: 13)),
+                    style: const TextStyle(color: Colors.black54, fontSize: 13)),
               ],
             ),
           ),

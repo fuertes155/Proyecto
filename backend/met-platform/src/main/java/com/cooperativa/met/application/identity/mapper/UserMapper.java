@@ -3,6 +3,7 @@ package com.cooperativa.met.application.identity.mapper;
 import com.cooperativa.met.application.identity.dto.UserResponse;
 import com.cooperativa.met.domain.identity.model.User;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 public class UserMapper {
@@ -20,7 +21,8 @@ public class UserMapper {
                 user.getKycStatus(),
                 user.isEmailNotificationsEnabled(),
                 user.isPushNotificationsEnabled(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                StringUtils.hasText(user.getBiometricHash())
         );
     }
 }

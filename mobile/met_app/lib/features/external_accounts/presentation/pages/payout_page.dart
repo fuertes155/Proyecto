@@ -224,7 +224,7 @@ class _PayoutPageState extends ConsumerState<PayoutPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(

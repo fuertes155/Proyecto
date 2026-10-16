@@ -14,7 +14,7 @@ class NotificationRemoteDataSource {
 
   Future<int> getUnreadCount() async {
     final response = await _dio.get('/v1/notifications/unread-count');
-    return response.data['count'] as int;
+    return (response.data as Map<String, dynamic>)['count'] as int;
   }
 
   Future<void> markAsRead(String id) async {

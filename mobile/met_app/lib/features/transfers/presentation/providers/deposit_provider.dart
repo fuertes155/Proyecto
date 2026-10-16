@@ -104,7 +104,8 @@ class DepositNotifier extends StateNotifier<DepositState> {
         baselineBalance: currentAccount.principalBalance,
       );
     } on DioException catch (e) {
-      final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';
+      final data = e.response?.data;
+      final msg = (data is Map ? data['message'] as String? : null) ?? 'Error de conexión. Inténtalo de nuevo.';
       state = state.copyWith(isLoading: false, error: msg);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Ocurrió un error inesperado: $e');
@@ -139,7 +140,8 @@ class DepositNotifier extends StateNotifier<DepositState> {
         baselineBalance: currentAccount.principalBalance,
       );
     } on DioException catch (e) {
-      final msg = e.response?.data?['message'] ?? 'Error de conexión. Inténtalo de nuevo.';
+      final data = e.response?.data;
+      final msg = (data is Map ? data['message'] as String? : null) ?? 'Error de conexión. Inténtalo de nuevo.';
       state = state.copyWith(isLoading: false, error: msg);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Ocurrió un error inesperado: $e');

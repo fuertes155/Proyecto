@@ -14,7 +14,11 @@ import java.time.Duration;
  * {@code GeneratePseLinkUseCase} para construir el link de checkout
  * hosteado, ahora también usado para crear transacciones PSE nativas
  * directamente vía API (sin pasar por el checkout hosteado).
- * Reutiliza met.wompi.api-url/public-key/private-key ya configurados.
+ * Reutiliza met.wompi.api-url ya configurada.
+ *
+ * Sin header Authorization por defecto: cada llamada elige su llave (pública para
+ * los endpoints de catálogo, privada para crear y consultar transacciones), ver
+ * {@code WompiPseAdapter}.
  */
 @Configuration
 public class WompiCheckoutConfig {
@@ -22,7 +26,6 @@ public class WompiCheckoutConfig {
     @Bean
     public RestClient wompiCheckoutRestClient(
             @Value("${met.wompi.api-url}") String baseUrl,
-            @Value("${met.wompi.private-key}") String privateKey,
             RestClient.Builder restClientBuilder) {
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -32,7 +35,6 @@ public class WompiCheckoutConfig {
         return restClientBuilder
                 .baseUrl(baseUrl)
                 .requestFactory(factory)
-                .defaultHeader("Authorization", "Bearer " + privateKey)
                 .build();
     }
 }

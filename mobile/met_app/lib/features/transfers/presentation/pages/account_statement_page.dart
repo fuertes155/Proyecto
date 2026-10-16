@@ -183,7 +183,7 @@ class _AccountStatementPageState extends ConsumerState<AccountStatementPage> {
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: visual.color.withOpacity(0.12),
+                      backgroundColor: visual.color.withValues(alpha: 0.12),
                       child: Icon(visual.icon, color: visual.color, size: 20),
                     ),
                     title: Text(m.typeLabel),

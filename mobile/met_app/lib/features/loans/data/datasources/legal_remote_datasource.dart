@@ -14,7 +14,7 @@ class LegalRemoteDataSource {
   /// Retorna un transactionId
   Future<String> requestSignature() async {
     final response = await _dio.post('/v1/legal/mandate/request-signature');
-    return response.data['transactionId'] as String;
+    return (response.data as Map<String, dynamic>)['transactionId'] as String;
   }
 
   Future<Map<String, dynamic>> confirmSignature(String transactionId, String otp) async {

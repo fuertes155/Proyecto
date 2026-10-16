@@ -28,7 +28,7 @@ class FeesPage extends ConsumerWidget {
             tooltip: 'Nueva tarifa',
           ),
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
             onPressed: () => ref.read(feeScheduleProvider.notifier).load(),
             tooltip: 'Refrescar',
           ),
@@ -38,12 +38,12 @@ class FeesPage extends ConsumerWidget {
         loading: () =>
             Center(child: CircularProgressIndicator(color: primaryColor)),
         error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)))),
+            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
         data: (fees) {
           if (fees.isEmpty) {
             return Center(
                 child: Text('No hay tarifas configuradas',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))));
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -98,7 +98,7 @@ class FeesPage extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+              child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -185,7 +185,7 @@ class FeesPage extends ConsumerWidget {
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
               child: Text('Cancelar',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -243,13 +243,13 @@ class FeesPage extends ConsumerWidget {
         ),
         content: Text(
           '¿Estás seguro de que deseas eliminar la tarifa "${fee.tipoTarifa}"?\n\nEsta acción queda registrada en el log de auditoría.',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75), fontSize: 13),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75), fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text('Cancelar',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -293,9 +293,9 @@ class FeesPage extends ConsumerWidget {
       style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 13),
+        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.06 : 0.03),
+        fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.06 : 0.03),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
@@ -323,9 +323,9 @@ class _FeeCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(isDark ? 0.05 : 0.03),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,7 +335,7 @@ class _FeeCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle, color: color.withOpacity(0.2)),
+                    shape: BoxShape.circle, color: color.withValues(alpha: 0.2)),
                 child: Icon(Icons.percent_rounded, color: color, size: 22),
               ),
               const SizedBox(width: 12),
@@ -351,7 +351,7 @@ class _FeeCard extends StatelessWidget {
                     if (fee.descripcion != null)
                       Text(fee.descripcion!,
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12)),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
                   ],
                 ),
               ),
@@ -365,7 +365,7 @@ class _FeeCard extends StatelessWidget {
               // Botón editar
               IconButton(
                 icon: Icon(Icons.edit_rounded,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), size: 18),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), size: 18),
                 onPressed: onEdit,
                 tooltip: 'Editar tarifa',
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -374,7 +374,7 @@ class _FeeCard extends StatelessWidget {
               // Botón eliminar
               IconButton(
                 icon: Icon(Icons.delete_outline_rounded,
-                    color: Theme.of(context).colorScheme.error.withOpacity(0.7), size: 18),
+                    color: Theme.of(context).colorScheme.error.withValues(alpha: 0.7), size: 18),
                 onPressed: onDelete,
                 tooltip: 'Eliminar tarifa',
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -386,19 +386,19 @@ class _FeeCard extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.calendar_today_rounded,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3), size: 14),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), size: 14),
               const SizedBox(width: 6),
               Text('Desde: ${fee.vigentDesde.substring(0, 10)}',
                   style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
               if (fee.vigentaHasta != null) ...[
                 const SizedBox(width: 12),
                 Icon(Icons.event_busy_rounded,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3), size: 14),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), size: 14),
                 const SizedBox(width: 6),
                 Text('Hasta: ${fee.vigentaHasta!.substring(0, 10)}',
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
               ]
             ],
           )

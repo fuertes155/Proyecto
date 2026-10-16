@@ -148,6 +148,39 @@ class LoginUseCaseTest {
         verifyNoInteractions(tokenPort);
     }
 
+    @Test
+    void shouldLoginWithTheDeviceTokenWhenFingerprintLoginIsEnabled() {
+        User user = activeUser().biometricHash("token-hash").lastKnownDeviceId("device-1").lastKnownIp("190.0.0.1").build();
+        when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
+        when(encryptionPort.hashBiometric("device-token")).thenReturn("token-hash");
+        when(tokenPort.generateAccessToken(user.getId(), null)).thenReturn("access-token");
+        when(tokenPort.generateRefreshToken(user.getId())).thenReturn("refresh-token");
+        when(tokenPort.validateRefreshTokenClaims("refresh-token"))
+                .thenReturn(new TokenPort.RefreshTokenClaims(user.getId(), UUID.randomUUID()));
+
+        AuthResponse response = loginUseCase.execute(biometricRequest("device-token"), "190.0.0.1");
+
+        assertEquals("access-token", response.accessToken());
+        verify(encryptionPort, never()).decryptRsa(any());
+    }
+
+    @Test
+    void shouldRejectFingerprintLoginWhenItWasNeverEnabled() {
+        User user = activeUser().biometricHash("").build();
+        when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
+
+        BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                () -> loginUseCase.execute(biometricRequest("device-token"), "190.0.0.1"));
+
+        assertEquals("INVALID_CREDENTIALS", ex.getCode());
+        verify(encryptionPort, never()).hashBiometric(any());
+        verifyNoInteractions(tokenPort);
+    }
+
+    private LoginRequest biometricRequest(String token) {
+        return new LoginRequest(DocumentType.CC, DOCUMENT, "device-1", null, token, null);
+    }
+
     private void stubPinVerification(boolean valid) {
         when(encryptionPort.decryptRsa("encrypted-pin")).thenReturn("1234");
         when(encryptionPort.verifyPin("1234", "pin-hash")).thenReturn(valid);

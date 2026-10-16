@@ -31,8 +31,8 @@ class NotificationsPage extends ConsumerWidget {
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: notification.read
-                        ? Colors.grey.withOpacity(0.2)
-                        : Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                        ? Colors.grey.withValues(alpha: 0.2)
+                        : Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                     child: Icon(
                       notification.read ? Icons.notifications_none : Icons.notifications_active,
                       color: notification.read
@@ -56,7 +56,7 @@ class NotificationsPage extends ConsumerWidget {
                         DateFormat('dd/MM/yyyy HH:mm').format(notification.createdAt),
                         style: TextStyle(
                           fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                     ],

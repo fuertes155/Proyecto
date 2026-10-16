@@ -13,7 +13,7 @@ class HomeRemoteRepository implements HomeRepository {
   Future<HomeSummaryModel> getHomeSummary() async {
     try {
       final response = await _dio.get('/v1/account/summary');
-      return HomeSummaryModel.fromJson(response.data['data']);
+      return HomeSummaryModel.fromJson((response.data as Map<String, dynamic>)['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       // Manejar error 404 (cuenta no encontrada) o similar y lanzar
       // una excepción de dominio.

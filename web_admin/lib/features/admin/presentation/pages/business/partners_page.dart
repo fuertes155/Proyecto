@@ -94,14 +94,14 @@ class PartnersPage extends ConsumerWidget {
               final isApproved = user.kycStatus == 'APPROVED';
               final isRejected = user.kycStatus == 'REJECTED';
               final chipColor = isApproved
-                  ? Colors.green.withOpacity(0.2)
-                  : (isRejected ? Colors.red.withOpacity(0.2) : Colors.orange.withOpacity(0.2));
+                  ? Colors.green.withValues(alpha: 0.2)
+                  : (isRejected ? Colors.red.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2));
               return Card(
                 elevation: 0,
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: primary.withOpacity(0.2)),
+                  side: BorderSide(color: primary.withValues(alpha: 0.2)),
                 ),
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
@@ -113,7 +113,7 @@ class PartnersPage extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CircleAvatar(
-                            backgroundColor: primary.withOpacity(0.2),
+                            backgroundColor: primary.withValues(alpha: 0.2),
                             child: Icon(Icons.person, color: primary),
                           ),
                           const SizedBox(width: 12),
@@ -141,7 +141,7 @@ class PartnersPage extends ConsumerWidget {
                       ),
                       if (!isApproved) ...[
                         const SizedBox(height: 12),
-                        Divider(height: 1, color: primary.withOpacity(0.12)),
+                        Divider(height: 1, color: primary.withValues(alpha: 0.12)),
                         const SizedBox(height: 10),
                         Align(
                           alignment: Alignment.centerRight,

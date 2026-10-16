@@ -46,11 +46,25 @@ public class SyncBankCatalogUseCase {
 
     private static final Pattern NON_ALNUM = Pattern.compile("[^A-Z0-9]");
 
+    /** Largo de la llave primaria {@code banks.code} (VARCHAR(20), ver V30). */
+    private static final int MAX_CODE_LENGTH = 20;
+
     @Transactional
     public int execute() {
         int updated = syncPayoutBanks();
         updated += syncPseBanks();
         log.info("Sincronización de catálogo de bancos completada: {} filas actualizadas", updated);
+        return updated;
+    }
+
+    /**
+     * Solo el catálogo PSE. Lo usa el arranque en sandbox, donde los payouts siguen
+     * simulados y Wompi devuelve sus bancos de prueba ("1" aprueba, "2" rechaza).
+     */
+    @Transactional
+    public int executePseOnly() {
+        int updated = syncPseBanks();
+        log.info("Sincronización de bancos PSE completada: {} filas actualizadas", updated);
         return updated;
     }
 
@@ -91,11 +105,29 @@ public class SyncBankCatalogUseCase {
 
         log.info("Banco nuevo reportado por el proveedor sin equivalente local: {}", providerName);
         return Bank.builder()
-                .code(normalizedName)
+                .code(newBankCode(normalizedName))
                 .name(providerName)
                 .active(true)
                 .updatedAt(Instant.now())
                 .build();
+    }
+
+    /**
+     * Código para un banco nuevo: el nombre normalizado recortado a 20 caracteres
+     * (p. ej. "BANCOCOOPERATIVOCOOPCENTRAL" no cabe), con sufijo numérico si ese
+     * código ya existe — si no, el save sobrescribiría la fila de otro banco.
+     */
+    private String newBankCode(String normalizedName) {
+        String base = normalizedName.isEmpty() ? "BANCO" : normalizedName;
+        if (base.length() > MAX_CODE_LENGTH) {
+            base = base.substring(0, MAX_CODE_LENGTH);
+        }
+        String candidate = base;
+        for (int i = 2; bankRepository.findByCode(candidate).isPresent(); i++) {
+            String suffix = String.valueOf(i);
+            candidate = base.substring(0, Math.min(base.length(), MAX_CODE_LENGTH - suffix.length())) + suffix;
+        }
+        return candidate;
     }
 
     private String normalize(String name) {

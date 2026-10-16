@@ -19,6 +19,7 @@ public record UserResponse(
         KycStatus kycStatus,
         Boolean emailNotificationsEnabled,
         Boolean pushNotificationsEnabled,
-        Instant createdAt
+        Instant createdAt,
+        boolean biometricLoginEnabled
 ) {
 }

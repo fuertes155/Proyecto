@@ -31,15 +31,15 @@ class LoansPage extends ConsumerWidget {
               final user = data['user'] as UserModel;
               return Card(
                 elevation: 0,
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: primary.withOpacity(0.2)),
+                  side: BorderSide(color: primary.withValues(alpha: 0.2)),
                 ),
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: primary.withOpacity(0.2),
+                    backgroundColor: primary.withValues(alpha: 0.2),
                     child: Icon(Icons.request_quote, color: primary),
                   ),
                   title: Text('Préstamo ID: ${loan.id}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
@@ -50,7 +50,7 @@ class LoansPage extends ConsumerWidget {
                     children: [
                       Chip(
                         label: Text(loan.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                        backgroundColor: loan.status == 'APPROVED' ? Colors.green.withOpacity(0.2) : (loan.status == 'REJECTED' ? Colors.red.withOpacity(0.2) : Colors.orange.withOpacity(0.2)),
+                        backgroundColor: loan.status == 'APPROVED' ? Colors.green.withValues(alpha: 0.2) : (loan.status == 'REJECTED' ? Colors.red.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2)),
                         side: BorderSide.none,
                       ),
                       if (loan.status == 'IN_REVIEW' || loan.status == 'PENDING') ...[
@@ -64,6 +64,7 @@ class LoansPage extends ConsumerWidget {
                               await dio.put('/loans/${loan.id}/status?status=APPROVED');
                               ref.invalidate(loansProvider);
                             } catch (e) {
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                             }
                           },
@@ -77,6 +78,7 @@ class LoansPage extends ConsumerWidget {
                               await dio.put('/loans/${loan.id}/status?status=REJECTED');
                               ref.invalidate(loansProvider);
                             } catch (e) {
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                             }
                           },

@@ -111,7 +111,7 @@ class AdminDashboardPage extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                   Colors.transparent,
                 ]),
               ),
@@ -133,7 +133,7 @@ class AdminDashboardPage extends ConsumerWidget {
                               colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary]),
                           boxShadow: [
                             BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
                                 blurRadius: 16)
                           ],
                         ),
@@ -155,7 +155,7 @@ class AdminDashboardPage extends ConsumerWidget {
                             Text(
                               admin?.role ?? 'ADMIN',
                               style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.9),
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 1.2),
@@ -169,7 +169,7 @@ class AdminDashboardPage extends ConsumerWidget {
                           await ref.read(adminAuthProvider.notifier).logout();
                           if (context.mounted) context.go('/admin/login');
                         },
-                        icon: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+                        icon: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                         tooltip: 'Cerrar sesión',
                       ),
                     ],
@@ -185,10 +185,10 @@ class AdminDashboardPage extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.15 : 0.05),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
@@ -199,7 +199,7 @@ class AdminDashboardPage extends ConsumerWidget {
                               child: Text(
                                 'Panel de Control — Acciones con trazabilidad total',
                                 style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500),
                               ),
@@ -338,10 +338,10 @@ class _ModuleCardState extends State<_ModuleCard> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? Theme.of(context).colorScheme.onSurface.withOpacity(0.06) : Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
+                color: isDark ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06) : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                    color: primary.withOpacity(isDark ? 0.35 : 0.2), width: 1.5),
+                    color: primary.withValues(alpha: isDark ? 0.35 : 0.2), width: 1.5),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -350,9 +350,9 @@ class _ModuleCardState extends State<_ModuleCard> {
                     width: 52, height: 52,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: primary.withOpacity(isDark ? 0.2 : 0.1),
+                      color: primary.withValues(alpha: isDark ? 0.2 : 0.1),
                       border: Border.all(
-                          color: primary.withOpacity(isDark ? 0.5 : 0.3), width: 1.0),
+                          color: primary.withValues(alpha: isDark ? 0.5 : 0.3), width: 1.0),
                     ),
                     child: Icon(widget.module.icon,
                         color: primary, size: 26),

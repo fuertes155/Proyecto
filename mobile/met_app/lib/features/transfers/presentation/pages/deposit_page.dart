@@ -123,7 +123,7 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -141,7 +141,7 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Wrap(
+                      const Wrap(
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         spacing: 16,
@@ -150,9 +150,9 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.access_time, size: 16, color: Colors.black54),
-                              const SizedBox(width: 4),
-                              const Text(
+                              Icon(Icons.access_time, size: 16, color: Colors.black54),
+                              SizedBox(width: 4),
+                              Text(
                                 'Normalmente en 5 minutos',
                                 style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
                               ),
@@ -161,9 +161,9 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.swap_vert, size: 16, color: Colors.black54),
-                              const SizedBox(width: 4),
-                              const Text(
+                              Icon(Icons.swap_vert, size: 16, color: Colors.black54),
+                              SizedBox(width: 4),
+                              Text(
                                 '\$10.000 - \$10.000.000',
                                 style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
                               ),
@@ -194,7 +194,7 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -282,7 +282,7 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                             disabledForegroundColor: Colors.white70,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -360,7 +360,7 @@ class _BankSelector extends ConsumerWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

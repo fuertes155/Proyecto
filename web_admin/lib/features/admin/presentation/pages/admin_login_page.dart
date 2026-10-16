@@ -81,7 +81,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF53A835).withOpacity(0.15),
+                        const Color(0xFF53A835).withValues(alpha: 0.15),
                         Colors.transparent,
                       ],
                     ),
@@ -98,7 +98,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF388E3C).withOpacity(0.1),
+                        const Color(0xFF388E3C).withValues(alpha: 0.1),
                         Colors.transparent,
                       ],
                     ),
@@ -118,13 +118,13 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF53A835).withOpacity(0.08),
+                          color: const Color(0xFF53A835).withValues(alpha: 0.08),
                           blurRadius: 40,
                           spreadRadius: 10,
                           offset: const Offset(0, 20),
                         ),
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
+                          color: Colors.black.withValues(alpha: 0.03),
                           blurRadius: 10,
                           spreadRadius: 0,
                           offset: const Offset(0, 4),
@@ -142,7 +142,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
                             child: Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF53A835).withOpacity(0.1),
+                                color: const Color(0xFF53A835).withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -222,7 +222,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF53A835),
                                 foregroundColor: Colors.white,
-                                shadowColor: const Color(0xFF53A835).withOpacity(0.4),
+                                shadowColor: const Color(0xFF53A835).withValues(alpha: 0.4),
                                 elevation: 8,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),

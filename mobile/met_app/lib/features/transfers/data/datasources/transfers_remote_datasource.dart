@@ -78,7 +78,7 @@ class TransfersRemoteDataSource {
       'amount': amount,
       'returnUrl': returnUrl,
     });
-    final url = response.data['paymentUrl'] as String;
+    final url = (response.data as Map<String, dynamic>)['paymentUrl'] as String;
     if (url.startsWith('http')) return url;
     // baseUrl = 'http://localhost:8080/api', url starts with '/v1'
     final base = _dio.options.baseUrl.endsWith('/')
@@ -97,6 +97,10 @@ class TransfersRemoteDataSource {
       'bankCode': bankCode,
       'returnUrl': returnUrl,
     });
-    return response.data['asyncPaymentUrl'] as String;
+    final url = (response.data as Map<String, dynamic>)['asyncPaymentUrl'] as String?;
+    if (url == null || url.isEmpty) {
+      throw StateError('El banco no entregó el enlace de pago. Intenta de nuevo en unos segundos.');
+    }
+    return url;
   }
 }

@@ -1,10 +1,10 @@
 package com.cooperativa.met.infrastructure.web.webhook;
 
-import com.cooperativa.met.application.account.dto.DepositRequest;
 import com.cooperativa.met.application.account.usecase.ProcessWebhookUseCase;
-import com.cooperativa.met.infrastructure.persistence.webhook.entity.ProcessedWebhookJpaEntity;
+import com.cooperativa.met.infrastructure.adapter.wompi.WompiSignatures;
 import com.cooperativa.met.infrastructure.persistence.webhook.repository.ProcessedWebhookJpaRepository;
 import com.cooperativa.met.infrastructure.web.webhook.dto.WompiWebhookPayload;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,16 +20,19 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Controlador público que recibe los eventos de pago de Wompi.
+ * Controlador público que recibe los eventos de pago de Wompi
+ * (docs.wompi.co/docs/colombia/eventos/).
  *
- * Wompi envía una firma en el header "x-wompi-signature-v1" con el formato:
- *   SHA-256(timestamp + "." + payload + webhookSecret)
+ * Wompi firma cada evento con un checksum SHA-256 que viene en el cuerpo
+ * ({@code signature.checksum}) y repetido en el header {@code X-Event-Checksum}:
+ * <pre>SHA256(valores de signature.properties + timestamp + secreto de eventos)</pre>
+ * El secreto de eventos es {@code met.wompi.webhook-secret} ({@code test_events_…} en
+ * sandbox, {@code prod_events_…} en producción).
  *
- * Donde "timestamp" es el header "x-wompi-signature-v1" dividido por "t=" y "v1=".
+ * Wompi reintenta el envío (30 min, 3 h, 24 h) si no recibe un 200.
  *
  * IMPORTANTE: Este endpoint NO requiere autenticación JWT porque lo llama Wompi,
  * no el usuario de la app. La seguridad se garantiza con la verificación de la firma.
@@ -45,30 +48,33 @@ public class WebhookController {
     private final ObjectMapper objectMapper;
 
     /**
-     * Secret de webhook de Wompi.
-     * Formato en Wompi Dashboard → Desarrolladores → Webhooks → Secreto.
+     * Secreto de eventos de Wompi: Dashboard → Desarrolladores → Secretos para
+     * integración técnica → Eventos.
      */
     @Value("${met.wompi.webhook-secret}")
     private String wompiWebhookSecret;
 
     /**
      * Endpoint principal que recibe los eventos de Wompi.
-     * Documentación: https://docs.wompi.co/docs/colombia/eventos/
+     * URL a registrar en el dashboard de Wompi: {@code https://<host>/api/v1/webhooks/payment}
      */
     @PostMapping("/payment")
     public ResponseEntity<Void> handlePaymentWebhook(
-            @RequestHeader(value = "x-wompi-signature-v1", required = false) String wompiSignatureHeader,
+            @RequestHeader(value = "X-Event-Checksum", required = false) String eventChecksumHeader,
             @RequestHeader(value = "X-Signature", required = false) String legacySignatureHeader,
             @RequestBody String rawPayload) {
 
         try {
+            JsonNode event = objectMapper.readTree(rawPayload);
+            String bodyChecksum = event.path("signature").path("checksum").asText(null);
+
             boolean isValid;
-            if (wompiSignatureHeader != null) {
-                isValid = isValidWompiSignature(rawPayload, wompiSignatureHeader);
+            if (eventChecksumHeader != null || bodyChecksum != null) {
+                isValid = isValidWompiChecksum(event, eventChecksumHeader != null ? eventChecksumHeader : bodyChecksum);
             } else if (legacySignatureHeader != null) {
                 isValid = isValidLegacySignature(rawPayload, legacySignatureHeader);
             } else {
-                log.warn("Missing webhook signature header. Rejecting request.");
+                log.warn("Missing webhook signature (neither signature.checksum nor X-Signature). Rejecting request.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -85,7 +91,6 @@ public class WebhookController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
     private void processWebhookPayload(String rawPayload) throws Exception {
         WompiWebhookPayload wompiPayload = objectMapper.readValue(rawPayload, WompiWebhookPayload.class);
@@ -109,7 +114,15 @@ public class WebhookController {
 
         WompiWebhookPayload.WompiTransaction tx = payload.getData().getTransaction();
         if (tx == null || !"APPROVED".equals(tx.getStatus())) {
-            log.info("Transaction not approved. Status: {}", tx != null ? tx.getStatus() : "null");
+            log.info("Wompi transaction {} not approved. Status: {} ({})",
+                    tx != null ? tx.getReference() : "null",
+                    tx != null ? tx.getStatus() : "null",
+                    tx != null ? tx.getStatusMessage() : "");
+            return;
+        }
+
+        if (tx.getCurrency() != null && !"COP".equals(tx.getCurrency())) {
+            log.error("Ignoring Wompi transaction {} in unsupported currency {}", tx.getId(), tx.getCurrency());
             return;
         }
 
@@ -132,57 +145,35 @@ public class WebhookController {
         // Wompi envía el monto en centavos para COP
         BigDecimal amountInPesos = BigDecimal.valueOf(tx.getAmountInCents()).divide(BigDecimal.valueOf(100));
 
-        log.info("Processing approved Wompi transaction {} for user {} amount={} COP",
-                txId, userId, amountInPesos);
+        log.info("Processing approved Wompi transaction {} ({}) for user {} amount={} COP",
+                txId, payload.getEnvironment(), userId, amountInPesos);
 
         String method = "WOMPI_" + tx.getPaymentMethodType();
         processWebhookUseCase.execute(txId, "WOMPI", userId, amountInPesos, method);
-        
+
         log.info("Successfully queued deposit of {} COP for user {} via Wompi", amountInPesos, userId);
     }
 
-
-
-    /**
-     * Verifica la firma real de Wompi (header: x-wompi-signature-v1).
-     * Formato: "t={timestamp},v1={sha256hash}"
-     *
-     * Hash = SHA-256(timestamp + "." + rawBody + webhookSecret)
-     */
-    private boolean isValidWompiSignature(String payload, String signatureHeader) {
-        try {
-            // Parsear header: "t=1735000000,v1=abc123..."
-            String timestamp = null;
-            String receivedHash = null;
-            for (String part : signatureHeader.split(",")) {
-                if (part.startsWith("t=")) timestamp = part.substring(2);
-                if (part.startsWith("v1=")) receivedHash = part.substring(3);
-            }
-
-            if (timestamp == null || receivedHash == null) {
-                log.warn("Malformed Wompi signature header: {}", signatureHeader);
-                return false;
-            }
-
-            String dataToHash = timestamp + "." + payload + wompiWebhookSecret;
-            String expectedHash = sha256Hex(dataToHash);
-
-            boolean valid = MessageDigest.isEqual(
-                    expectedHash.getBytes(StandardCharsets.UTF_8),
-                    receivedHash.getBytes(StandardCharsets.UTF_8));
-            if (!valid) {
-                log.warn("Wompi signature mismatch. Expected: {}, Got: {}", expectedHash, receivedHash);
-            }
-            return valid;
-        } catch (Exception e) {
-            log.error("Error validating Wompi signature", e);
+    private boolean isValidWompiChecksum(JsonNode event, String receivedChecksum) {
+        String expected = WompiSignatures.eventChecksum(event, wompiWebhookSecret);
+        if (expected == null) {
+            log.warn("Wompi event without usable signature.properties/timestamp: {}", event.path("signature"));
             return false;
         }
+        boolean valid = WompiSignatures.checksumMatches(expected, receivedChecksum);
+        if (!valid) {
+            // Sin secretos en el log: solo qué propiedades firmó Wompi, para diagnosticar
+            // un secreto de eventos equivocado (p. ej. el de producción en sandbox).
+            log.warn("Wompi checksum mismatch. properties={} timestamp={} environment={}",
+                    event.path("signature").path("properties"), event.path("timestamp"),
+                    event.path("environment").asText("?"));
+        }
+        return valid;
     }
 
     /**
-     * Firma legada usada por el MockPaymentGateway (HMAC-SHA-256 en Base64).
-     * Mantenemos compatibilidad para no romper el entorno de desarrollo.
+     * Firma legada HMAC-SHA-256 en Base64 (header X-Signature), usada para
+     * pruebas manuales (colección de Postman). Wompi nunca la envía.
      */
     private boolean isValidLegacySignature(String payload, String signatureHeader) {
         try {
@@ -217,17 +208,5 @@ public class WebhookController {
             log.error("Error extracting UUID from reference: {}", reference, e);
             return null;
         }
-    }
-
-    private String sha256Hex(String data) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hashBytes = digest.digest(data.getBytes(StandardCharsets.UTF_8));
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : hashBytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) hexString.append('0');
-            hexString.append(hex);
-        }
-        return hexString.toString();
     }
 }

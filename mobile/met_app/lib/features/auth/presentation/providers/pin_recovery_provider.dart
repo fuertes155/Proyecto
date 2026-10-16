@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/auth_models.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/repositories/auth_repository.dart';
 
 final pinRecoveryProvider = StateNotifierProvider<PinRecoveryNotifier, PinRecoveryState>((ref) {
   final authRepo = ref.watch(authRepositoryProvider);
@@ -51,7 +52,7 @@ class PinRecoveryState {
 class PinRecoveryNotifier extends StateNotifier<PinRecoveryState> {
   PinRecoveryNotifier(this._authRepo) : super(PinRecoveryState());
 
-  final _authRepo;
+  final AuthRepository _authRepo;
 
   void nextStep() {
     if (state.currentStep < 2) {

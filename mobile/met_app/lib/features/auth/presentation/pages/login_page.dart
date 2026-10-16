@@ -11,6 +11,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../data/models/auth_models.dart';
+import '../../data/services/biometric_login_service.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/error_mapper.dart';
@@ -59,12 +60,11 @@ class _AnimatedEntrance extends StatelessWidget {
 class _GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
-  final double borderRadius;
+  static const double borderRadius = 24;
 
   const _GlassCard({
     required this.child,
     this.padding,
-    this.borderRadius = 24,
   });
 
   @override
@@ -76,9 +76,9 @@ class _GlassCard extends StatelessWidget {
         child: Container(
           padding: padding ?? const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(borderRadius),
-            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
           ),
           child: child,
         ),
@@ -117,7 +117,7 @@ class _PinIndicator extends StatelessWidget {
         border: Border.all(
           color: isError
               ? Colors.redAccent
-              : (isFilled ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
+              : (isFilled ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
           width: 2,
         ),
       ),
@@ -188,11 +188,11 @@ class _NumericKeyState extends State<_NumericKey> with SingleTickerProviderState
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
-            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )
@@ -246,14 +246,14 @@ class _BiometricButtonState extends State<_BiometricButton> {
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(_isHovered ? 0.1 : 0.05),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: _isHovered ? 0.1 : 0.05),
             border: Border.all(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.primary.withOpacity(_isHovered ? 0.5 : 0.2),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: _isHovered ? 0.5 : 0.2),
                 blurRadius: _isHovered ? 20 : 10,
                 spreadRadius: _isHovered ? 5 : 2,
               )
@@ -616,24 +616,17 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
       return;
     }
 
+    final biometric = ref.read(biometricLoginServiceProvider);
     try {
-      final authenticated = await auth.authenticate(
-        localizedReason: 'Por favor, autentícate para ingresar a Met',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
-      );
-
-      if (!authenticated) return;
-
-      final token = await _storage.read(key: 'biometric_token');
-      if (token == null) {
+      // La llave se guarda al activar la huella en Perfil > Seguridad y trae el documento:
+      // no hace falta escribir la cédula para entrar con huella.
+      final credential = await biometric.readCredential();
+      if (credential == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'No hay huella vinculada a tu cuenta. Inicia con PIN primero.'),
+                'Para entrar con huella, primero ingresa con tu PIN y actívala en Perfil > Seguridad y Contraseña.'),
             backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
           ),
@@ -641,18 +634,16 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
         return;
       }
 
-      setState(() => _isLoading = true);
+      final authenticated = await biometric.authenticate('Pon tu huella para entrar a Met');
+      if (!authenticated) return;
 
-      String docToSend = _documentController.text.trim();
-      if (docToSend.contains('*') && _rawSavedDocument != null) {
-        docToSend = _rawSavedDocument!;
-      }
+      setState(() => _isLoading = true);
 
       await ref.read(authStateProvider.notifier).loginWithBiometric(
             LoginRequest(
-              documentType: _documentType,
-              documentNumber: docToSend,
-              biometricPayload: token,
+              documentType: credential.documentType,
+              documentNumber: credential.documentNumber,
+              biometricPayload: credential.token,
             ),
           );
 
@@ -661,6 +652,22 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
 
       final state = ref.read(authStateProvider);
       if (state.hasError) {
+        final (code, _) = _extractServerError(state.error!);
+        // El servidor ya no reconoce la llave (se activó en otro celular o un administrador
+        // reinició las credenciales): se borra para no volver a intentarlo con ella.
+        if (code == 'INVALID_CREDENTIALS' || code == 'INVALID_PIN') {
+          await biometric.forget();
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Tu huella ya no está activa en este celular. Ingresa con tu PIN y actívala de nuevo en Perfil > Seguridad y Contraseña.'),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
         _showFriendlyErrorFromErrorObject(state.error!);
         return;
       }
@@ -779,7 +786,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Colors.orange.withOpacity(0.4),
+                    Colors.orange.withValues(alpha: 0.4),
                     Colors.transparent,
                   ],
                 ),
@@ -796,7 +803,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                     Colors.transparent,
                   ],
                 ),
@@ -830,7 +837,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               borderRadius: BorderRadius.circular(32),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
+                                  color: Colors.black.withValues(alpha: 0.15),
                                   blurRadius: 30,
                                   spreadRadius: 2,
                                   offset: const Offset(0, 12),
@@ -842,6 +849,9 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               child: Image.asset(
                                 'assets/images/logo.png',
                                 fit: BoxFit.contain,
+                                // El PNG original mide 6250 px (~150 MB al decodificarlo completo):
+                                // se decodifica al tamaño en que se muestra.
+                                cacheWidth: 420,
                                 errorBuilder: (context, error, stackTrace) =>
                                     const Icon(
                                   Icons.image_not_supported,
@@ -853,7 +863,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                           ),
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       // Título
                       _AnimatedEntrance(
                         delayMs: 100,
@@ -868,19 +878,19 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               'Ingresa a tu cuenta para continuar',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 32),
+                      const SizedBox(height: 32),
                       // Formulario
                       _AnimatedEntrance(
                         delayMs: 200,
@@ -892,9 +902,9 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
+                                  border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
                                 ),
                                 child: Row(
                                   children: [
@@ -931,16 +941,16 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               TextFormField(
                                 controller: _documentController,
                                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                 decoration: InputDecoration(
                                   labelText: 'Número de documento',
                                   labelStyle: TextStyle(
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8)),
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
                                   filled: true,
-                                  fillColor: Colors.white.withOpacity(0.05),
+                                  fillColor: Colors.white.withValues(alpha: 0.05),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide.none,
@@ -949,7 +959,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                     borderRadius: BorderRadius.circular(16),
                                     borderSide: const BorderSide(color: Color(0xFF53A835), width: 1.5),
                                   ),
-                                  prefixIcon: Icon(Icons.badge_outlined, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+                                  prefixIcon: Icon(Icons.badge_outlined, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                                 ),
                                 keyboardType: TextInputType.number,
                                 validator: (value) =>
@@ -958,7 +968,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                         : null,
                                 onChanged: (val) => _rawSavedDocument = null,
                               ),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -966,8 +976,8 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                       style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16)),
                                   Switch(
                                     value: _rememberMe,
-                                    activeColor: Theme.of(context).colorScheme.primary,
-                                    inactiveTrackColor: Colors.white.withOpacity(0.1),
+                                    activeThumbColor: Theme.of(context).colorScheme.primary,
+                                    inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
                                     onChanged: (value) => setState(
                                         () => _rememberMe = value),
                                   ),
@@ -977,7 +987,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                           ),
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       // PIN y Teclado
                       _AnimatedEntrance(
                         delayMs: 300,
@@ -986,12 +996,12 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                             Text(
                               'PIN de acceso',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             _buildPinInput(),
                             const SizedBox(height: 8),
                             Align(
@@ -1001,13 +1011,13 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                   context.push('/auth/recover-pin');
                                 },
                                 style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white.withOpacity(0.9),
+                                  foregroundColor: Colors.white.withValues(alpha: 0.9),
                                   padding: EdgeInsets.zero,
                                   minimumSize: const Size(50, 30),
                                   tapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                child: Text(
+                                child: const Text(
                                   '¿Olvidaste tu PIN?',
                                   style: TextStyle(
                                       decoration: TextDecoration.underline,
@@ -1031,7 +1041,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                 ),
                                 elevation: 5,
                                 shadowColor:
-                                    Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                               ),
                               onPressed: _isLoading ? null : _loginWithPin,
                               child: _isLoading
@@ -1041,7 +1051,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                                       child: CircularProgressIndicator(
                                           strokeWidth: 2, color: Theme.of(context).colorScheme.onSurface),
                                     )
-                                  : Text(
+                                  : const Text(
                                       'Ingresar',
                                       style: TextStyle(
                                           fontSize: 18,
@@ -1054,7 +1064,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                               style: TextButton.styleFrom(
                                   foregroundColor: Colors.white),
                               child:
-                                  Text('¿No tienes cuenta? Regístrate'),
+                                  const Text('¿No tienes cuenta? Regístrate'),
                             ),
                             // Acceso admin removido
                           ],

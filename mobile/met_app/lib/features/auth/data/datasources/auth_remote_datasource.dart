@@ -59,6 +59,17 @@ class AuthRemoteDataSource {
     });
   }
 
+  Future<void> enableBiometricLogin({required String pin, required String biometricToken}) async {
+    await _dio.put('/v1/auth/biometric-login', data: {
+      'pin': await _rsaEncryptionService.encryptPin(pin),
+      'biometricToken': biometricToken,
+    });
+  }
+
+  Future<void> disableBiometricLogin() async {
+    await _dio.delete('/v1/auth/biometric-login');
+  }
+
   Future<UserResponse> updateNotifications({required bool emailEnabled, required bool pushEnabled}) async {
     final response = await _dio.put('/v1/auth/notifications', data: {
       'emailNotificationsEnabled': emailEnabled,

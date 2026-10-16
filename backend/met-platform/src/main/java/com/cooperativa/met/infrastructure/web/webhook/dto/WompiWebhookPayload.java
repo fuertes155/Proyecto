@@ -37,6 +37,9 @@ public class WompiWebhookPayload {
     @JsonProperty("sent_at")
     private String sentAt;
 
+    /** "test" (sandbox) o "prod". */
+    private String environment;
+
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WompiData {
@@ -89,5 +92,9 @@ public class WompiWebhookPayload {
         /** Referencia de la entidad bancaria */
         @JsonProperty("merchant_message")
         private String merchantMessage;
+
+        /** Motivo legible cuando la transacción es DECLINED/ERROR. */
+        @JsonProperty("status_message")
+        private String statusMessage;
     }
 }
