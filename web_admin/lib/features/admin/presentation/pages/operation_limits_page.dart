@@ -1,8 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/admin_provider.dart';
+import '../../../../core/ui/ui.dart';
 import '../../data/models/admin_models.dart';
+import '../providers/admin_provider.dart';
+import '../shell/admin_nav.dart';
+
+const _typeNames = {
+  'TRANSFER': 'Transferencias',
+  'WITHDRAWAL': 'Retiros',
+};
+const _typeDescriptions = {
+  'TRANSFER': 'Envíos entre socios y a otras entidades.',
+  'WITHDRAWAL': 'Retiros de saldo hacia cuentas bancarias.',
+};
+const _typeIcons = {
+  'TRANSFER': Icons.swap_horiz_rounded,
+  'WITHDRAWAL': Icons.account_balance_rounded,
+};
 
 class OperationLimitsPage extends ConsumerWidget {
   const OperationLimitsPage({super.key});
@@ -10,251 +26,251 @@ class OperationLimitsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final limitsState = ref.watch(operationLimitsProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.attach_money_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Límites de Operación',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
-            onPressed: () => ref.read(operationLimitsProvider.notifier).load(),
-          ),
-        ],
-      ),
-      body: limitsState.when(
-        loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
-        error: (e, _) => Center(child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
-        data: (limits) {
-          // Excluir PURCHASE y deduplicar por tipoOperacion
-          final seen = <String>{};
-          final filtered = limits
-              .where((l) => l.tipoOperacion != 'PURCHASE')
-              .where((l) => seen.add(l.tipoOperacion))
-              .toList();
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: filtered.length,
-            itemBuilder: (context, i) => _LimitCard(
-              limit: filtered[i],
-              onEdit: () => _showEditDialog(context, ref, filtered[i]),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showEditDialog(BuildContext context, WidgetRef ref, OperationLimit limit) {
-    final diarCtrl = TextEditingController(text: limit.montoDiarioMax.toString());
-    final txCtrl = TextEditingController(text: limit.montoPorTransaccionMax.toString());
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Editar: ${limit.tipoOperacion}',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _dialogField('Monto diario máximo (COP)', diarCtrl, Icons.today_rounded, context),
-            const SizedBox(height: 14),
-            _dialogField('Monto por transacción máximo', txCtrl, Icons.receipt_long_rounded, context),
-          ],
+    return AdminPage(
+      section: sectionTitleFor(limitsItem.route),
+      title: 'Límites de operación',
+      subtitle: 'Topes máximos que un socio puede mover por día y en cada transacción.',
+      actions: [
+        OutlinedButton.icon(
+          onPressed: () => ref.read(operationLimitsProvider.notifier).load(),
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: const Text('Actualizar'),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-            ),
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              try {
-                await ref.read(operationLimitsProvider.notifier).update(
-                      limit.tipoOperacion,
-                      int.parse(diarCtrl.text),
-                      int.parse(txCtrl.text),
-                    );
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: const Text('✓ Límites actualizados'),
-                    backgroundColor: primaryColor,
-                    behavior: SnackBarBehavior.floating,
-                  ));
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    behavior: SnackBarBehavior.floating,
-                  ));
-                }
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
+      ],
+      children: [
+        limitsState.when(
+          loading: () => const LoadingState(label: 'Cargando límites…'),
+          error: (e, _) => ErrorState(error: e, onRetry: () => ref.read(operationLimitsProvider.notifier).load()),
+          data: (limits) {
+            // Excluir PURCHASE y deduplicar por tipoOperacion
+            final seen = <String>{};
+            final filtered = limits
+                .where((l) => l.tipoOperacion != 'PURCHASE')
+                .where((l) => seen.add(l.tipoOperacion))
+                .toList();
+            if (filtered.isEmpty) {
+              return const EmptyState(icon: Icons.tune_rounded, title: 'No hay límites configurados');
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const CalloutBanner(
+                  message: 'Los cambios aplican de inmediato a todas las operaciones nuevas y quedan registrados en la auditoría.',
+                ),
+                const SizedBox(height: 20),
+                ResponsiveGrid(
+                  minItemWidth: 380,
+                  maxColumns: 2,
+                  children: [
+                    for (final limit in filtered)
+                      _LimitCard(limit: limit, onEdit: () => _showEditDialog(context, ref, limit)),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 
-  Widget _dialogField(String label, TextEditingController ctrl, IconData icon, BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return TextField(
-      controller: ctrl,
-      keyboardType: TextInputType.number,
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13),
-        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 20),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.06 : 0.03),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05))),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5)),
-      ),
+  Future<void> _showEditDialog(BuildContext context, WidgetRef ref, OperationLimit limit) async {
+    final result = await showDialog<(int, int)>(
+      context: context,
+      builder: (_) => _EditLimitDialog(limit: limit),
     );
+    if (result == null || !context.mounted) return;
+    try {
+      await ref.read(operationLimitsProvider.notifier).update(limit.tipoOperacion, result.$1, result.$2);
+      if (context.mounted) showMetSnack(context, 'Límites de ${(_typeNames[limit.tipoOperacion] ?? limit.tipoOperacion).toLowerCase()} actualizados');
+    } catch (e) {
+      if (context.mounted) showErrorSnack(context, e);
+    }
   }
 }
 
 class _LimitCard extends StatelessWidget {
   const _LimitCard({required this.limit, required this.onEdit});
+
   final OperationLimit limit;
   final VoidCallback onEdit;
 
-  static final _typeColors = {
-    'TRANSFER': const Color(0xFF0B5FFF),
-    'WITHDRAWAL': const Color(0xFFFF6B00),
-  };
-
-  static final _typeIcons = {
-    'TRANSFER': Icons.swap_horiz_rounded,
-    'WITHDRAWAL': Icons.account_balance_wallet_rounded,
-  };
-
-  static final _typeNames = {
-    'TRANSFER': 'Transferencia',
-    'WITHDRAWAL': 'Retiro de Efectivo',
-  };
-
-  String _formatCOP(int amount) {
-    final str = amount.toString();
-    final buffer = StringBuffer();
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) buffer.write('.');
-      buffer.write(str[i]);
-    }
-    return '\$ ${buffer.toString()}';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final color = _typeColors[limit.tipoOperacion] ?? Theme.of(context).colorScheme.primary;
-    final icon = _typeIcons[limit.tipoOperacion] ?? Icons.money_rounded;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withValues(alpha: isDark ? 0.3 : 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle, color: color.withValues(alpha: 0.15)),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _typeNames[limit.tipoOperacion] ?? limit.tipoOperacion,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    ),
-                    Text(
-                      limit.tipoOperacion,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                          fontSize: 11,
-                          letterSpacing: 0.5),
-                    ),
-                  ],
+    final tone = limit.tipoOperacion == 'WITHDRAWAL' ? Tone.warning : Tone.info;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconBadge(_typeIcons[limit.tipoOperacion] ?? Icons.payments_rounded, tone: tone),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_typeNames[limit.tipoOperacion] ?? limit.tipoOperacion,
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                      Text(_typeDescriptions[limit.tipoOperacion] ?? limit.tipoOperacion,
+                          style: const TextStyle(fontSize: 13.5, color: MetColors.textMuted)),
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: Icon(Icons.edit_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), size: 20),
+                StatusBadge(limit.activo ? const StatusInfo('Vigente', Tone.success) : const StatusInfo('Inactivo', Tone.neutral)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(child: _Amount(label: 'Máximo diario', value: limit.montoDiarioMax)),
+                Container(width: 1, height: 48, color: MetColors.border),
+                const SizedBox(width: 20),
+                Expanded(child: _Amount(label: 'Máximo por transacción', value: limit.montoPorTransaccionMax)),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
                 onPressed: onEdit,
-                tooltip: 'Editar límites',
+                icon: const Icon(Icons.edit_rounded, size: 18),
+                label: const Text('Editar límites'),
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _LimitRow('Diario máximo', _formatCOP(limit.montoDiarioMax), Icons.today_rounded),
-          const SizedBox(height: 6),
-          _LimitRow('Por transacción', _formatCOP(limit.montoPorTransaccionMax),
-              Icons.receipt_long_rounded),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _LimitRow extends StatelessWidget {
-  const _LimitRow(this.label, this.value, this.icon);
+class _Amount extends StatelessWidget {
+  const _Amount({required this.label, required this.value});
+
   final String label;
-  final String value;
-  final IconData icon;
+  final int value;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 16),
-        const SizedBox(width: 8),
-        Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(value,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(label, style: const TextStyle(fontSize: 13, color: MetColors.textMuted)),
+        const SizedBox(height: 4),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(formatCop(value.toDouble()),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
         ),
       ],
+    );
+  }
+}
+
+class _EditLimitDialog extends StatefulWidget {
+  const _EditLimitDialog({required this.limit});
+
+  final OperationLimit limit;
+
+  @override
+  State<_EditLimitDialog> createState() => _EditLimitDialogState();
+}
+
+class _EditLimitDialogState extends State<_EditLimitDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final _daily = TextEditingController(text: widget.limit.montoDiarioMax.toString());
+  late final _perTx = TextEditingController(text: widget.limit.montoPorTransaccionMax.toString());
+
+  @override
+  void dispose() {
+    _daily.dispose();
+    _perTx.dispose();
+    super.dispose();
+  }
+
+  String? _validateAmount(String? v) {
+    final n = int.tryParse(v ?? '');
+    if (n == null) return 'Escribe un monto en pesos, sin puntos';
+    if (n <= 0) return 'Debe ser mayor a cero';
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Editar límites de ${(_typeNames[widget.limit.tipoOperacion] ?? widget.limit.tipoOperacion).toLowerCase()}'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420, minWidth: 360),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const FieldLabel('Máximo diario (COP)', required: true),
+              _AmountField(controller: _daily, validator: _validateAmount),
+              const SizedBox(height: 16),
+              const FieldLabel('Máximo por transacción (COP)', required: true),
+              _AmountField(
+                controller: _perTx,
+                validator: (v) {
+                  final base = _validateAmount(v);
+                  if (base != null) return base;
+                  final daily = int.tryParse(_daily.text);
+                  if (daily != null && int.parse(v!) > daily) return 'No puede superar el máximo diario';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          style: TextButton.styleFrom(foregroundColor: MetColors.textMuted),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (!_formKey.currentState!.validate()) return;
+            Navigator.pop(context, (int.parse(_daily.text), int.parse(_perTx.text)));
+          },
+          child: const Text('Guardar cambios'),
+        ),
+      ],
+    );
+  }
+}
+
+class _AmountField extends StatelessWidget {
+  const _AmountField({required this.controller, required this.validator});
+
+  final TextEditingController controller;
+  final FormFieldValidator<String> validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) {
+        final n = int.tryParse(value.text);
+        return TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          validator: validator,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.attach_money_rounded),
+            helperText: n == null ? null : formatCop(n.toDouble()),
+          ),
+        );
+      },
     );
   }
 }

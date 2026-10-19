@@ -263,3 +263,10 @@ class GuaranteeFundNotifier extends StateNotifier<AsyncValue<GuaranteeFundSummar
     }
   }
 }
+
+// ── Reportes regulatorios ───────────────────────────────────────────────────
+final regulatoryReportsProvider = FutureProvider<List<RegulatoryReport>>((ref) async {
+  final reports = await ref.watch(adminRepositoryProvider).getRegulatoryReports();
+  // Más recientes primero.
+  return reports..sort((a, b) => (b.periodYear * 100 + b.periodMonth).compareTo(a.periodYear * 100 + a.periodMonth));
+});

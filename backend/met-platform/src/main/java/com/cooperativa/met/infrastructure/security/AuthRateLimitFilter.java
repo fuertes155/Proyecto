@@ -55,7 +55,6 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     private static final long OTP_WINDOW_SECONDS = 600; // 10 minutos
 
     // Fallbacks si por cualquier razón no podemos leer los campos de RateLimitProperties
-    private static final boolean DEFAULT_ENABLED = true;
     private static final int DEFAULT_MAX_REQUESTS = 10;
     private static final long DEFAULT_WINDOW_SECONDS = 60;
 

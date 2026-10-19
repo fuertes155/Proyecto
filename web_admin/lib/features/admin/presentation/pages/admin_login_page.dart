@@ -1,10 +1,19 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/admin_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/ui/components.dart' show MetLogo;
 
+/// Inicio de sesión del panel administrativo web.
+///
+/// En pantallas anchas muestra dos columnas (marca + formulario); en angostas, solo el
+/// formulario con la marca encima. Pensado para teclado: el usuario recibe el foco al
+/// abrir, Enter avanza/envía, el navegador puede autocompletar las credenciales y se
+/// avisa si Bloq Mayús está activado.
 class AdminLoginPage extends ConsumerStatefulWidget {
   const AdminLoginPage({super.key});
 
@@ -13,245 +22,311 @@ class AdminLoginPage extends ConsumerStatefulWidget {
 }
 
 class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
+  static const _wideBreakpoint = 960.0;
+
   final _formKey = GlobalKey<FormState>();
   final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _passwordFocus = FocusNode();
+
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _capsLockOn = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onKeyEvent);
+    _capsLockOn = _isCapsLockOn();
+  }
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKeyEvent);
     _usernameCtrl.dispose();
     _passwordCtrl.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
+  bool _isCapsLockOn() =>
+      HardwareKeyboard.instance.lockModesEnabled.contains(KeyboardLockMode.capsLock);
 
+  bool _onKeyEvent(KeyEvent event) {
+    final capsLock = _isCapsLockOn();
+    if (capsLock != _capsLockOn && mounted) {
+      setState(() => _capsLockOn = capsLock);
+    }
+    return false; // solo observamos, no consumimos la tecla
+  }
+
+  Future<void> _login() async {
+    if (_isLoading) return;
+    setState(() => _errorMessage = null);
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
     await ref.read(adminAuthProvider.notifier).login(
           _usernameCtrl.text.trim(),
           _passwordCtrl.text,
         );
-
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     final state = ref.read(adminAuthProvider);
     if (state.hasError) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Acceso denegado: ${state.error}'),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-      ));
+      setState(() {
+        _isLoading = false;
+        _errorMessage = _friendlyError(state.error);
+      });
+      _passwordCtrl.clear();
+      _passwordFocus.requestFocus();
       return;
     }
+
+    setState(() => _isLoading = false);
     if (state.hasValue && state.value != null) {
+      TextInput.finishAutofillContext(); // el navegador ofrece guardar la contraseña
       context.go('/admin/dashboard');
     }
   }
 
+  String _friendlyError(Object? error) {
+    if (error is String && error.isNotEmpty) {
+      return error == 'Credenciales inválidas'
+          ? 'Usuario o contraseña incorrectos. Revisa los datos e inténtalo de nuevo.'
+          : error;
+    }
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionError:
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.receiveTimeout:
+        case DioExceptionType.sendTimeout:
+          return 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.';
+        default:
+          if (error.response?.statusCode == 429) {
+            return 'Demasiados intentos. Espera un minuto antes de volver a intentar.';
+          }
+      }
+    }
+    return 'No fue posible iniciar sesión. Inténtalo de nuevo en unos segundos.';
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Forzamos modo claro para el panel
+    // El panel siempre se muestra en modo claro.
     return Theme(
       data: AppTheme.lightTheme,
       child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFE8F5E9), Color(0xFFF1F8E9), Colors.white],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        backgroundColor: MetColors.canvas,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= _wideBreakpoint;
+            final form = _buildFormArea(showCompactBrand: !wide);
+            if (!wide) return form;
+            return Row(
+              children: [
+                const Expanded(flex: 5, child: _BrandPanel()),
+                Expanded(flex: 6, child: form),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormArea({required bool showCompactBrand}) {
+    return SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showCompactBrand) ...[
+                  const _CompactBrand(),
+                  const SizedBox(height: 28),
+                ],
+                _buildCard(),
+                const SizedBox(height: 20),
+                _buildHelpFooter(),
+              ],
             ),
           ),
-          child: Stack(
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard() {
+    final scheme = AppTheme.lightTheme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(32, 36, 32, 32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE3EAE3)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1B4D2B).withValues(alpha: 0.06),
+            blurRadius: 32,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: AutofillGroup(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Círculos decorativos de fondo
-              Positioned(
-                top: -100,
-                right: -100,
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFF53A835).withValues(alpha: 0.15),
-                        Colors.transparent,
-                      ],
+              Text(
+                'Bienvenido de nuevo',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.grey.shade900,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Inicia sesión con tu cuenta de administrador de MET.',
+                style: TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.4),
+              ),
+              const SizedBox(height: 28),
+
+              if (_errorMessage != null) ...[
+                _ErrorBanner(message: _errorMessage!),
+                const SizedBox(height: 20),
+              ],
+
+              const _FieldLabel('Usuario administrador'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _usernameCtrl,
+                enabled: !_isLoading,
+                autofocus: true,
+                autofillHints: const [AutofillHints.username],
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                onChanged: (_) {
+                  if (_errorMessage != null) setState(() => _errorMessage = null);
+                },
+                decoration: _inputDecoration(
+                  hint: 'Tu usuario, p. ej. admin.juan',
+                  icon: Icons.person_outline_rounded,
+                ),
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Escribe tu usuario de administrador' : null,
+              ),
+              const SizedBox(height: 20),
+
+              const _FieldLabel('Contraseña'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _passwordCtrl,
+                focusNode: _passwordFocus,
+                enabled: !_isLoading,
+                obscureText: _obscurePassword,
+                autofillHints: const [AutofillHints.password],
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _login(),
+                onChanged: (_) {
+                  if (_errorMessage != null) setState(() => _errorMessage = null);
+                },
+                decoration: _inputDecoration(
+                  hint: 'Mínimo 8 caracteres',
+                  icon: Icons.lock_outline_rounded,
+                ).copyWith(
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: IconButton(
+                      tooltip: _obscurePassword ? 'Mostrar contraseña' : 'Ocultar contraseña',
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        color: Colors.grey.shade600,
+                      ),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                 ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Escribe tu contraseña';
+                  if (v.length < 8) return 'La contraseña tiene al menos 8 caracteres';
+                  return null;
+                },
               ),
-              Positioned(
-                bottom: -150,
-                left: -50,
-                child: Container(
-                  width: 500,
-                  height: 500,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFF388E3C).withValues(alpha: 0.1),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              
-              // Contenedor Central
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF53A835).withValues(alpha: 0.08),
-                          blurRadius: 40,
-                          spreadRadius: 10,
-                          offset: const Offset(0, 20),
+              if (_capsLockOn) ...[
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(Icons.keyboard_capslock_rounded, size: 18, color: Colors.amber.shade800),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Bloq Mayús está activado',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.amber.shade900,
+                          fontWeight: FontWeight.w600,
                         ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          spreadRadius: 0,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Ícono y Título
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF53A835).withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.admin_panel_settings_rounded,
-                                size: 56,
-                                color: Color(0xFF53A835),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'MET Admin',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.grey.shade900,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Ingresa al sistema de gestión interna de la cooperativa.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 15,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-
-                          // Username
-                          TextFormField(
-                            controller: _usernameCtrl,
-                            style: TextStyle(color: Colors.grey.shade900, fontWeight: FontWeight.w500),
-                            decoration: _inputDeco(
-                              'Usuario administrador',
-                              Icons.person_outline_rounded,
-                            ),
-                            validator: (v) =>
-                                v == null || v.isEmpty ? 'Campo requerido' : null,
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Password
-                          TextFormField(
-                            controller: _passwordCtrl,
-                            obscureText: _obscurePassword,
-                            style: TextStyle(color: Colors.grey.shade900, fontWeight: FontWeight.w500),
-                            decoration: _inputDeco(
-                              'Contraseña',
-                              Icons.lock_outline_rounded,
-                            ).copyWith(
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: Colors.grey.shade500,
-                                ),
-                                onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword),
-                              ),
-                            ),
-                            validator: (v) => v == null || v.length < 8
-                                ? 'Mínimo 8 caracteres'
-                                : null,
-                          ),
-                          const SizedBox(height: 40),
-
-                          // Botón login
-                          SizedBox(
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _login,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF53A835),
-                                foregroundColor: Colors.white,
-                                shadowColor: const Color(0xFF53A835).withValues(alpha: 0.4),
-                                elevation: 8,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Iniciar Sesión',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
+              ],
+              const SizedBox(height: 28),
+
+              SizedBox(
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: scheme.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: scheme.primary.withValues(alpha: 0.75),
+                    disabledForegroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: _isLoading
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            ),
+                            SizedBox(width: 12),
+                            Text('Verificando…',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                          ],
+                        )
+                      : const Text('Iniciar sesión',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_rounded, size: 14, color: Colors.grey.shade500),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Conexión cifrada · Sesión con registro de auditoría',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -260,29 +335,251 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
     );
   }
 
-  InputDecoration _inputDeco(String label, IconData icon) {
+  Widget _buildHelpFooter() {
+    return Text(
+      '¿Olvidaste tu contraseña o tu usuario está bloqueado?\n'
+      'Pide a un superadministrador que restablezca tus credenciales.',
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.5),
+    );
+  }
+
+  InputDecoration _inputDecoration({required String hint, required IconData icon}) {
+    final primary = AppTheme.lightTheme.colorScheme.primary;
+    OutlineInputBorder border(Color color, [double width = 1.2]) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: color, width: width),
+        );
     return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.normal),
-      prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+      prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 22),
       filled: true,
-      fillColor: Colors.grey.shade50,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+      fillColor: const Color(0xFFF8FAF8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      border: border(const Color(0xFFDDE5DD)),
+      enabledBorder: border(const Color(0xFFDDE5DD)),
+      disabledBorder: border(const Color(0xFFE8ECE8)),
+      focusedBorder: border(primary, 2),
+      errorBorder: border(Colors.red.shade300),
+      focusedErrorBorder: border(Colors.red.shade400, 2),
+      errorStyle: const TextStyle(fontSize: 13),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade800),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDECEC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFF5C2C2)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.error_outline_rounded, color: Colors.red.shade700, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.red.shade900, fontSize: 14, height: 1.4),
+              ),
+            ),
+          ],
+        ),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+    );
+  }
+}
+
+/// Marca encima del formulario en pantallas angostas.
+class _CompactBrand extends StatelessWidget {
+  const _CompactBrand();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const MetLogo(size: 64),
+        const SizedBox(height: 14),
+        Text(
+          'MET Admin',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: Colors.grey.shade900,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Panel administrativo de la cooperativa',
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          kMetSlogan,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 13.5,
+            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w600,
+            color: MetColors.primary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Columna de marca en pantallas anchas.
+class _BrandPanel extends StatelessWidget {
+  const _BrandPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: MetColors.brandGradient,
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF53A835), width: 2),
+      child: Stack(
+        children: [
+          Positioned(top: -120, right: -120, child: _glow(360, 0.10)),
+          Positioned(bottom: -160, left: -100, child: _glow(420, 0.08)),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(56, 48, 56, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      MetLogo(size: 48),
+                      SizedBox(width: 14),
+                      Text(
+                        'MET Admin',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  const Text(
+                    'Impulso instantáneo,\nconfianza permanente.',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      height: 1.2,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.6,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'El panel de MET para gestionar socios, cuentas, créditos, cumplimiento y auditoría en un solo lugar.',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 36),
+                  const _BrandPoint(
+                    icon: Icons.verified_user_outlined,
+                    text: 'Acceso exclusivo para personal autorizado',
+                  ),
+                  const _BrandPoint(
+                    icon: Icons.history_rounded,
+                    text: 'Cada acción queda registrada en la auditoría',
+                  ),
+                  const _BrandPoint(
+                    icon: Icons.timer_outlined,
+                    text: 'Tu sesión vence automáticamente por seguridad',
+                  ),
+                  const Spacer(),
+                  Text(
+                    '© ${DateTime.now().year} MET · Cooperativa',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.red.shade300, width: 1.5),
+    );
+  }
+
+  static Widget _glow(double size, double alpha) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [const Color(0xFF8BC34A).withValues(alpha: alpha), Colors.transparent],
+        ),
+      ),
+    );
+  }
+}
+
+class _BrandPoint extends StatelessWidget {
+  const _BrandPoint({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 15),
+            ),
+          ),
+        ],
       ),
     );
   }

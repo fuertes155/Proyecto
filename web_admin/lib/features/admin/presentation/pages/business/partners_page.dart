@@ -1,197 +1,227 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../../core/ui/ui.dart';
 import '../../../providers/admin_business_provider.dart';
+import '../../shell/admin_nav.dart';
 
-String _friendlyError(Object e) {
-  if (e is DioException) {
-    final status = e.response?.statusCode;
-    if (status == 401) return 'Tu sesión de administrador expiró. Vuelve a iniciar sesión.';
-    if (status == 403) return 'No tienes permisos para esta acción.';
-    final data = e.response?.data;
-    if (data is Map && data['message'] is String) return data['message'] as String;
-    return 'No se pudo completar la acción${status != null ? ' (error $status)' : ''}.';
-  }
-  return 'Ocurrió un error inesperado.';
-}
+enum _KycFilter { all, pending, approved, rejected }
 
-Future<void> _reviewKyc({
-  required BuildContext context,
-  required WidgetRef ref,
-  required UserModel user,
-  required String targetStatus, // 'APPROVED' | 'REJECTED'
-}) async {
-  final isApprove = targetStatus == 'APPROVED';
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(isApprove ? 'Aprobar KYC' : 'Denegar KYC'),
-      content: Text(
-        isApprove
-            ? '¿Confirmas que "${user.firstName} ${user.lastName}" (CC ${user.documentNumber}) pasó la validación de identidad?'
-            : '¿Confirmas que vas a denegar el KYC de "${user.firstName} ${user.lastName}" (CC ${user.documentNumber})? '
-              'No podrá depositar ni operar hasta que se apruebe.',
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-        FilledButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          style: isApprove
-              ? null
-              : FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
-          child: Text(isApprove ? 'Aprobar' : 'Denegar'),
-        ),
-      ],
-    ),
-  );
-  if (confirmed != true) return;
-
-  final dio = ref.read(adminApiClientProvider);
-  try {
-    await dio.put('/users/${user.id}/kyc?status=$targetStatus');
-    ref.invalidate(usersProvider);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(isApprove ? 'KYC de ${user.firstName} aprobado' : 'KYC de ${user.firstName} denegado'),
-        backgroundColor: isApprove ? Colors.green.shade700 : Colors.red.shade700,
-      ));
-    }
-  } catch (e) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(_friendlyError(e)),
-        backgroundColor: Colors.red.shade700,
-      ));
-    }
-  }
-}
-
-class PartnersPage extends ConsumerWidget {
+class PartnersPage extends ConsumerStatefulWidget {
   const PartnersPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final usersAsync = ref.watch(usersProvider);
-    final primary = Theme.of(context).colorScheme.primary;
+  ConsumerState<PartnersPage> createState() => _PartnersPageState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestión de Socios (KYC)', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-      ),
-      body: usersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-        data: (users) {
-          if (users.isEmpty) {
-            return const Center(child: Text('No hay socios registrados en la base de datos central.'));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              final user = users[index];
-              final isApproved = user.kycStatus == 'APPROVED';
-              final isRejected = user.kycStatus == 'REJECTED';
-              final chipColor = isApproved
-                  ? Colors.green.withValues(alpha: 0.2)
-                  : (isRejected ? Colors.red.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2));
-              return Card(
-                elevation: 0,
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: primary.withValues(alpha: 0.2)),
-                ),
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: primary.withValues(alpha: 0.2),
-                            child: Icon(Icons.person, color: primary),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('${user.firstName} ${user.lastName}',
-                                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 2),
-                                Text(user.email, style: Theme.of(context).textTheme.bodySmall),
-                                Text('CC: ${user.documentNumber}', style: Theme.of(context).textTheme.bodySmall),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Chip(
-                            label: Text(user.kycStatus, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                            backgroundColor: chipColor,
-                            side: BorderSide.none,
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ],
-                      ),
-                      if (!isApproved) ...[
-                        const SizedBox(height: 12),
-                        Divider(height: 1, color: primary.withValues(alpha: 0.12)),
-                        const SizedBox(height: 10),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (!isRejected) ...[
-                                TextButton(
-                                  onPressed: () => _reviewKyc(
-                                    context: context, ref: ref, user: user, targetStatus: 'REJECTED',
-                                  ),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Theme.of(context).colorScheme.error,
-                                    minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                                  ),
-                                  child: const Text('Denegar'),
-                                ),
-                                const SizedBox(width: 4),
-                              ],
-                              FilledButton(
-                                onPressed: () => _reviewKyc(
-                                  context: context, ref: ref, user: user, targetStatus: 'APPROVED',
-                                ),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: primary,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                                ),
-                                child: const Text('Aprobar'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            },
+class _PartnersPageState extends ConsumerState<PartnersPage> {
+  final _search = TextEditingController();
+  String _query = '';
+  _KycFilter _filter = _KycFilter.pending;
+  bool _filterTouched = false;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  bool _matchesFilter(UserModel u, _KycFilter f) => switch (f) {
+        _KycFilter.all => true,
+        _KycFilter.pending => isKycPending(u.kycStatus),
+        _KycFilter.approved => u.kycStatus == 'APPROVED',
+        _KycFilter.rejected => u.kycStatus == 'REJECTED',
+      };
+
+  Future<void> _review(UserModel user, String targetStatus) async {
+    final approve = targetStatus == 'APPROVED';
+    final confirmed = await confirmAction(
+      context,
+      title: approve ? 'Aprobar KYC' : 'Denegar KYC',
+      message: approve
+          ? 'Confirmas que la identidad del socio fue validada. Podrá depositar y operar de inmediato.'
+          : 'El socio no podrá depositar ni operar hasta que su KYC sea aprobado.',
+      confirmLabel: approve ? 'Aprobar' : 'Denegar',
+      destructive: !approve,
+      icon: approve ? Icons.how_to_reg_rounded : Icons.person_off_rounded,
+      details: [
+        ('Socio', user.fullName),
+        ('Documento', user.documentLabel),
+        if (user.email.isNotEmpty) ('Correo', user.email),
+      ],
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      await ref.read(adminApiClientProvider).put('/users/${user.id}/kyc?status=$targetStatus');
+      ref.invalidate(usersProvider);
+      if (mounted) {
+        showMetSnack(context, approve ? 'KYC de ${user.firstName} aprobado' : 'KYC de ${user.firstName} denegado',
+            tone: approve ? Tone.success : Tone.neutral);
+      }
+    } catch (e) {
+      if (mounted) showErrorSnack(context, e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final usersAsync = ref.watch(usersProvider);
+
+    return AdminPage(
+      section: sectionTitleFor(partnersItem.route),
+      title: 'Socios y KYC',
+      subtitle: 'Revisa la identidad de quienes se registran y decide si pueden empezar a operar.',
+      actions: [
+        OutlinedButton.icon(
+          onPressed: () => ref.invalidate(usersProvider),
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: const Text('Actualizar'),
+        ),
+      ],
+      children: [
+        usersAsync.when(
+          loading: () => const LoadingState(label: 'Cargando socios…'),
+          error: (e, _) => ErrorState(error: e, onRetry: () => ref.invalidate(usersProvider)),
+          data: (users) => _buildContent(users),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent(List<UserModel> users) {
+    if (users.isEmpty) {
+      return const EmptyState(
+        icon: Icons.people_outline_rounded,
+        title: 'Aún no hay socios registrados',
+        message: 'Cuando alguien se registre desde la app aparecerá aquí para validar su identidad.',
+      );
+    }
+
+    final counts = {for (final f in _KycFilter.values) f: users.where((u) => _matchesFilter(u, f)).length};
+    // Si no hay pendientes, abrir en "Todos" para no mostrar una tabla vacía.
+    final filter = !_filterTouched && counts[_KycFilter.pending] == 0 ? _KycFilter.all : _filter;
+
+    final q = _query.trim().toLowerCase();
+    final visible = users.where((u) {
+      if (!_matchesFilter(u, filter)) return false;
+      if (q.isEmpty) return true;
+      return '${u.fullName} ${u.documentNumber} ${u.email}'.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ResponsiveGrid(
+          minItemWidth: 160,
+          children: [
+            StatCard(icon: Icons.people_alt_rounded, label: 'Socios registrados', value: '${users.length}'),
+            StatCard(
+              icon: Icons.hourglass_top_rounded,
+              label: 'KYC por revisar',
+              value: '${counts[_KycFilter.pending]}',
+              tone: counts[_KycFilter.pending]! > 0 ? Tone.warning : Tone.success,
+            ),
+            StatCard(icon: Icons.verified_rounded, label: 'Aprobados', value: '${counts[_KycFilter.approved]}'),
+            StatCard(
+              icon: Icons.block_rounded,
+              label: 'Rechazados',
+              value: '${counts[_KycFilter.rejected]}',
+              tone: Tone.neutral,
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        LayoutBuilder(builder: (context, c) {
+          final search = SearchField(
+            controller: _search,
+            hint: 'Buscar por nombre, documento o correo',
+            onChanged: (v) => setState(() => _query = v),
           );
-        },
-      ),
+          final filters = FilterBar<_KycFilter>(
+            selected: filter,
+            onChanged: (f) => setState(() {
+              _filter = f;
+              _filterTouched = true;
+            }),
+            options: [
+              FilterOption(_KycFilter.pending, 'Por revisar', count: counts[_KycFilter.pending]),
+              FilterOption(_KycFilter.approved, 'Aprobados', count: counts[_KycFilter.approved]),
+              FilterOption(_KycFilter.rejected, 'Rechazados', count: counts[_KycFilter.rejected]),
+              FilterOption(_KycFilter.all, 'Todos', count: counts[_KycFilter.all]),
+            ],
+          );
+          if (c.maxWidth < 900) {
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [search, const SizedBox(height: 12), filters]);
+          }
+          return Row(children: [Expanded(child: filters), const SizedBox(width: 16), SizedBox(width: 380, child: search)]);
+        }),
+        const SizedBox(height: 16),
+        if (visible.isEmpty)
+          Card(
+            child: EmptyState(
+              icon: q.isEmpty ? Icons.task_alt_rounded : Icons.search_off_rounded,
+              title: q.isEmpty ? 'Nada pendiente en este filtro' : 'Sin resultados para "$_query"',
+              message: q.isEmpty ? null : 'Prueba con otro nombre o número de documento.',
+            ),
+          )
+        else
+          AdminTable<UserModel>(
+            rows: visible,
+            columns: [
+              AdminColumn(
+                label: 'Socio',
+                flex: 4,
+                cell: (u) => TwoLineCell(u.fullName, u.email.isEmpty ? 'Sin correo registrado' : u.email,
+                    leading: InitialsAvatar(u.fullName)),
+              ),
+              AdminColumn(label: 'Documento', flex: 2, cell: (u) => CellText(u.documentLabel)),
+              AdminColumn(
+                label: 'Registro',
+                flex: 2,
+                cell: (u) => CellText(formatDateTime(u.createdAt, withTime: false), muted: true),
+              ),
+              AdminColumn(label: 'Estado KYC', flex: 2, cell: (u) => StatusBadge(kycStatus(u.kycStatus))),
+              AdminColumn(
+                label: 'Acciones',
+                flex: 3,
+                alignEnd: true,
+                cell: (u) => _Actions(user: u, onReview: _review),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _Actions extends StatelessWidget {
+  const _Actions({required this.user, required this.onReview});
+
+  final UserModel user;
+  final Future<void> Function(UserModel, String) onReview;
+
+  @override
+  Widget build(BuildContext context) {
+    if (user.kycStatus == 'APPROVED') {
+      return const Text('Sin acciones', style: TextStyle(fontSize: 13, color: MetColors.textFaint));
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        if (user.kycStatus != 'REJECTED')
+          TextButton(
+            onPressed: () => onReview(user, 'REJECTED'),
+            style: TextButton.styleFrom(foregroundColor: MetColors.danger),
+            child: const Text('Denegar'),
+          ),
+        FilledButton.icon(
+          onPressed: () => onReview(user, 'APPROVED'),
+          icon: const Icon(Icons.check_rounded, size: 18),
+          label: const Text('Aprobar'),
+        ),
+      ],
     );
   }
 }

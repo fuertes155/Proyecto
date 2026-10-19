@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/ui/ui.dart';
 import '../../data/models/admin_models.dart';
 import '../providers/admin_provider.dart';
-import '../../../../core/utils/currency_formatter.dart';
+import '../shell/admin_nav.dart';
 
 class GuaranteeFundPage extends ConsumerWidget {
   const GuaranteeFundPage({super.key});
@@ -11,113 +12,151 @@ class GuaranteeFundPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(guaranteeFundProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.shield_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(
-              child: Text('Fondo de Garantías',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
-            onPressed: () => ref.read(guaranteeFundProvider.notifier).load(),
-            tooltip: 'Refrescar',
-          ),
-        ],
-      ),
-      body: state.when(
-        loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
-        error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
-        data: (summary) => RefreshIndicator(
-          onRefresh: () => ref.read(guaranteeFundProvider.notifier).load(),
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _BalanceCard(summary: summary, color: primaryColor),
-              const SizedBox(height: 20),
-              Text(
-                'Historial de movimientos',
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 12),
-              if (summary.movements.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Text('Todavía no hay movimientos registrados.',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
-                )
-              else
-                ...summary.movements.map((m) => _MovementTile(movement: m)),
-            ],
-          ),
+    return AdminPage(
+      section: sectionTitleFor(guaranteeFundItem.route),
+      title: 'Fondo de garantías',
+      subtitle: 'Respaldo que cubre parte del capital de los inversionistas cuando un crédito entra en mora sostenida.',
+      actions: [
+        OutlinedButton.icon(
+          onPressed: () => ref.read(guaranteeFundProvider.notifier).load(),
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: const Text('Actualizar'),
         ),
-      ),
+      ],
+      children: [
+        state.when(
+          loading: () => const LoadingState(label: 'Cargando fondo…'),
+          error: (e, _) => ErrorState(error: e, onRetry: () => ref.read(guaranteeFundProvider.notifier).load()),
+          data: (summary) => _Content(summary: summary),
+        ),
+      ],
     );
   }
 }
 
-class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({required this.summary, required this.color});
+class _Content extends StatelessWidget {
+  const _Content({required this.summary});
 
   final GuaranteeFundSummary summary;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2C3545),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Saldo disponible', style: TextStyle(color: Colors.white70, fontSize: 13)),
-          const SizedBox(height: 6),
-          Text(
-            formatCop(summary.balance),
-            style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 18),
-          const Divider(color: Colors.white24, height: 1),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _RuleStat(
+    final contributions = summary.movements.where((m) => m.isContribution).fold<double>(0, (s, m) => s + m.amount);
+    final payouts = summary.movements.where((m) => !m.isContribution).fold<double>(0, (s, m) => s + m.amount);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(gradient: MetColors.brandGradient, borderRadius: BorderRadius.circular(20)),
+          child: LayoutBuilder(builder: (context, c) {
+            final balance = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Saldo disponible',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 14.5, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(formatCop(summary.balance),
+                      style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w800, letterSpacing: -1)),
+                ),
+              ],
+            );
+            final rules = Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _HeroStat(
                   icon: Icons.pie_chart_rounded,
                   label: 'Cobertura máxima',
-                  value: '${(summary.coverageRatio * 100).toStringAsFixed(0)}%',
+                  value: '${(summary.coverageRatio * 100).toStringAsFixed(0)}% del saldo en mora',
+                ),
+                _HeroStat(
+                  icon: Icons.event_busy_rounded,
+                  label: 'Se activa a partir de',
+                  value: '${summary.activationDaysLate} días de mora',
+                ),
+              ],
+            );
+            if (c.maxWidth < 820) {
+              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [balance, const SizedBox(height: 20), rules]);
+            }
+            return Row(children: [Expanded(child: balance), rules]);
+          }),
+        ),
+        const SizedBox(height: 20),
+        ResponsiveGrid(
+          minItemWidth: 260,
+          maxColumns: 2,
+          children: [
+            StatCard(icon: Icons.add_circle_outline_rounded, label: 'Aportes recibidos', value: formatCop(contributions)),
+            StatCard(
+              icon: Icons.remove_circle_outline_rounded,
+              label: 'Coberturas pagadas',
+              value: formatCop(payouts),
+              tone: Tone.warning,
+            ),
+          ],
+        ),
+        const SizedBox(height: 28),
+        Text('Movimientos', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 12),
+        if (summary.movements.isEmpty)
+          const Card(
+            child: EmptyState(
+              icon: Icons.receipt_long_outlined,
+              title: 'Todavía no hay movimientos',
+              message: 'Los aportes llegan con cada crédito desembolsado.',
+            ),
+          )
+        else
+          AdminTable<GuaranteeFundMovement>(
+            rows: summary.movements,
+            columns: [
+              AdminColumn(
+                label: 'Concepto',
+                flex: 5,
+                cell: (m) => TwoLineCell(
+                  m.concept,
+                  m.transactionReference,
+                  leading: IconBadge(m.isContribution ? Icons.south_west_rounded : Icons.north_east_rounded,
+                      tone: m.isContribution ? Tone.success : Tone.warning, size: 34),
                 ),
               ),
-              Expanded(
-                child: _RuleStat(
-                  icon: Icons.event_busy_rounded,
-                  label: 'Se activa a los',
-                  value: '${summary.activationDaysLate} días de mora',
+              AdminColumn(
+                label: 'Tipo',
+                flex: 2,
+                cell: (m) => StatusBadge(m.isContribution
+                    ? const StatusInfo('Aporte', Tone.success)
+                    : const StatusInfo('Cobertura', Tone.warning)),
+              ),
+              AdminColumn(label: 'Fecha', flex: 2, cell: (m) => CellText(formatDateTime(m.createdAt), muted: true)),
+              AdminColumn(
+                label: 'Monto',
+                flex: 2,
+                alignEnd: true,
+                cell: (m) => Text(
+                  '${m.isContribution ? '+' : '−'}${formatCop(m.amount)}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14.5,
+                    color: m.isContribution ? MetColors.success : MetColors.warning,
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
+      ],
     );
   }
 }
 
-class _RuleStat extends StatelessWidget {
-  const _RuleStat({required this.icon, required this.label, required this.value});
+class _HeroStat extends StatelessWidget {
+  const _HeroStat({required this.icon, required this.label, required this.value});
 
   final IconData icon;
   final String label;
@@ -125,73 +164,26 @@ class _RuleStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white54, size: 18),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-              Text(value,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MovementTile extends StatelessWidget {
-  const _MovementTile({required this.movement});
-
-  final GuaranteeFundMovement movement;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = movement.isContribution ? const Color(0xFF2E7D32) : const Color(0xFFC62828);
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      width: 240,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.15)),
-            child: Icon(
-              movement.isContribution ? Icons.add_rounded : Icons.remove_rounded,
-              color: color,
-              size: 18,
-            ),
-          ),
+          Icon(icon, color: Colors.white, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  movement.concept,
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  movement.createdAt.substring(0, 16).replaceFirst('T', ' · '),
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 11),
-                ),
+                Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12.5)),
+                Text(value, style: const TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w700)),
               ],
             ),
-          ),
-          Text(
-            '${movement.isContribution ? '+' : '-'}${formatCop(movement.amount)}',
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ],
       ),

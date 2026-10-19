@@ -163,6 +163,31 @@ class AdminRepository {
     return GuaranteeFundSummary.fromJson(response.data as Map<String, dynamic>);
   }
 
+  // ── Reportes regulatorios (Supersolidaria) ─────────────────────────────────
+  Future<List<RegulatoryReport>> getRegulatoryReports() async {
+    final response = await _dio.get('/v1/compliance/reports');
+    return (response.data as List)
+        .map((e) => RegulatoryReport.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<RegulatoryReport> generateRegulatoryReport(String reportType, int year, int month) async {
+    final response = await _dio.post('/v1/compliance/reports/generate', data: {
+      'reportType': reportType,
+      'periodYear': year,
+      'periodMonth': month,
+    });
+    return RegulatoryReport.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<List<int>> downloadRegulatoryReport(String reportId) async {
+    final response = await _dio.get<List<int>>(
+      '/v1/compliance/reports/$reportId/download',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return response.data ?? const [];
+  }
+
   // ── Helper ─────────────────────────────────────────────────────────────────
   Dio _adminDio() {
     // Retorna el mismo Dio — el interceptor en api_client_provider

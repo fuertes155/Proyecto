@@ -13,17 +13,41 @@ class UserModel {
   final String email;
   final String kycStatus;
   final String documentNumber;
-  
-  UserModel({required this.id, required this.firstName, required this.lastName, required this.email, required this.kycStatus, required this.documentNumber});
-  
+  final String documentType;
+  final String? phone;
+  final String? status;
+  final String? createdAt;
+
+  UserModel({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.kycStatus,
+    required this.documentNumber,
+    this.documentType = 'CC',
+    this.phone,
+    this.status,
+    this.createdAt,
+  });
+
+  String get fullName => '$firstName $lastName'.trim();
+
+  /// "CC 1.234.567" — tipo + número, como se ve en un documento.
+  String get documentLabel => '$documentType $documentNumber';
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] ?? '',
       firstName: json['firstName'] ?? 'Sin nombre',
       lastName: json['lastName'] ?? '',
-      email: json['email'] ?? 'Sin correo',
+      email: json['email'] ?? '',
       kycStatus: json['kycStatus'] ?? 'PENDING',
       documentNumber: json['documentNumber'] ?? 'Sin documento',
+      documentType: json['documentType']?.toString() ?? 'CC',
+      phone: json['phone']?.toString(),
+      status: json['status']?.toString(),
+      createdAt: json['createdAt']?.toString(),
     );
   }
 }
@@ -52,14 +76,41 @@ class LoanModel {
   final String id;
   final String userId;
   final String status;
-  
-  LoanModel({required this.id, required this.userId, required this.status});
-  
+  final double? amount;
+  final int? termMonths;
+  final double? monthlyPayment;
+  final String? purpose;
+  final String? riskTier;
+  final int? creditScore;
+  final Object? submittedAt;
+
+  LoanModel({
+    required this.id,
+    required this.userId,
+    required this.status,
+    this.amount,
+    this.termMonths,
+    this.monthlyPayment,
+    this.purpose,
+    this.riskTier,
+    this.creditScore,
+    this.submittedAt,
+  });
+
   factory LoanModel.fromJson(Map<String, dynamic> json) {
+    double? toDouble(Object? v) => v == null ? null : double.tryParse(v.toString());
+    int? toInt(Object? v) => v == null ? null : int.tryParse(v.toString());
     return LoanModel(
       id: json['id'] ?? '',
       userId: json['userId'] ?? '',
       status: json['status'] ?? 'PENDING',
+      amount: toDouble(json['amount']),
+      termMonths: toInt(json['termMonths']),
+      monthlyPayment: toDouble(json['monthlyPayment']),
+      purpose: json['purpose']?.toString(),
+      riskTier: json['riskTier']?.toString(),
+      creditScore: toInt(json['creditScore']),
+      submittedAt: json['submittedAt'] ?? json['createdAt'],
     );
   }
 }

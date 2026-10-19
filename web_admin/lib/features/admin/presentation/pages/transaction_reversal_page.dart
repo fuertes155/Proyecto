@@ -1,57 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/ui/ui.dart';
 import '../../data/repositories/admin_repository.dart';
+import '../shell/admin_nav.dart';
+import '../widgets/critical_action_layout.dart';
 
 class TransactionReversalPage extends ConsumerStatefulWidget {
   const TransactionReversalPage({super.key});
 
   @override
-  ConsumerState<TransactionReversalPage> createState() =>
-      _TransactionReversalPageState();
+  ConsumerState<TransactionReversalPage> createState() => _TransactionReversalPageState();
 }
 
-class _TransactionReversalPageState
-    extends ConsumerState<TransactionReversalPage> {
+class _TransactionReversalPageState extends ConsumerState<TransactionReversalPage> {
+  final _formKey = GlobalKey<FormState>();
   final _txIdCtrl = TextEditingController();
   final _reasonCtrl = TextEditingController();
   final _codeCtrl = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> _submitReversal() async {
-    if (_txIdCtrl.text.isEmpty ||
-        _reasonCtrl.text.isEmpty ||
-        _codeCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Por favor, completa todos los campos'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
-      return;
-    }
+  @override
+  void dispose() {
+    _txIdCtrl.dispose();
+    _reasonCtrl.dispose();
+    _codeCtrl.dispose();
+    super.dispose();
+  }
+
+  /// El backend pide escribir "CONFIRM-" + los primeros 8 caracteres del ID,
+  /// para que una reversión nunca se ejecute por accidente.
+  String? get _expectedCode {
+    final id = _txIdCtrl.text.trim();
+    return id.length >= 8 ? 'CONFIRM-${id.substring(0, 8).toUpperCase()}' : null;
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    final confirmed = await confirmAction(
+      context,
+      title: '¿Registrar la reversión?',
+      message: 'La reversión quedará registrada en la auditoría con tu usuario y el motivo.',
+      confirmLabel: 'Registrar reversión',
+      destructive: true,
+      icon: Icons.undo_rounded,
+      details: [('Transacción', _txIdCtrl.text.trim()), ('Motivo', _reasonCtrl.text.trim())],
+    );
+    if (!confirmed) return;
 
     setState(() => _isLoading = true);
     try {
       await ref.read(adminRepositoryProvider).reverseTransaction(
-            _txIdCtrl.text,
-            _reasonCtrl.text,
-            _codeCtrl.text,
+            _txIdCtrl.text.trim(),
+            _reasonCtrl.text.trim(),
+            _codeCtrl.text.trim(),
           );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Transacción reversada exitosamente'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ));
-        _txIdCtrl.clear();
-        _reasonCtrl.clear();
-        _codeCtrl.clear();
-      }
+      if (!mounted) return;
+      showMetSnack(context, 'Reversión registrada en la auditoría');
+      _txIdCtrl.clear();
+      _reasonCtrl.clear();
+      _codeCtrl.clear();
+      setState(() {});
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error al reversar: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ));
-      }
+      if (mounted) showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -59,145 +70,89 @@ class _TransactionReversalPageState
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final expected = _expectedCode;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.undo_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Reversión de Transacción',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
-              ),
-              child: Row(
+    return AdminPage(
+      section: sectionTitleFor(reversalItem.route),
+      title: 'Reversión de transacción',
+      subtitle: 'Anula una operación puntual cuando hubo un error, un doble débito o un fraude comprobado.',
+      maxWidth: 1120,
+      children: [
+        const CalloutBanner(
+          tone: Tone.warning,
+          title: 'Por ahora solo se registra la solicitud',
+          message: 'La plataforma deja la reversión registrada en la auditoría, pero todavía no devuelve el dinero '
+              'de forma automática. El ajuste del saldo debe hacerse aparte con contabilidad.',
+        ),
+        const SizedBox(height: 20),
+        CriticalActionLayout(
+          form: SectionCard(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: primaryColor),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Esta acción es irreversible y quedará registrada en la bitácora de auditoría. '
-                      'Requiere código de confirmación del administrador superior.',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
+                  const FieldLabel('ID de la transacción', required: true),
+                  TextFormField(
+                    controller: _txIdCtrl,
+                    enabled: !_isLoading,
+                    onChanged: (_) => setState(() {}),
+                    style: const TextStyle(fontFamily: 'monospace'),
+                    decoration: const InputDecoration(
+                      hintText: 'Ej.: 7f3c9a10-1111-4c2d-9a8e-000000000001',
+                      prefixIcon: Icon(Icons.receipt_long_rounded),
                     ),
+                    validator: (v) => (v == null || v.trim().length < 8) ? 'Pega el ID completo de la transacción' : null,
+                  ),
+                  const SizedBox(height: 20),
+                  const FieldLabel('Motivo', required: true),
+                  TextFormField(
+                    controller: _reasonCtrl,
+                    enabled: !_isLoading,
+                    maxLines: 3,
+                    maxLength: 500,
+                    decoration: const InputDecoration(hintText: 'Ej.: Doble débito por reintento de la pasarela PSE.'),
+                    validator: (v) => (v == null || v.trim().length < 10) ? 'Describe el motivo (mínimo 10 caracteres)' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  FieldLabel(
+                    'Confirmación',
+                    required: true,
+                    help: expected == null
+                        ? 'Primero pega el ID de la transacción.'
+                        : 'Para confirmar, escribe exactamente: $expected',
+                  ),
+                  TextFormField(
+                    controller: _codeCtrl,
+                    enabled: !_isLoading && expected != null,
+                    textCapitalization: TextCapitalization.characters,
+                    style: const TextStyle(fontFamily: 'monospace'),
+                    decoration: InputDecoration(
+                      hintText: expected ?? 'CONFIRM-XXXXXXXX',
+                      prefixIcon: const Icon(Icons.keyboard_rounded),
+                    ),
+                    validator: (v) {
+                      if (expected == null) return null;
+                      return (v ?? '').trim().toUpperCase() == expected ? null : 'Escribe $expected para confirmar';
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  DangerSubmitButton(
+                    label: 'Registrar reversión',
+                    loadingLabel: 'Registrando…',
+                    icon: Icons.undo_rounded,
+                    loading: _isLoading,
+                    onPressed: _submit,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
-            _InputField(
-              label: 'ID de la Transacción',
-              controller: _txIdCtrl,
-              icon: Icons.receipt_long_rounded,
-            ),
-            const SizedBox(height: 16),
-            _InputField(
-              label: 'Motivo de la reversión',
-              controller: _reasonCtrl,
-              icon: Icons.notes_rounded,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            _InputField(
-              label: 'Código de Confirmación',
-              controller: _codeCtrl,
-              icon: Icons.password_rounded,
-              isPassword: true,
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                onPressed: _isLoading ? null : _submitReversal,
-                child: _isLoading
-                    ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface)
-                    : Text(
-                        'EJECUTAR REVERSIÓN',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1),
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InputField extends StatelessWidget {
-  const _InputField({
-    required this.label,
-    required this.controller,
-    required this.icon,
-    this.maxLines = 1,
-    this.isPassword = false,
-  });
-
-  final String label;
-  final TextEditingController controller;
-  final IconData icon;
-  final int maxLines;
-  final bool isPassword;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                fontSize: 14,
-                fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          obscureText: isPassword,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.02),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-            ),
           ),
+          aside: const ConsequencesCard(items: [
+            (Icons.fact_check_outlined, 'Verifica antes el movimiento en el extracto del socio y en la pasarela.'),
+            (Icons.keyboard_rounded, 'El código de confirmación evita reversiones por error o por copiar el ID equivocado.'),
+            (Icons.account_balance_outlined, 'Coordina con contabilidad el ajuste del saldo mientras la reversión automática no esté disponible.'),
+          ]),
         ),
       ],
     );

@@ -1,0 +1,464 @@
+{
+  "properties": [
+    {
+      "name": "met.ai.gemini.api-key",
+      "type": "java.lang.String",
+      "description": "API key de Google Gemini para el chat de soporte."
+    },
+    {
+      "name": "met.capital-engine.margin-model",
+      "type": "com.cooperativa.met.domain.investment.service.margin.MarginModel",
+      "description": "Modelo de cálculo del margen de la plataforma sobre el interés del deudor.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.CapitalEngineProperties",
+      "defaultValue": "interest-commission"
+    },
+    {
+      "name": "met.capital-engine.margin-rate",
+      "type": "java.math.BigDecimal",
+      "description": "Tasa de margen de la plataforma (0.02 = 2%).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.CapitalEngineProperties",
+      "defaultValue": 0.02
+    },
+    {
+      "name": "met.capital-engine.rate-basis",
+      "type": "com.cooperativa.met.domain.investment.service.margin.RateBasis",
+      "description": "Base de la tasa de interés del préstamo.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.CapitalEngineProperties",
+      "defaultValue": "nominal-annual"
+    },
+    {
+      "name": "met.capital-engine.concentration-cap-percentage",
+      "type": "java.math.BigDecimal",
+      "description": "Máximo porcentaje de un depósito concentrado en un solo deudor.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.CapitalEngineProperties",
+      "defaultValue": 0.2
+    },
+    {
+      "name": "met.capital-engine.guarantee-fund-coverage-ratio",
+      "type": "java.math.BigDecimal",
+      "description": "Porcentaje del saldo pendiente que cubre el Fondo de Garantías en mora sostenida.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.CapitalEngineProperties",
+      "defaultValue": 0.7
+    },
+    {
+      "name": "met.capital-engine.guarantee-fund-activation-days-late",
+      "type": "java.lang.Integer",
+      "description": "Días de mora a partir de los cuales se evalúa la cobertura del Fondo de Garantías.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.CapitalEngineProperties",
+      "defaultValue": 90
+    },
+    {
+      "name": "met.compliance.entity-code",
+      "type": "java.lang.String",
+      "description": "Código de la entidad ante la Supersolidaria.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties",
+      "defaultValue": "COOP001"
+    },
+    {
+      "name": "met.compliance.storage-path",
+      "type": "java.lang.String",
+      "description": "Carpeta donde se guardan los reportes regulatorios generados.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties",
+      "defaultValue": "./data/regulatory-reports"
+    },
+    {
+      "name": "met.compliance.sarlaft.ofac-list-url",
+      "type": "java.lang.String",
+      "description": "URL de la lista OFAC (SDN).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": "https://www.treasury.gov/ofac/downloads/sdn.csv"
+    },
+    {
+      "name": "met.compliance.sarlaft.un-list-url",
+      "type": "java.lang.String",
+      "description": "URL de la lista consolidada de la ONU.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": "https://scsanctions.un.org/resources/xml/en/consolidated.xml"
+    },
+    {
+      "name": "met.compliance.sarlaft.restrictive-list-match-threshold",
+      "type": "java.lang.Double",
+      "description": "Similitud mínima de nombre para considerar coincidencia en listas restrictivas.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": 0.82
+    },
+    {
+      "name": "met.compliance.sarlaft.unusual-amount-threshold",
+      "type": "java.math.BigDecimal",
+      "description": "Monto (COP) a partir del cual una operación se considera inusual.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": 10000000
+    },
+    {
+      "name": "met.compliance.sarlaft.unusual-amount-multiplier",
+      "type": "java.math.BigDecimal",
+      "description": "Múltiplo del promedio del socio a partir del cual un monto es inusual.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": 5
+    },
+    {
+      "name": "met.compliance.sarlaft.max-transactions-per-day",
+      "type": "java.lang.Integer",
+      "description": "Operaciones por día a partir de las cuales se genera alerta.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": 10
+    },
+    {
+      "name": "met.compliance.sarlaft.structuring-lower-ratio",
+      "type": "java.lang.Double",
+      "description": "Fracción del umbral desde la que una operación cuenta para fraccionamiento.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": 0.8
+    },
+    {
+      "name": "met.compliance.sarlaft.structuring-min-occurrences",
+      "type": "java.lang.Integer",
+      "description": "Operaciones cercanas al umbral que disparan alerta de fraccionamiento.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": 3
+    },
+    {
+      "name": "met.compliance.sarlaft.rapid-in-out-window-minutes",
+      "type": "java.lang.Integer",
+      "description": "Ventana (minutos) para detectar entrada y salida rápida de fondos.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetComplianceProperties$Sarlaft",
+      "defaultValue": 60
+    },
+    {
+      "name": "met.cors.allowed-origins",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Orígenes permitidos por CORS (acepta patrones como http://localhost:*).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetCorsProperties"
+    },
+    {
+      "name": "met.credit-bureau.provider",
+      "type": "java.lang.String",
+      "description": "Central de riesgo: mock o datacredito.",
+      "defaultValue": "mock"
+    },
+    {
+      "name": "met.credit-bureau.datacredito.base-url",
+      "type": "java.lang.String",
+      "description": "URL base de la API de DataCrédito Experian.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.DatacreditoProperties",
+      "defaultValue": "https://api.experian.com.co"
+    },
+    {
+      "name": "met.credit-bureau.datacredito.client-id",
+      "type": "java.lang.String",
+      "description": "Client ID de DataCrédito.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.DatacreditoProperties"
+    },
+    {
+      "name": "met.credit-bureau.datacredito.client-secret",
+      "type": "java.lang.String",
+      "description": "Client secret de DataCrédito.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.DatacreditoProperties"
+    },
+    {
+      "name": "met.credit-bureau.datacredito.token-url",
+      "type": "java.lang.String",
+      "description": "URL del token OAuth de DataCrédito.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.DatacreditoProperties"
+    },
+    {
+      "name": "met.credit-bureau.datacredito.connect-timeout-ms",
+      "type": "java.lang.Integer",
+      "description": "Timeout de conexión con DataCrédito (ms).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.DatacreditoProperties",
+      "defaultValue": 5000
+    },
+    {
+      "name": "met.credit-bureau.datacredito.read-timeout-ms",
+      "type": "java.lang.Integer",
+      "description": "Timeout de lectura con DataCrédito (ms).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.DatacreditoProperties",
+      "defaultValue": 10000
+    },
+    {
+      "name": "met.dev.log-verification-amount",
+      "type": "java.lang.Boolean",
+      "description": "Escribe en el log el monto del micro-depósito de verificación de cuenta (solo dev/demo).",
+      "defaultValue": false
+    },
+    {
+      "name": "met.mail.provider",
+      "type": "java.lang.String",
+      "description": "Envío de correo: smtp o brevo.",
+      "defaultValue": "smtp"
+    },
+    {
+      "name": "met.mail.brevo.api-key",
+      "type": "java.lang.String",
+      "description": "API key de Brevo (obligatoria con met.mail.provider=brevo)."
+    },
+    {
+      "name": "met.mail.from-address",
+      "type": "java.lang.String",
+      "description": "Remitente de los correos."
+    },
+    {
+      "name": "met.mail.from-name",
+      "type": "java.lang.String",
+      "description": "Nombre visible del remitente.",
+      "defaultValue": "MET"
+    },
+    {
+      "name": "met.mail.log-otp-on-failure",
+      "type": "java.lang.Boolean",
+      "description": "Si el correo falla, escribe el OTP en el log (solo desarrollo).",
+      "defaultValue": false
+    },
+    {
+      "name": "met.notification-service.url",
+      "type": "java.lang.String",
+      "description": "URL del notification-service (push).",
+      "defaultValue": "http://notification-service:8090"
+    },
+    {
+      "name": "met.notification-service.api-key",
+      "type": "java.lang.String",
+      "description": "API key compartida con el notification-service."
+    },
+    {
+      "name": "met.payments.gateway",
+      "type": "java.lang.String",
+      "description": "Pasarela de depósitos: wompi (sandbox o producción) o mock (simulada).",
+      "defaultValue": "wompi"
+    },
+    {
+      "name": "met.payments.payout-gateway",
+      "type": "java.lang.String",
+      "description": "Pasarela de retiros a banco externo: wompi o mock.",
+      "defaultValue": "wompi"
+    },
+    {
+      "name": "met.payments.mock-gateway-base-url",
+      "type": "java.lang.String",
+      "description": "URL pública del backend para los links de la pasarela simulada (gateway=mock)."
+    },
+    {
+      "name": "met.rate-limit.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Activa el límite de peticiones en los endpoints de autenticación.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.RateLimitProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "met.rate-limit.max-requests",
+      "type": "java.lang.Integer",
+      "description": "Peticiones permitidas por IP en cada ventana.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.RateLimitProperties",
+      "defaultValue": 10
+    },
+    {
+      "name": "met.rate-limit.window-seconds",
+      "type": "java.lang.Long",
+      "description": "Duración de la ventana del límite de peticiones (segundos).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.RateLimitProperties",
+      "defaultValue": 60
+    },
+    {
+      "name": "met.security.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Secreto HMAC para firmar los JWT (mínimo 256 bits).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetSecurityProperties$Jwt"
+    },
+    {
+      "name": "met.security.jwt.expiration-ms",
+      "type": "java.lang.Long",
+      "description": "Vigencia del access token (ms).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetSecurityProperties$Jwt"
+    },
+    {
+      "name": "met.security.jwt.refresh-expiration-ms",
+      "type": "java.lang.Long",
+      "description": "Vigencia del refresh token (ms).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetSecurityProperties$Jwt"
+    },
+    {
+      "name": "met.security.encryption.aes-key",
+      "type": "java.lang.String",
+      "description": "Llave AES de 32 bytes para cifrar datos sensibles.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetSecurityProperties$Encryption"
+    },
+    {
+      "name": "met.security.encryption.rsa-private-key",
+      "type": "java.lang.String",
+      "description": "Llave privada RSA (Base64, PKCS#8).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetSecurityProperties$Encryption"
+    },
+    {
+      "name": "met.security.encryption.rsa-public-key",
+      "type": "java.lang.String",
+      "description": "Llave pública RSA (Base64, X.509).",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetSecurityProperties$Encryption"
+    },
+    {
+      "name": "met.security.encryption.hmac-secret",
+      "type": "java.lang.String",
+      "description": "Secreto compartido para la firma HMAC de las peticiones de la app.",
+      "sourceType": "com.cooperativa.met.infrastructure.config.MetSecurityProperties$Encryption"
+    },
+    {
+      "name": "met.twilio.account-sid",
+      "type": "java.lang.String",
+      "description": "Account SID de Twilio."
+    },
+    {
+      "name": "met.twilio.auth-token",
+      "type": "java.lang.String",
+      "description": "Auth token de Twilio."
+    },
+    {
+      "name": "met.twilio.phone-number",
+      "type": "java.lang.String",
+      "description": "Número de Twilio para SMS."
+    },
+    {
+      "name": "met.twilio.whatsapp-number",
+      "type": "java.lang.String",
+      "description": "Número de Twilio para WhatsApp."
+    },
+    {
+      "name": "met.wompi.public-key",
+      "type": "java.lang.String",
+      "description": "Llave pública de Wompi (pub_test_… en sandbox, pub_prod_… en producción)."
+    },
+    {
+      "name": "met.wompi.private-key",
+      "type": "java.lang.String",
+      "description": "Llave privada de Wompi (prv_test_… / prv_prod_…)."
+    },
+    {
+      "name": "met.wompi.integrity-secret",
+      "type": "java.lang.String",
+      "description": "Secreto de integridad de Wompi (test_integrity_… / prod_integrity_…)."
+    },
+    {
+      "name": "met.wompi.webhook-secret",
+      "type": "java.lang.String",
+      "description": "Secreto de EVENTOS de Wompi (test_events_… / prod_events_…); valida los webhooks."
+    },
+    {
+      "name": "met.wompi.api-url",
+      "type": "java.lang.String",
+      "description": "URL base de la API de Wompi.",
+      "defaultValue": "https://sandbox.wompi.co/v1"
+    },
+    {
+      "name": "met.wompi.checkout-url",
+      "type": "java.lang.String",
+      "description": "URL del checkout hosteado de Wompi.",
+      "defaultValue": "https://checkout.wompi.co/p/"
+    },
+    {
+      "name": "met.wompi.redirect-url",
+      "type": "java.lang.String",
+      "description": "A dónde vuelve el usuario al terminar de pagar (https://<host>/api/v1/payments/wompi/return)."
+    },
+    {
+      "name": "met.wompi.sync-banks-on-startup",
+      "type": "java.lang.Boolean",
+      "description": "Trae el catálogo de bancos PSE de Wompi al arrancar.",
+      "defaultValue": false
+    },
+    {
+      "name": "met.wompi.pse.poll-attempts",
+      "type": "java.lang.Integer",
+      "description": "Consultas a GET /transactions/{id} esperando la URL del banco (PSE nativo).",
+      "defaultValue": 10
+    },
+    {
+      "name": "met.wompi.pse.poll-interval-ms",
+      "type": "java.lang.Long",
+      "description": "Pausa entre esas consultas (ms).",
+      "defaultValue": 1000
+    },
+    {
+      "name": "met.wompi.payouts.api-url",
+      "type": "java.lang.String",
+      "description": "URL base de la API de Pagos a Terceros de Wompi."
+    },
+    {
+      "name": "met.wompi.payouts.api-key",
+      "type": "java.lang.String",
+      "description": "API key de Pagos a Terceros."
+    },
+    {
+      "name": "met.wompi.payouts.principal-user-id",
+      "type": "java.lang.String",
+      "description": "Principal User ID de Pagos a Terceros."
+    },
+    {
+      "name": "met.wompi.payouts.auth-header",
+      "type": "java.lang.String",
+      "description": "Header de autenticación de Pagos a Terceros.",
+      "defaultValue": "Authorization"
+    },
+    {
+      "name": "met.wompi.payouts.principal-header",
+      "type": "java.lang.String",
+      "description": "Header del Principal User ID.",
+      "defaultValue": "X-Principal-User-Id"
+    },
+    {
+      "name": "met.wompi.payouts.source-account-id",
+      "type": "java.lang.String",
+      "description": "Cuenta de origen que fondea los retiros."
+    },
+    {
+      "name": "met.wompi.payouts.webhook-secret",
+      "type": "java.lang.String",
+      "description": "Secreto para validar los webhooks de Pagos a Terceros."
+    }
+  ],
+  "hints": [
+    {
+      "name": "met.payments.gateway",
+      "values": [
+        {
+          "value": "wompi",
+          "description": "Wompi real (sandbox o producción según llaves y URL)."
+        },
+        {
+          "value": "mock",
+          "description": "Pasarela simulada local."
+        }
+      ]
+    },
+    {
+      "name": "met.payments.payout-gateway",
+      "values": [
+        {
+          "value": "wompi"
+        },
+        {
+          "value": "mock"
+        }
+      ]
+    },
+    {
+      "name": "met.credit-bureau.provider",
+      "values": [
+        {
+          "value": "mock"
+        },
+        {
+          "value": "datacredito"
+        }
+      ]
+    },
+    {
+      "name": "met.mail.provider",
+      "values": [
+        {
+          "value": "smtp"
+        },
+        {
+          "value": "brevo"
+        }
+      ]
+    }
+  ]
+}

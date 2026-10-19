@@ -1,10 +1,9 @@
 package com.cooperativa.met.infrastructure.web.webhook;
 
-import com.cooperativa.met.application.account.dto.DepositRequest;
 import com.cooperativa.met.application.account.usecase.ProcessWebhookUseCase;
-import com.cooperativa.met.infrastructure.persistence.webhook.entity.ProcessedWebhookJpaEntity;
 import com.cooperativa.met.infrastructure.persistence.webhook.repository.ProcessedWebhookJpaRepository;
 import com.cooperativa.met.infrastructure.web.webhook.dto.PaymentWebhookPayload;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.Instant;
 
 @RestController
 @RequestMapping("/v1")
@@ -56,7 +53,7 @@ public class MockPaymentGatewayController {
             processWebhookUseCase.execute(txId, "MOCK_GATEWAY", data.getUserId(), data.getAmount(), method);
 
             return ResponseEntity.ok().build();
-        } catch (Exception e) {
+        } catch (JsonProcessingException | RuntimeException e) {
             log.error("[DEV] Error processing mock payment webhook: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

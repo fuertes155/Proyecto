@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/repositories/admin_repository.dart';
+import '../../../../core/ui/ui.dart';
 import '../../data/models/admin_models.dart';
+import '../../data/repositories/admin_repository.dart';
+import '../shell/admin_nav.dart';
+import '../widgets/critical_action_layout.dart';
+import '../widgets/user_picker_field.dart';
 
 class EmergencyLockPage extends ConsumerStatefulWidget {
   const EmergencyLockPage({super.key});
@@ -17,10 +21,11 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
   final _reasonCtrl = TextEditingController();
   String _scope = 'USER';
   bool _isLoading = false;
+  int _formVersion = 0;
 
-  final _scopes = [
-    ('USER', 'Suspender cuenta de usuario', Icons.person_off_rounded),
-    ('ACCESS_TOKEN', 'Revocar todos los tokens', Icons.token_rounded),
+  static const _scopes = [
+    ('USER', 'Suspender la cuenta', 'Pasa a suspendida y se cierran todas sus sesiones.', Icons.person_off_rounded),
+    ('ACCESS_TOKEN', 'Cerrar todas sus sesiones', 'La cuenta sigue activa; tendrá que volver a iniciar sesión.', Icons.logout_rounded),
   ];
 
   @override
@@ -32,40 +37,22 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
 
   Future<void> _execute() async {
     if (!_formKey.currentState!.validate()) return;
+    final scope = _scopes.firstWhere((s) => s.$1 == _scope);
 
-    // Confirmación obligatoria
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(children: [
-          Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.primary, size: 28),
-          const SizedBox(width: 10),
-          Text('¿Confirmar bloqueo?',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18)),
-        ]),
-        content: Text(
-          'Esta acción suspenderá el acceso del usuario indicado de forma inmediata.\n\nMotivo: ${_reasonCtrl.text}\nAlcance: $_scope',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('SÍ, BLOQUEAR'),
-          ),
-        ],
-      ),
+    final confirmed = await confirmAction(
+      context,
+      title: '¿Ejecutar bloqueo de emergencia?',
+      message: 'El efecto es inmediato y queda registrado en la auditoría con el motivo que escribiste.',
+      confirmLabel: 'Sí, bloquear',
+      destructive: true,
+      icon: Icons.emergency_rounded,
+      details: [
+        ('Usuario', _targetIdCtrl.text.trim()),
+        ('Alcance', scope.$2),
+        ('Motivo', _reasonCtrl.text.trim()),
+      ],
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     setState(() => _isLoading = true);
     try {
@@ -75,222 +62,144 @@ class _EmergencyLockPageState extends ConsumerState<EmergencyLockPage> {
             reason: _reasonCtrl.text.trim(),
           ));
       if (!mounted) return;
-      _showSuccess('✓ Bloqueo de emergencia ejecutado con éxito');
+      showMetSnack(context, 'Bloqueo de emergencia ejecutado');
       _targetIdCtrl.clear();
       _reasonCtrl.clear();
+      setState(() => _formVersion++); // reinicia el buscador de socios
     } catch (e) {
-      _showError('Error: $e');
+      if (mounted) showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showSuccess(String msg) => ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Theme.of(context).colorScheme.primary,
-          behavior: SnackBarBehavior.floating));
-
-  void _showError(String msg) => ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating));
-
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.emergency_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Bloqueo de Emergencia',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Advertencia
-              const _WarningBanner(
-                  'Esta acción es inmediata, irreversible sin autorización, y queda registrada en el log de auditoría.'),
-              const SizedBox(height: 24),
-              // ID objetivo
-              _buildLabel('ID del objetivo (UUID del usuario)', context),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _targetIdCtrl,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                decoration: _inputDeco('Ej: 123e4567-e89b-12d3-a456-426614174000',
-                    Icons.fingerprint_rounded, context),
-                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-              ),
-              const SizedBox(height: 20),
-              // Alcance
-              _buildLabel('Alcance del bloqueo', context),
-              const SizedBox(height: 10),
-              ..._scopes.map((s) => _ScopeOption(
-                    label: s.$1,
-                    subtitle: s.$2,
-                    icon: s.$3,
-                    selected: _scope == s.$1,
-                    onTap: () => setState(() => _scope = s.$1),
-                  )),
-              const SizedBox(height: 20),
-              // Motivo
-              _buildLabel('Motivo del bloqueo *', context),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _reasonCtrl,
-                maxLines: 3,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                decoration: _inputDeco('Describe el motivo detalladamente...',
-                    Icons.description_outlined, context),
-                validator: (v) =>
-                    v == null || v.length < 10 ? 'Mínimo 10 caracteres' : null,
-              ),
-              const SizedBox(height: 32),
-              // Botón
-              SizedBox(
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _execute,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Theme.of(context).colorScheme.onSurface,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    elevation: 8,
-                    shadowColor: primaryColor.withValues(alpha: 0.5),
+    return AdminPage(
+      section: sectionTitleFor(emergencyLockItem.route),
+      title: 'Bloqueo de emergencia',
+      subtitle: 'Úsalo ante fraude, suplantación o robo de credenciales: corta el acceso de un socio al instante.',
+      maxWidth: 1120,
+      children: [
+        CriticalActionLayout(
+          form: SectionCard(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const FieldLabel('Socio a bloquear', required: true),
+                  UserPickerField(key: ValueKey(_formVersion), idController: _targetIdCtrl, enabled: !_isLoading),
+                  const SizedBox(height: 22),
+                  const FieldLabel('Alcance del bloqueo', required: true),
+                  for (final s in _scopes)
+                    _ScopeOption(
+                      title: s.$2,
+                      subtitle: s.$3,
+                      icon: s.$4,
+                      selected: _scope == s.$1,
+                      onTap: _isLoading ? null : () => setState(() => _scope = s.$1),
+                    ),
+                  const SizedBox(height: 14),
+                  const FieldLabel('Motivo', required: true, help: 'Explica qué pasó. Lo leerán auditoría y cumplimiento.'),
+                  TextFormField(
+                    controller: _reasonCtrl,
+                    enabled: !_isLoading,
+                    maxLines: 4,
+                    maxLength: 500,
+                    decoration: const InputDecoration(
+                      hintText: 'Ej.: El socio reportó por la línea de soporte que le robaron el celular.',
+                    ),
+                    validator: (v) => v == null || v.trim().length < 10 ? 'Describe el motivo (mínimo 10 caracteres)' : null,
                   ),
-                  icon: _isLoading
-                      ? SizedBox(width: 20, height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onSurface))
-                      : const Icon(Icons.block_rounded),
-                  label: const Text('EJECUTAR BLOQUEO',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
-                          letterSpacing: 1)),
-                ),
+                  const SizedBox(height: 18),
+                  DangerSubmitButton(
+                    label: 'Ejecutar bloqueo',
+                    loadingLabel: 'Bloqueando…',
+                    icon: Icons.block_rounded,
+                    loading: _isLoading,
+                    onPressed: _execute,
+                  ),
+                ],
               ),
+            ),
+          ),
+          aside: const Column(
+            children: [
+              CalloutBanner(
+                tone: Tone.danger,
+                title: 'Acción de alto impacto',
+                message: 'Se aplica de inmediato sobre la cuenta del socio. Úsala solo ante una sospecha real.',
+              ),
+              SizedBox(height: 16),
+              ConsequencesCard(items: [
+                (Icons.person_off_rounded, 'Con "Suspender la cuenta", el socio queda suspendido y no podrá volver a iniciar sesión.'),
+                (Icons.phonelink_lock_rounded, 'En ambos casos se revocan sus sesiones guardadas en todos los dispositivos.'),
+                (Icons.account_balance_wallet_outlined, 'Su saldo no se modifica: queda protegido mientras se investiga.'),
+              ]),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text, BuildContext context) => Text(text,
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13, fontWeight: FontWeight.w600));
-
-  InputDecoration _inputDeco(String hint, IconData icon, BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
-        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.02),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.1 : 0.05))),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5)),
-      );
-  }
-}
-
-class _WarningBanner extends StatelessWidget {
-  const _WarningBanner(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: primaryColor.withValues(alpha: isDark ? 0.15 : 0.1),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: primaryColor.withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.warning_rounded, color: Color(0xFFFF6B00), size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(text,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85), fontSize: 12, height: 1.4)),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
 
 class _ScopeOption extends StatelessWidget {
   const _ScopeOption({
-    required this.label,
+    required this.title,
     required this.subtitle,
     required this.icon,
     required this.selected,
     required this.onTap,
   });
-  final String label;
+
+  final String title;
   final String subtitle;
   final IconData icon;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: selected
-              ? primaryColor.withValues(alpha: 0.2)
-              : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: selected ? MetColors.dangerBg : MetColors.subtle,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: selected
-                  ? primaryColor.withValues(alpha: 0.7)
-                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.1 : 0.05)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon,
-                color: selected ? primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 24),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: TextStyle(
-                          color: selected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14)),
-                  Text(subtitle,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11)),
-                ],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: selected ? MetColors.danger.withValues(alpha: 0.6) : MetColors.border,
+                width: selected ? 1.5 : 1,
               ),
             ),
-            if (selected)
-              Icon(Icons.check_circle_rounded, color: primaryColor, size: 22),
-          ],
+            child: Row(
+              children: [
+                Icon(icon, color: selected ? MetColors.danger : MetColors.textMuted, size: 24),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(subtitle, style: const TextStyle(fontSize: 13, color: MetColors.textMuted)),
+                    ],
+                  ),
+                ),
+                Icon(
+                  selected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+                  color: selected ? MetColors.danger : MetColors.textFaint,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

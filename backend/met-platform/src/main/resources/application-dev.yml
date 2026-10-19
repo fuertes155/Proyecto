@@ -10,9 +10,9 @@ spring:
 
 logging:
   level:
-    com.cooperativa.met: DEBUG
+    "[com.cooperativa.met]": DEBUG
     # Silenciar el error de mail en dev (no es crítico para desarrollo local)
-    org.springframework.mail: WARN
+    "[org.springframework.mail]": WARN
 
 management:
   health:

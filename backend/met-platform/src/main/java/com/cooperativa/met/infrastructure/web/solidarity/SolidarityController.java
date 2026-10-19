@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1/solidarity")
+@RequestMapping("/v1/solidarity/groups")
 @RequiredArgsConstructor
 public class SolidarityController {
 
@@ -55,7 +55,7 @@ public class SolidarityController {
     private final ListLoanInstallmentsUseCase listInstallmentsUseCase;
     private final ListPoolTransactionsUseCase listTransactionsUseCase;
 
-    @PostMapping("/groups")
+    @PostMapping
     public ResponseEntity<SolidarityGroupResponse> createGroup(
             Authentication authentication,
             @Valid @RequestBody CreateSolidarityGroupRequest request) {
@@ -63,7 +63,7 @@ public class SolidarityController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createGroupUseCase.execute(userId, request));
     }
 
-    @PostMapping("/groups/join")
+    @PostMapping("/join")
     public ResponseEntity<SolidarityGroupResponse> joinGroup(
             Authentication authentication,
             @Valid @RequestBody JoinSolidarityGroupRequest request) {
@@ -71,13 +71,13 @@ public class SolidarityController {
         return ResponseEntity.ok(joinGroupUseCase.execute(userId, request));
     }
 
-    @GetMapping("/groups")
+    @GetMapping
     public ResponseEntity<List<SolidarityGroupResponse>> listGroups(Authentication authentication) {
         UUID userId = UUID.fromString(authentication.getName());
         return ResponseEntity.ok(listGroupsUseCase.execute(userId));
     }
 
-    @GetMapping("/groups/{groupId}")
+    @GetMapping("/{groupId}")
     public ResponseEntity<SolidarityGroupResponse> getGroup(
             Authentication authentication,
             @PathVariable UUID groupId) {
@@ -85,7 +85,7 @@ public class SolidarityController {
         return ResponseEntity.ok(getGroupUseCase.execute(userId, groupId));
     }
 
-    @GetMapping("/groups/{groupId}/members")
+    @GetMapping("/{groupId}/members")
     public ResponseEntity<List<SolidarityMemberResponse>> listMembers(
             Authentication authentication,
             @PathVariable UUID groupId) {
@@ -93,7 +93,7 @@ public class SolidarityController {
         return ResponseEntity.ok(listMembersUseCase.execute(userId, groupId));
     }
 
-    @PostMapping("/groups/{groupId}/contributions")
+    @PostMapping("/{groupId}/contributions")
     public ResponseEntity<SolidarityGroupResponse> contribute(
             Authentication authentication,
             @PathVariable UUID groupId,
@@ -102,7 +102,7 @@ public class SolidarityController {
         return ResponseEntity.ok(contributeUseCase.execute(userId, groupId, request));
     }
 
-    @PostMapping("/groups/{groupId}/loans")
+    @PostMapping("/{groupId}/loans")
     public ResponseEntity<MicroLoanResponse> requestLoan(
             Authentication authentication,
             @PathVariable UUID groupId,
@@ -111,7 +111,7 @@ public class SolidarityController {
         return ResponseEntity.status(HttpStatus.CREATED).body(requestLoanUseCase.execute(userId, groupId, request));
     }
 
-    @PostMapping("/groups/{groupId}/loans/{loanId}/review")
+    @PostMapping("/{groupId}/loans/{loanId}/review")
     public ResponseEntity<MicroLoanResponse> reviewLoan(
             Authentication authentication,
             @PathVariable UUID groupId,
@@ -121,7 +121,7 @@ public class SolidarityController {
         return ResponseEntity.ok(reviewLoanUseCase.execute(userId, groupId, loanId, request));
     }
 
-    @PostMapping("/groups/{groupId}/loans/{loanId}/installments/{installmentId}/pay")
+    @PostMapping("/{groupId}/loans/{loanId}/installments/{installmentId}/pay")
     public ResponseEntity<LoanInstallmentResponse> payInstallment(
             Authentication authentication,
             @PathVariable UUID groupId,
@@ -131,7 +131,7 @@ public class SolidarityController {
         return ResponseEntity.ok(repayInstallmentUseCase.execute(userId, groupId, loanId, installmentId));
     }
 
-    @GetMapping("/groups/{groupId}/loans")
+    @GetMapping("/{groupId}/loans")
     public ResponseEntity<List<MicroLoanResponse>> listLoans(
             Authentication authentication,
             @PathVariable UUID groupId) {
@@ -139,7 +139,7 @@ public class SolidarityController {
         return ResponseEntity.ok(listLoansUseCase.execute(userId, groupId));
     }
 
-    @GetMapping("/groups/{groupId}/loans/{loanId}/installments")
+    @GetMapping("/{groupId}/loans/{loanId}/installments")
     public ResponseEntity<List<LoanInstallmentResponse>> listInstallments(
             Authentication authentication,
             @PathVariable UUID groupId,
@@ -148,7 +148,7 @@ public class SolidarityController {
         return ResponseEntity.ok(listInstallmentsUseCase.execute(userId, groupId, loanId));
     }
 
-    @GetMapping("/groups/{groupId}/transactions")
+    @GetMapping("/{groupId}/transactions")
     public ResponseEntity<List<PoolTransactionResponse>> listTransactions(
             Authentication authentication,
             @PathVariable UUID groupId) {

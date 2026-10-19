@@ -60,7 +60,7 @@ public class AuditLogService {
                     """,
                     userId, action, entityType, entityId, ip, details, result
             );
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             // La auditoría no debe interrumpir la operación principal
             log.warn("No se pudo registrar evento de auditoría: action={} userId={} error={}",
                     action, userId, ex.getMessage());
@@ -90,7 +90,7 @@ public class AuditLogService {
                     "DELETE FROM audit_log WHERE created_at < NOW() - CAST(? || ' days' AS INTERVAL)",
                     days
             );
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.error("Error al purgar audit_log antiguo: {}", ex.getMessage());
             return 0;
         }

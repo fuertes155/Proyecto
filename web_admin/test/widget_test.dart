@@ -1,11 +1,11 @@
-// Smoke test de SecurityAlertApp: la pantalla de bloqueo que se muestra cuando se detecta
-// un dispositivo comprometido (root/jailbreak). Es la única parte de main.dart que se puede
-// probar sin ProviderScope ni mocks de red/sesión (MetApp sí los necesita — ver TODO abajo).
-//
-// TODO: agregar tests de MetApp() con ProviderScope(overrides: [...]) mockeando
-// appRouterProvider/sessionProvider una vez existan providers de sesión fácilmente mockeables.
+// Smoke tests de main.dart:
+// - SecurityAlertApp: la pantalla de bloqueo que se muestra cuando se detecta un dispositivo
+//   comprometido (root/jailbreak).
+// - MetApp: dentro de su ProviderScope arranca en el login del administrador (el router real
+//   redirige "/" a /admin/login y esa pantalla no toca red ni almacenamiento al construirse).
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:met_admin/main.dart';
@@ -40,5 +40,43 @@ void main() {
     // No debe lanzar excepciones al tocar el botón (SystemNavigator.pop mockeado arriba).
     await tester.tap(closeButton);
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('MetApp arranca en el login del administrador', (WidgetTester tester) async {
+    await tester.pumpWidget(const ProviderScope(child: MetApp()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bienvenido de nuevo'), findsOneWidget);
+    expect(find.text('Usuario administrador'), findsOneWidget);
+    expect(find.text('Contraseña'), findsOneWidget);
+    expect(find.text('Iniciar sesión'), findsOneWidget);
+  });
+
+  testWidgets('El login valida los campos vacíos sin llamar al servidor', (WidgetTester tester) async {
+    await tester.pumpWidget(const ProviderScope(child: MetApp()));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Iniciar sesión'));
+    await tester.tap(find.text('Iniciar sesión'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Escribe tu usuario de administrador'), findsOneWidget);
+    expect(find.text('Escribe tu contraseña'), findsOneWidget);
+  });
+
+  testWidgets('El login usa dos columnas en pantallas anchas y una en angostas',
+      (WidgetTester tester) async {
+    addTearDown(tester.view.reset);
+
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    await tester.pumpWidget(const ProviderScope(child: MetApp()));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('El panel de MET para gestionar'), findsOneWidget);
+
+    tester.view.physicalSize = const Size(400, 860);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('El panel de MET para gestionar'), findsNothing);
+    expect(find.text('Panel administrativo de la cooperativa'), findsOneWidget);
   });
 }

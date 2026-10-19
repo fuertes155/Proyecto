@@ -1,9 +1,12 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/admin_provider.dart';
+import '../../../../core/ui/ui.dart';
 import '../../data/models/admin_models.dart';
+import '../providers/admin_provider.dart';
+import '../shell/admin_nav.dart';
 
 class RiskRulesPage extends ConsumerWidget {
   const RiskRulesPage({super.key});
@@ -11,177 +14,183 @@ class RiskRulesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rulesState = ref.watch(riskRulesProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final active = rulesState.valueOrNull?.where((r) => r.activo).length;
+    final total = rulesState.valueOrNull?.length;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.policy_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Reglas de Riesgo',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
-            onPressed: () => ref.read(riskRulesProvider.notifier).load(),
-          ),
-        ],
-      ),
-      body: rulesState.when(
-        loading: () =>
-            Center(child: CircularProgressIndicator(color: primaryColor)),
-        error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
-        data: (rules) {
-          if (rules.isEmpty) {
-            return Center(
-                child: Text('No hay reglas configuradas',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: rules.length,
-            itemBuilder: (context, i) =>
-                _RiskRuleCard(rule: rules[i], color: primaryColor),
-          );
-        },
-      ),
+    return AdminPage(
+      section: sectionTitleFor(riskRulesItem.route),
+      title: 'Reglas de riesgo',
+      subtitle: active == null
+          ? 'Reglas antifraude que revisan o bloquean operaciones automáticamente.'
+          : '$active de $total reglas activas revisando o bloqueando operaciones en tiempo real.',
+      actions: [
+        OutlinedButton.icon(
+          onPressed: () => ref.read(riskRulesProvider.notifier).load(),
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: const Text('Actualizar'),
+        ),
+      ],
+      children: [
+        rulesState.when(
+          loading: () => const LoadingState(label: 'Cargando reglas…'),
+          error: (e, _) => ErrorState(error: e, onRetry: () => ref.read(riskRulesProvider.notifier).load()),
+          data: (rules) {
+            if (rules.isEmpty) {
+              return const EmptyState(icon: Icons.policy_outlined, title: 'No hay reglas configuradas');
+            }
+            return ResponsiveGrid(
+              minItemWidth: 420,
+              maxColumns: 2,
+              children: [for (final rule in rules) _RiskRuleCard(rule: rule)],
+            );
+          },
+        ),
+      ],
     );
   }
 }
 
-class _RiskRuleCard extends ConsumerWidget {
-  const _RiskRuleCard({required this.rule, required this.color});
+class _RiskRuleCard extends ConsumerStatefulWidget {
+  const _RiskRuleCard({required this.rule});
+
   final RiskRule rule;
-  final Color color;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-            color: rule.activo ? color.withValues(alpha: 0.5) : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: rule.activo
-                        ? color.withValues(alpha: 0.2)
-                        : Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03)),
-                child: Icon(Icons.security_rounded,
-                    color: rule.activo ? color : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(rule.nombre,
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16)),
-                    if (rule.descripcion != null)
-                      Text(rule.descripcion!,
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
-                  ],
-                ),
-              ),
-              Switch(
-                value: rule.activo,
-                activeThumbColor: color,
-                onChanged: (val) async {
-                  try {
-                    await ref
-                        .read(riskRulesProvider.notifier)
-                        .toggle(rule.id, val);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(val ? 'Regla activada' : 'Regla desactivada'),
-                        backgroundColor: val ? color : Colors.grey[800],
-                        behavior: SnackBarBehavior.floating,
-                      ));
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        behavior: SnackBarBehavior.floating,
-                      ));
-                    }
-                  }
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _DetailRow('Condición', rule.condicion),
-          const SizedBox(height: 6),
-          _DetailRow('Acción', rule.accion),
-        ],
-      ),
-    );
-  }
+  ConsumerState<_RiskRuleCard> createState() => _RiskRuleCardState();
 }
 
-class _DetailRow extends StatelessWidget {
-  const _DetailRow(this.label, this.value);
-  final String label;
-  final String value;
+class _RiskRuleCardState extends ConsumerState<_RiskRuleCard> {
+  bool _saving = false;
 
-  String _formatValue(String val) {
+  Future<void> _toggle(bool value) async {
+    if (!value) {
+      final confirmed = await confirmAction(
+        context,
+        title: 'Pausar regla',
+        message: 'Mientras esté pausada, las operaciones que cumplan esta condición no se revisarán ni bloquearán.',
+        confirmLabel: 'Pausar regla',
+        destructive: true,
+        icon: Icons.pause_circle_outline_rounded,
+        details: [('Regla', widget.rule.nombre)],
+      );
+      if (!confirmed) return;
+    }
+    setState(() => _saving = true);
     try {
-      final map = jsonDecode(val) as Map<String, dynamic>;
-      final field = map['field'];
-      final value = map['value'];
-      final operator = map['operator'];
-      
-      String opText = operator == 'gt' ? 'mayor a' : operator == 'lt' ? 'menor a' : operator == 'eq' ? 'igual a' : operator.toString();
-      String fieldText = field == 'amount' ? 'Monto' : field == 'failed_attempts' ? 'Intentos fallidos' : field.toString();
-      String extra = map.containsKey('window_minutes') ? ' en ${map['window_minutes']} minutos' : '';
-      
-      if (field == 'amount') {
-        return '$fieldText $opText \$${value.toString().replaceAll(RegExp(r'\B(?=(\d{3})+(?!\d))'), ".")}$extra';
+      await ref.read(riskRulesProvider.notifier).toggle(widget.rule.id, value);
+      if (mounted) {
+        showMetSnack(context, value ? 'Regla "${widget.rule.nombre}" activada' : 'Regla "${widget.rule.nombre}" pausada',
+            tone: value ? Tone.success : Tone.neutral);
       }
-      return '$fieldText $opText $value$extra';
-    } catch (_) {
-      // If it's not JSON, return as is
-      return val == 'REVIEW' ? 'Revisión Manual' : val == 'BLOCK' ? 'Bloqueo Automático' : val;
+    } catch (e) {
+      if (mounted) showErrorSnack(context, e);
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(Icons.code_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 16),
-        const SizedBox(width: 8),
-        Text(label,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(_formatValue(value),
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500, fontSize: 13)),
+    final rule = widget.rule;
+    final action = _describeAction(rule.accion);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconBadge(Icons.policy_rounded, tone: rule.activo ? Tone.success : Tone.neutral),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(rule.nombre, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Text(rule.descripcion ?? 'Sin descripción',
+                          style: const TextStyle(fontSize: 13.5, color: MetColors.textMuted, height: 1.4)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (_saving)
+                  const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                else
+                  Tooltip(
+                    message: rule.activo ? 'Pausar regla' : 'Activar regla',
+                    child: Switch(value: rule.activo, onChanged: _toggle),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: MetColors.subtle, borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('SE ACTIVA CUANDO',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 0.8, color: MetColors.textMuted)),
+                  const SizedBox(height: 4),
+                  Text(_describeCondition(rule.condicion),
+                      style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                const Text('Acción', style: TextStyle(fontSize: 13.5, color: MetColors.textMuted)),
+                const SizedBox(width: 10),
+                StatusBadge(action, showDot: false),
+                const Spacer(),
+                StatusBadge(rule.activo ? const StatusInfo('Activa', Tone.success) : const StatusInfo('Pausada', Tone.neutral)),
+              ],
+            ),
+          ],
         ),
-      ],
+      ),
     );
+  }
+
+  static StatusInfo _describeAction(String action) => switch (action) {
+        'REVIEW' => const StatusInfo('Revisión manual', Tone.warning),
+        'BLOCK' => const StatusInfo('Bloqueo automático', Tone.danger),
+        _ => StatusInfo(action, Tone.neutral),
+      };
+
+  /// {"field":"amount","operator":"gt","value":10000000} → "Monto mayor a $10.000.000".
+  static String _describeCondition(String raw) {
+    try {
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final field = map['field'];
+      final value = map['value'];
+      final op = switch (map['operator']) {
+        'gt' => 'mayor a',
+        'gte' => 'mayor o igual a',
+        'lt' => 'menor a',
+        'lte' => 'menor o igual a',
+        'eq' => 'igual a',
+        final other => other.toString(),
+      };
+      final window = map.containsKey('window_minutes') ? ' en ${map['window_minutes']} minutos' : '';
+      if (field == 'amount' && value is num) return 'Monto $op ${formatCop(value.toDouble())}$window';
+      final fieldText = switch (field) {
+        'amount' => 'Monto',
+        'failed_attempts' => 'Intentos fallidos',
+        final other => other.toString(),
+      };
+      return '$fieldText $op $value$window';
+    } catch (_) {
+      return raw;
+    }
   }
 }

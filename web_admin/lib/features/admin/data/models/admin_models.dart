@@ -360,3 +360,46 @@ class GuaranteeFundSummary {
   final int activationDaysLate;
   final List<GuaranteeFundMovement> movements;
 }
+
+/// Reporte regulatorio para la Supersolidaria generado en el backend.
+class RegulatoryReport {
+  RegulatoryReport({
+    required this.id,
+    required this.reportType,
+    required this.periodYear,
+    required this.periodMonth,
+    required this.status,
+    this.fileName,
+    this.fileSizeBytes,
+    this.recordCount,
+    this.checksumSha256,
+    this.generatedAt,
+  });
+
+  factory RegulatoryReport.fromJson(Map<String, dynamic> json) {
+    int? toInt(Object? v) => v == null ? null : int.tryParse(v.toString());
+    return RegulatoryReport(
+      id: json['id'].toString(),
+      reportType: json['reportType']?.toString() ?? '',
+      periodYear: toInt(json['periodYear']) ?? 0,
+      periodMonth: toInt(json['periodMonth']) ?? 0,
+      status: json['status']?.toString() ?? 'PENDING',
+      fileName: json['fileName']?.toString(),
+      fileSizeBytes: toInt(json['fileSizeBytes']),
+      recordCount: toInt(json['recordCount']),
+      checksumSha256: json['checksumSha256']?.toString(),
+      generatedAt: json['generatedAt'],
+    );
+  }
+
+  final String id;
+  final String reportType;
+  final int periodYear;
+  final int periodMonth;
+  final String status;
+  final String? fileName;
+  final int? fileSizeBytes;
+  final int? recordCount;
+  final String? checksumSha256;
+  final Object? generatedAt;
+}

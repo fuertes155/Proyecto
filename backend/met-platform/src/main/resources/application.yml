@@ -10,10 +10,10 @@ spring:
     hibernate:
       ddl-auto: none
     properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-        globally_quoted_identifiers: true
+      # Claves con "." o "_": entre corchetes para que Spring las tome literales.
+      "[hibernate.dialect]": org.hibernate.dialect.PostgreSQLDialect
+      "[hibernate.format_sql]": true
+      "[hibernate.globally_quoted_identifiers]": true
     open-in-view: false
   data:
     redis:
@@ -27,7 +27,7 @@ spring:
       # Hash BCrypt de la contraseña del super administrador inicial.
       # Obligatorio: Genera el hash y ponlo en la variable de entorno en tu servidor.
       # Comando para generar: htpasswd -bnBC 12 "" <PASSWORD> | tr -d ':\n' | sed 's/$2y/$2a/'
-      superadmin_password_hash: ${SUPERADMIN_PASSWORD_HASH}
+      "[superadmin_password_hash]": ${SUPERADMIN_PASSWORD_HASH}
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -73,9 +73,6 @@ management:
   endpoint:
     health:
       show-details: when_authorized
-    prometheus:
-      # El endpoint de métricas solo es accesible internamente (scraping de Prometheus)
-      access: read_only
   # Trazabilidad distribuida → Zipkin
   zipkin:
     tracing:
@@ -240,8 +237,8 @@ met:
 
 logging:
   level:
-    com.cooperativa.met: INFO
-    org.springframework.security: WARN
+    "[com.cooperativa.met]": INFO
+    "[org.springframework.security]": WARN
 
 springdoc:
   api-docs:

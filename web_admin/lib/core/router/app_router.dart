@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,30 +18,42 @@ import '../../features/admin/presentation/pages/business/partners_page.dart';
 import '../../features/admin/presentation/pages/business/accounts_page.dart';
 import '../../features/admin/presentation/pages/business/loans_page.dart';
 import '../../features/admin/presentation/pages/guarantee_fund_page.dart';
+import '../../features/admin/presentation/shell/admin_shell.dart';
+
+/// Páginas dentro del panel (con menú lateral). Sin animación entre secciones:
+/// en un panel web el cambio debe sentirse inmediato.
+GoRoute _panelRoute(String path, Widget page) => GoRoute(
+      path: path,
+      pageBuilder: (context, state) => NoTransitionPage(key: state.pageKey, child: page),
+    );
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/admin/login',
     routes: [
-      GoRoute(
-        path: '/',
-        redirect: (context, state) => '/admin/login',
-      ),
+      GoRoute(path: '/', redirect: (context, state) => '/admin/login'),
+      GoRoute(path: '/admin', redirect: (context, state) => '/admin/dashboard'),
       GoRoute(path: '/admin/login', builder: (context, state) => const AdminLoginPage()),
-      GoRoute(path: '/admin/dashboard', builder: (context, state) => const AdminDashboardPage()),
-      GoRoute(path: '/admin/emergency-lock', builder: (context, state) => const EmergencyLockPage()),
-      GoRoute(path: '/admin/maintenance', builder: (context, state) => const MaintenancePage()),
-      GoRoute(path: '/admin/fees', builder: (context, state) => const FeesPage()),
-      GoRoute(path: '/admin/risk-rules', builder: (context, state) => const RiskRulesPage()),
-      GoRoute(path: '/admin/transaction-reversal', builder: (context, state) => const TransactionReversalPage()),
-      GoRoute(path: '/admin/reset-credentials', builder: (context, state) => const ResetCredentialsPage()),
-      GoRoute(path: '/admin/limits', builder: (context, state) => const OperationLimitsPage()),
-      GoRoute(path: '/admin/audit-log', builder: (context, state) => const AuditLogPage()),
-      GoRoute(path: '/admin/reports', builder: (context, state) => const RegulatoryReportsPage()),
-      GoRoute(path: '/admin/compliance', builder: (context, state) => const CompliancePage()),
-      GoRoute(path: '/admin/partners', builder: (context, state) => const PartnersPage()),
-      GoRoute(path: '/admin/accounts', builder: (context, state) => const AccountsPage()),
-      GoRoute(path: '/admin/loans', builder: (context, state) => const LoansPage()),
-      GoRoute(path: '/admin/guarantee-fund', builder: (context, state) => const GuaranteeFundPage()),
+      ShellRoute(
+        builder: (context, state, child) => AdminShell(location: state.uri.path, child: child),
+        routes: [
+          _panelRoute('/admin/dashboard', const AdminDashboardPage()),
+          _panelRoute('/admin/partners', const PartnersPage()),
+          _panelRoute('/admin/accounts', const AccountsPage()),
+          _panelRoute('/admin/loans', const LoansPage()),
+          _panelRoute('/admin/compliance', const CompliancePage()),
+          _panelRoute('/admin/risk-rules', const RiskRulesPage()),
+          _panelRoute('/admin/guarantee-fund', const GuaranteeFundPage()),
+          _panelRoute('/admin/limits', const OperationLimitsPage()),
+          _panelRoute('/admin/fees', const FeesPage()),
+          _panelRoute('/admin/maintenance', const MaintenancePage()),
+          _panelRoute('/admin/emergency-lock', const EmergencyLockPage()),
+          _panelRoute('/admin/transaction-reversal', const TransactionReversalPage()),
+          _panelRoute('/admin/reset-credentials', const ResetCredentialsPage()),
+          _panelRoute('/admin/reports', const RegulatoryReportsPage()),
+          _panelRoute('/admin/audit-log', const AuditLogPage()),
+        ],
+      ),
     ],
   );
 });

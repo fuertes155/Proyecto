@@ -1,8 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/admin_provider.dart';
+import '../../../../core/ui/ui.dart';
 import '../../data/models/admin_models.dart';
+import '../providers/admin_provider.dart';
+import '../shell/admin_nav.dart';
+
+const _pageSize = 20;
+
+// Códigos que registra el backend (AdminAuditEntry.accion / entidadAfectada).
+const _knownActions = {
+  'ADMIN_LOGIN': 'Inicio de sesión',
+  'ADMIN_SUSPENDED': 'Administrador suspendido',
+  'COMPLIANCE_ALERT_REVIEWED': 'Alerta SARLAFT revisada',
+  'EMERGENCY_LOCK_USER': 'Bloqueo de usuario',
+  'EMERGENCY_REVOKE_TOKENS': 'Sesiones revocadas',
+  'FEE_SCHEDULE_CREATED': 'Tarifa creada',
+  'FEE_SCHEDULE_UPDATED': 'Tarifa actualizada',
+  'FEE_SCHEDULE_DELETED': 'Tarifa eliminada',
+  'MAINTENANCE_SCHEDULED': 'Mantenimiento programado',
+  'MAINTENANCE_ACTIVATED': 'Mantenimiento activado',
+  'MAINTENANCE_DEACTIVATED': 'Mantenimiento desactivado',
+  'OPERATION_LIMIT_UPDATED': 'Límite actualizado',
+  'RESTRICTIVE_LIST_REFRESH_TRIGGERED': 'Listas restrictivas actualizadas',
+  'RISK_RULE_CREATED': 'Regla de riesgo creada',
+  'RISK_RULE_ENABLED': 'Regla de riesgo activada',
+  'RISK_RULE_DISABLED': 'Regla de riesgo pausada',
+  'RISK_RULE_DELETED': 'Regla de riesgo eliminada',
+  'TRANSACTION_REVERSED': 'Reversión registrada',
+  'USER_CREDENTIALS_RESET': 'Credenciales reseteadas',
+};
+
+const _knownEntities = {
+  'ADMIN': 'Administrador',
+  'USER': 'Usuario',
+  'KYC': 'KYC',
+  'TRANSACTION': 'Transacción',
+  'FEE_SCHEDULE': 'Tarifa',
+  'RISK_RULE': 'Regla de riesgo',
+  'MAINTENANCE_WINDOW': 'Mantenimiento',
+  'COMPLIANCE_ALERT': 'Alerta SARLAFT',
+};
+
+/// "FEE_CREATED" → "Fee created" cuando no hay traducción conocida.
+String _actionLabel(String code) {
+  final known = _knownActions[code];
+  if (known != null) return known;
+  final text = code.toLowerCase().replaceAll('_', ' ');
+  return text.isEmpty ? code : text[0].toUpperCase() + text.substring(1);
+}
+
+Tone _actionTone(String action) {
+  if (action.contains('LOCK') || action.contains('BLOCK') || action.contains('FAILED') || action.contains('SUSPENDED')) {
+    return Tone.danger;
+  }
+  if (action.contains('REVERS') ||
+      action.contains('DELETE') ||
+      action.contains('RESET') ||
+      action.contains('REVOKE') ||
+      action.contains('DISABLED') ||
+      action.contains('ACTIVATED')) {
+    return Tone.warning;
+  }
+  if (action.contains('LOGIN')) return Tone.info;
+  if (action.contains('CREATE') || action.contains('ENABLED') || action.contains('REVIEWED')) return Tone.success;
+  return Tone.neutral;
+}
 
 class AuditLogPage extends ConsumerWidget {
   const AuditLogPage({super.key});
@@ -10,188 +73,102 @@ class AuditLogPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final logState = ref.watch(auditLogProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.history_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Log de Auditoría',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
-            onPressed: () => ref.read(auditLogProvider.notifier).load(),
-          ),
-        ],
-      ),
-      body: logState.when(
-        loading: () =>
-            Center(child: CircularProgressIndicator(color: primaryColor)),
-        error: (e, _) => Center(
-            child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
-        data: (data) {
-          final entries = (data['data'] as List? ?? [])
-              .map((e) => AuditLogEntry.fromJson(e as Map<String, dynamic>))
-              .toList();
-          final total = data['total'] as int? ?? 0;
-          final page = data['page'] as int? ?? 0;
-          final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AdminPage(
+      section: sectionTitleFor(auditLogItem.route),
+      title: 'Auditoría',
+      subtitle: 'Cada acción administrativa queda registrada con quién, cuándo, desde dónde y por qué.',
+      actions: [
+        OutlinedButton.icon(
+          onPressed: () => ref.read(auditLogProvider.notifier).load(),
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: const Text('Actualizar'),
+        ),
+      ],
+      children: [
+        logState.when(
+          loading: () => const LoadingState(label: 'Cargando registros…'),
+          error: (e, _) => ErrorState(error: e, onRetry: () => ref.read(auditLogProvider.notifier).load()),
+          data: (data) {
+            final entries = (data['data'] as List? ?? [])
+                .map((e) => AuditLogEntry.fromJson(e as Map<String, dynamic>))
+                .toList();
+            final total = data['total'] as int? ?? entries.length;
+            final page = data['page'] as int? ?? 0;
 
-          return Column(
-            children: [
-              // Summary
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                decoration: BoxDecoration(
-                  color: primaryColor.withValues(alpha: isDark ? 0.1 : 0.05),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
+            if (entries.isEmpty && page == 0) {
+              return const Card(
+                child: EmptyState(icon: Icons.history_rounded, title: 'Todavía no hay registros de auditoría'),
+              );
+            }
+
+            final from = page * _pageSize + 1;
+            final to = page * _pageSize + entries.length;
+            final hasNext = entries.length == _pageSize && to < total;
+
+            return AdminTable<AuditLogEntry>(
+              rows: entries,
+              columns: [
+                AdminColumn(
+                  label: 'Fecha',
+                  flex: 2,
+                  cell: (e) => CellText(formatDateTime(e.timestamp)),
                 ),
+                AdminColumn(
+                  label: 'Acción',
+                  flex: 3,
+                  cell: (e) => StatusBadge(StatusInfo(_actionLabel(e.accion), _actionTone(e.accion))),
+                ),
+                AdminColumn(
+                  label: 'Sobre',
+                  flex: 3,
+                  cell: (e) => TwoLineCell(
+                    _knownEntities[e.entidadAfectada] ?? e.entidadAfectada ?? '—',
+                    e.idEntidad,
+                    monospaceSecondary: true,
+                  ),
+                ),
+                AdminColumn(
+                  label: 'Motivo',
+                  flex: 4,
+                  cell: (e) => CellText(e.motivo ?? '—', muted: e.motivo == null),
+                ),
+                AdminColumn(
+                  label: 'IP',
+                  flex: 2,
+                  alignEnd: true,
+                  cell: (e) => Text(e.ipOrigen ?? '—',
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 13, color: MetColors.textMuted)),
+                ),
+              ],
+              footer: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Row(
                   children: [
-                    Icon(Icons.format_list_bulleted_rounded,
-                        color: primaryColor, size: 20),
-                    const SizedBox(width: 10),
-                    Text('$total eventos registrados',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w600)),
-                    const Spacer(),
-                    Text('Pág. ${page + 1}',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
+                    Expanded(
+                      child: Text('Mostrando $from–$to de $total',
+                          style: const TextStyle(fontSize: 13.5, color: MetColors.textMuted)),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: page > 0 ? () => ref.read(auditLogProvider.notifier).prevPage() : null,
+                      icon: const Icon(Icons.chevron_left_rounded, size: 20),
+                      label: const Text('Anterior'),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: hasNext ? () => ref.read(auditLogProvider.notifier).nextPage() : null,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [Text('Siguiente'), SizedBox(width: 4), Icon(Icons.chevron_right_rounded, size: 20)],
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: entries.length,
-                  itemBuilder: (context, i) => _AuditCard(entry: entries[i]),
-                ),
-              ),
-              // Paginación
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: page > 0
-                          ? () => ref.read(auditLogProvider.notifier).prevPage()
-                          : null,
-                      icon: const Icon(Icons.chevron_left_rounded),
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                    Text('Página ${page + 1}',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7))),
-                    IconButton(
-                      onPressed: entries.length == 20
-                          ? () => ref.read(auditLogProvider.notifier).nextPage()
-                          : null,
-                      icon: const Icon(Icons.chevron_right_rounded),
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _AuditCard extends StatelessWidget {
-  const _AuditCard({required this.entry});
-  final AuditLogEntry entry;
-
-  static Color _accionColor(String accion, BuildContext context) {
-    if (accion.contains('LOCK') || accion.contains('BLOCKED')) return const Color(0xFFCF3232);
-    if (accion.contains('LOGIN')) return const Color(0xFF0B5FFF);
-    if (accion.contains('CREATED')) return const Color(0xFF00A86B);
-    if (accion.contains('UPDATED') || accion.contains('RESET')) return Theme.of(context).colorScheme.primary;
-    if (accion.contains('DELETED') || accion.contains('REVERSED')) return const Color(0xFFE91E63);
-    return const Color(0xFF9E9E9E);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _accionColor(entry.accion, context);
-    final ts = entry.timestamp.replaceAll('T', ' ').substring(0, 19);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(entry.accion,
-                    style: TextStyle(
-                        color: color, fontSize: 11, fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5)),
-              ),
-              const Spacer(),
-              Text(ts,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 11, fontFamily: 'monospace')),
-            ],
-          ),
-          if (entry.entidadAfectada != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text('${entry.entidadAfectada}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
-                if (entry.idEntidad != null)
-                  Text(' → ${entry.idEntidad}',
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),
-                          fontSize: 11, fontFamily: 'monospace')),
-              ],
-            ),
-          ],
-          if (entry.motivo != null) ...[
-            const SizedBox(height: 4),
-            Text(entry.motivo!,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 12,
-                    fontStyle: FontStyle.italic)),
-          ],
-          if (entry.ipOrigen != null) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.location_on_rounded,
-                    size: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
-                const SizedBox(width: 4),
-                Text(entry.ipOrigen!,
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-                        fontSize: 11, fontFamily: 'monospace')),
-              ],
-            ),
-          ],
-        ],
-      ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

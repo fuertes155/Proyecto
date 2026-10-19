@@ -1,51 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/ui/ui.dart';
 import '../../data/repositories/admin_repository.dart';
+import '../shell/admin_nav.dart';
+import '../widgets/critical_action_layout.dart';
+import '../widgets/user_picker_field.dart';
 
 class ResetCredentialsPage extends ConsumerStatefulWidget {
   const ResetCredentialsPage({super.key});
 
   @override
-  ConsumerState<ResetCredentialsPage> createState() =>
-      _ResetCredentialsPageState();
+  ConsumerState<ResetCredentialsPage> createState() => _ResetCredentialsPageState();
 }
 
 class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
+  final _formKey = GlobalKey<FormState>();
   final _userIdCtrl = TextEditingController();
   final _reasonCtrl = TextEditingController();
   bool _isLoading = false;
+  int _formVersion = 0;
 
-  Future<void> _submitReset() async {
-    if (_userIdCtrl.text.isEmpty || _reasonCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Por favor, completa todos los campos'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
-      return;
-    }
+  @override
+  void dispose() {
+    _userIdCtrl.dispose();
+    _reasonCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    final confirmed = await confirmAction(
+      context,
+      title: '¿Resetear credenciales?',
+      message: 'El socio tendrá que volver a registrar su PIN y su biometría la próxima vez que entre a la app.',
+      confirmLabel: 'Resetear credenciales',
+      destructive: true,
+      icon: Icons.lock_reset_rounded,
+      details: [('Usuario', _userIdCtrl.text.trim()), ('Motivo', _reasonCtrl.text.trim())],
+    );
+    if (!confirmed) return;
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(adminRepositoryProvider).resetUserCredentials(
-            _userIdCtrl.text,
-            _reasonCtrl.text,
-          );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Credenciales reseteadas exitosamente'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ));
-        _userIdCtrl.clear();
-        _reasonCtrl.clear();
-      }
+      await ref.read(adminRepositoryProvider).resetUserCredentials(_userIdCtrl.text.trim(), _reasonCtrl.text.trim());
+      if (!mounted) return;
+      showMetSnack(context, 'Credenciales reseteadas. El socio deberá registrar un PIN nuevo.');
+      _userIdCtrl.clear();
+      _reasonCtrl.clear();
+      setState(() => _formVersion++);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error al resetear credenciales: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ));
-      }
+      if (mounted) showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -53,136 +58,51 @@ class _ResetCredentialsPageState extends ConsumerState<ResetCredentialsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.lock_reset_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Reseteo de Credenciales',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
-              ),
-              child: Row(
+    return AdminPage(
+      section: sectionTitleFor(resetCredentialsItem.route),
+      title: 'Reseteo de credenciales',
+      subtitle: 'Para socios que olvidaron su PIN, cambiaron de celular o reportan que alguien más conoce su clave.',
+      maxWidth: 1120,
+      children: [
+        CriticalActionLayout(
+          form: SectionCard(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.info_outline_rounded, color: primaryColor),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Esta acción invalidará las credenciales actuales del usuario '
-                      'y le enviará un correo con un enlace seguro para establecer '
-                      'una nueva contraseña y PIN biométrico.',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
+                  const FieldLabel('Socio', required: true),
+                  UserPickerField(key: ValueKey(_formVersion), idController: _userIdCtrl, enabled: !_isLoading),
+                  const SizedBox(height: 20),
+                  const FieldLabel('Motivo', required: true, help: 'Cómo lo solicitó el socio y cómo validaste su identidad.'),
+                  TextFormField(
+                    controller: _reasonCtrl,
+                    enabled: !_isLoading,
+                    maxLines: 3,
+                    maxLength: 500,
+                    decoration: const InputDecoration(
+                      hintText: 'Ej.: Solicitud por pérdida del celular, identidad validada con videollamada.',
                     ),
+                    validator: (v) => (v == null || v.trim().length < 10) ? 'Describe el motivo (mínimo 10 caracteres)' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  DangerSubmitButton(
+                    label: 'Resetear credenciales',
+                    loadingLabel: 'Reseteando…',
+                    icon: Icons.lock_reset_rounded,
+                    loading: _isLoading,
+                    onPressed: _submit,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
-            _InputField(
-              label: 'ID del Usuario (Email o UUID)',
-              controller: _userIdCtrl,
-              icon: Icons.person_search_rounded,
-            ),
-            const SizedBox(height: 16),
-            _InputField(
-              label: 'Motivo del reseteo (Ej. Solicitud por pérdida)',
-              controller: _reasonCtrl,
-              icon: Icons.notes_rounded,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                onPressed: _isLoading ? null : _submitReset,
-                child: _isLoading
-                    ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface)
-                    : Text(
-                        'FORZAR RESETEO',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1),
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InputField extends StatelessWidget {
-  const _InputField({
-    required this.label,
-    required this.controller,
-    required this.icon,
-    this.maxLines = 1,
-  });
-
-  final String label;
-  final TextEditingController controller;
-  final IconData icon;
-  final int maxLines;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                fontSize: 14,
-                fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.02),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.05)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-            ),
           ),
+          aside: const ConsequencesCard(items: [
+            (Icons.logout_rounded, 'Se cierran todas sus sesiones guardadas en cualquier dispositivo.'),
+            (Icons.pin_outlined, 'Se borra su PIN: al volver a entrar deberá crear uno nuevo.'),
+            (Icons.fingerprint_rounded, 'Se borra su registro biométrico y tendrá que activarlo otra vez.'),
+            (Icons.account_balance_wallet_outlined, 'Su saldo, cuentas y datos personales no cambian.'),
+          ]),
         ),
       ],
     );

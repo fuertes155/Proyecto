@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 /**
@@ -186,7 +188,7 @@ public class WebhookController {
             return MessageDigest.isEqual(
                     expectedSignature.getBytes(StandardCharsets.UTF_8),
                     signatureHeader.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.error("Error calculating legacy HMAC signature", e);
             return false;
         }

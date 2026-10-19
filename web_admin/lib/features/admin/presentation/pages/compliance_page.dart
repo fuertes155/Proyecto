@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/admin_provider.dart';
+import '../../../../core/ui/ui.dart';
 import '../../data/models/admin_models.dart';
+import '../providers/admin_provider.dart';
+import '../shell/admin_nav.dart';
+
+enum _ComplianceTab { alerts, lists }
 
 /// Panel de cumplimiento SARLAFT: alertas de operaciones inusuales
 /// (monto/frecuencia/patrón) y coincidencias contra listas restrictivas
@@ -14,63 +18,56 @@ class CompliancePage extends ConsumerStatefulWidget {
   ConsumerState<CompliancePage> createState() => _CompliancePageState();
 }
 
-class _CompliancePageState extends ConsumerState<CompliancePage> with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _CompliancePageState extends ConsumerState<CompliancePage> {
+  _ComplianceTab _tab = _ComplianceTab.alerts;
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(children: [
-          Icon(Icons.shield_rounded, color: primaryColor, size: 24),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Cumplimiento SARLAFT',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-        ]),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: primaryColor,
-          unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-          indicatorColor: primaryColor,
-          tabs: const [
-            Tab(text: 'Alertas'),
-            Tab(text: 'Listas Restrictivas'),
-          ],
+    return AdminPage(
+      section: sectionTitleFor(complianceItem.route),
+      title: 'Cumplimiento SARLAFT',
+      subtitle: 'Revisa operaciones inusuales y coincidencias con listas restrictivas (OFAC y ONU).',
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SegmentedButton<_ComplianceTab>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(
+                value: _ComplianceTab.alerts,
+                icon: Icon(Icons.notifications_active_outlined, size: 18),
+                label: Text('Alertas de operaciones'),
+              ),
+              ButtonSegment(
+                value: _ComplianceTab.lists,
+                icon: Icon(Icons.fact_check_outlined, size: 18),
+                label: Text('Listas restrictivas'),
+              ),
+            ],
+            selected: {_tab},
+            onSelectionChanged: (s) => setState(() => _tab = s.first),
+            style: SegmentedButton.styleFrom(
+              selectedBackgroundColor: MetColors.successBg,
+              selectedForegroundColor: MetColors.primary,
+              side: const BorderSide(color: MetColors.borderStrong),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          ),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          _AlertsTab(),
-          _RestrictiveListsTab(),
-        ],
-      ),
+        const SizedBox(height: 20),
+        if (_tab == _ComplianceTab.alerts) const _AlertsSection() else const _RestrictiveListsSection(),
+      ],
     );
   }
 }
 
-// ── Tab: Alertas ─────────────────────────────────────────────────────────────
+// ── Alertas ──────────────────────────────────────────────────────────────────
 
-class _AlertsTab extends ConsumerWidget {
-  const _AlertsTab();
+class _AlertsSection extends ConsumerWidget {
+  const _AlertsSection();
 
   static const _statuses = ['OPEN', 'UNDER_REVIEW', 'DISMISSED', 'REPORTED'];
-  static const _statusLabels = {
+  static const _labels = {
     'OPEN': 'Abiertas',
     'UNDER_REVIEW': 'En revisión',
     'DISMISSED': 'Descartadas',
@@ -81,64 +78,57 @@ class _AlertsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentStatus = ref.watch(complianceAlertStatusFilterProvider);
     final alertsState = ref.watch(complianceAlertsProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _statuses.map((s) {
-                final selected = s == currentStatus;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(_statusLabels[s] ?? s),
-                    selected: selected,
-                    selectedColor: primaryColor.withValues(alpha: 0.2),
-                    onSelected: (_) => ref.read(complianceAlertStatusFilterProvider.notifier).state = s,
-                  ),
-                );
-              }).toList(),
+        Row(
+          children: [
+            Expanded(
+              child: FilterBar<String>(
+                selected: currentStatus,
+                onChanged: (s) => ref.read(complianceAlertStatusFilterProvider.notifier).state = s,
+                options: [for (final s in _statuses) FilterOption(s, _labels[s]!)],
+              ),
             ),
-          ),
+            IconButton(
+              tooltip: 'Actualizar',
+              onPressed: () => ref.read(complianceAlertsProvider.notifier).load(),
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ],
         ),
-        Expanded(
-          child: alertsState.when(
-            loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
-            error: (e, _) => Center(
-                child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
-            data: (data) {
-              final items = (data['items'] as List? ?? [])
-                  .map((e) => ComplianceAlert.fromJson(e as Map<String, dynamic>))
-                  .toList();
-              final total = data['total'] as int? ?? items.length;
-
-              if (items.isEmpty) {
-                return Center(
-                  child: Text('No hay alertas ${(_statusLabels[currentStatus] ?? '').toLowerCase()}',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
-                );
-              }
-
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                itemCount: items.length + 1,
-                itemBuilder: (context, i) {
-                  if (i == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text('$total alerta(s)',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 13)),
-                    );
-                  }
-                  return _AlertCard(alert: items[i - 1]);
-                },
+        const SizedBox(height: 16),
+        alertsState.when(
+          loading: () => const LoadingState(label: 'Cargando alertas…'),
+          error: (e, _) => ErrorState(error: e, onRetry: () => ref.read(complianceAlertsProvider.notifier).load()),
+          data: (data) {
+            final items = (data['items'] as List? ?? [])
+                .map((e) => ComplianceAlert.fromJson(e as Map<String, dynamic>))
+                .toList();
+            final total = data['total'] as int? ?? items.length;
+            if (items.isEmpty) {
+              return Card(
+                child: EmptyState(
+                  icon: Icons.verified_user_outlined,
+                  title: 'No hay alertas ${_labels[currentStatus]!.toLowerCase()}',
+                  message: currentStatus == 'OPEN' ? 'Ninguna operación inusual espera revisión.' : null,
+                ),
               );
-            },
-          ),
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(total == 1 ? '1 alerta' : '$total alertas',
+                      style: const TextStyle(color: MetColors.textMuted, fontSize: 13.5, fontWeight: FontWeight.w600)),
+                ),
+                for (final alert in items)
+                  Padding(padding: const EdgeInsets.only(bottom: 12), child: _AlertCard(alert: alert)),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -147,238 +137,273 @@ class _AlertsTab extends ConsumerWidget {
 
 class _AlertCard extends ConsumerWidget {
   const _AlertCard({required this.alert});
-  final ComplianceAlert alert;
 
-  Color _severityColor() => switch (alert.severity) {
-        'HIGH' => const Color(0xFFCF3232),
-        'MEDIUM' => const Color(0xFFE8A33D),
-        _ => const Color(0xFF0B5FFF),
-      };
+  final ComplianceAlert alert;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final color = _severityColor();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ts = alert.createdAt.replaceAll('T', ' ').substring(0, 19);
+    final severity = alertSeverity(alert.severity);
+    final actionable = alert.status == 'OPEN' || alert.status == 'UNDER_REVIEW';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
-                child: Text(alert.alertTypeLabel,
-                    style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 4, color: severity.tone.foreground),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        StatusBadge(StatusInfo(alert.alertTypeLabel, severity.tone), showDot: false),
+                        StatusBadge(severity),
+                        if (alert.status != 'OPEN') StatusBadge(alertStatus(alert.status)),
+                        Text(formatDateTime(alert.createdAt),
+                            style: const TextStyle(fontSize: 13, color: MetColors.textMuted)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        InitialsAvatar(alert.userFullName, size: 32),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(alert.userFullName,
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                        ),
+                        const SizedBox(width: 8),
+                        Text('· ${alert.userDocumentNumber}',
+                            style: const TextStyle(fontSize: 14, color: MetColors.textMuted)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(alert.description, style: const TextStyle(fontSize: 14.5, height: 1.5)),
+                    if (alert.resolutionNotes != null && alert.resolutionNotes!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: MetColors.subtle, borderRadius: BorderRadius.circular(10)),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.sticky_note_2_outlined, size: 18, color: MetColors.textMuted),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(alert.resolutionNotes!,
+                                  style: const TextStyle(fontSize: 13.5, color: MetColors.textMuted)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (actionable) ...[
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => _review(context, ref, 'DISMISSED'),
+                            style: TextButton.styleFrom(foregroundColor: MetColors.textMuted),
+                            child: const Text('Descartar'),
+                          ),
+                          if (alert.status == 'OPEN')
+                            OutlinedButton(
+                              onPressed: () => _review(context, ref, 'UNDER_REVIEW'),
+                              child: const Text('Poner en revisión'),
+                            ),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(backgroundColor: MetColors.danger),
+                            onPressed: () => _review(context, ref, 'REPORTED'),
+                            icon: const Icon(Icons.flag_rounded, size: 18),
+                            label: const Text('Marcar para ROS'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              const Spacer(),
-              Text(ts,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11, fontFamily: 'monospace')),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text('${alert.userFullName} · ${alert.userDocumentNumber}',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
-          const SizedBox(height: 6),
-          Text(alert.description,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75), fontSize: 13)),
-          if (alert.status != 'OPEN') ...[
-            const SizedBox(height: 8),
-            Text('Estado: ${alert.status}${alert.resolutionNotes != null ? ' — ${alert.resolutionNotes}' : ''}',
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12, fontStyle: FontStyle.italic)),
-          ],
-          if (alert.status == 'OPEN' || alert.status == 'UNDER_REVIEW') ...[
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => _reviewDialog(context, ref, 'DISMISSED'),
-                  child: const Text('Descartar'),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () => _reviewDialog(context, ref, 'UNDER_REVIEW'),
-                  child: const Text('En revisión'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFFCF3232)),
-                  onPressed: () => _reviewDialog(context, ref, 'REPORTED'),
-                  child: const Text('Marcar para ROS'),
-                ),
-              ],
             ),
           ],
-        ],
+        ),
       ),
     );
   }
 
-  Future<void> _reviewDialog(BuildContext context, WidgetRef ref, String newStatus) async {
-    final notesController = TextEditingController();
+  Future<void> _review(BuildContext context, WidgetRef ref, String newStatus) async {
+    final notes = TextEditingController();
+    final (title, description, confirmLabel, destructive) = switch (newStatus) {
+      'DISMISSED' => ('Descartar alerta', 'La operación se considera normal y la alerta se cierra.', 'Descartar', false),
+      'UNDER_REVIEW' => ('Poner en revisión', 'La alerta queda asignada para análisis.', 'Poner en revisión', false),
+      _ => (
+          'Marcar para ROS',
+          'La alerta se marca para el Reporte de Operación Sospechosa ante la UIAF.',
+          'Marcar para ROS',
+          true
+        ),
+    };
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(_dialogTitle(newStatus)),
-        content: TextField(
-          controller: notesController,
-          maxLines: 3,
-          decoration: const InputDecoration(labelText: 'Notas (opcional)', border: OutlineInputBorder()),
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(description),
+              const SizedBox(height: 6),
+              Text('${alert.userFullName} · ${alert.alertTypeLabel}',
+                  style: const TextStyle(fontWeight: FontWeight.w700, color: MetColors.text)),
+              const SizedBox(height: 16),
+              const FieldLabel('Notas', help: 'Opcional. Quedan en el historial de la alerta.'),
+              TextField(
+                controller: notes,
+                maxLines: 3,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: 'Ej.: Se validó el origen de los fondos con el socio'),
+              ),
+            ],
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Confirmar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: MetColors.textMuted),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: destructive ? FilledButton.styleFrom(backgroundColor: MetColors.danger) : null,
+            child: Text(confirmLabel),
+          ),
         ],
       ),
     );
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await ref.read(complianceAlertsProvider.notifier).review(alert.id, newStatus, notesController.text);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alerta actualizada')));
-      }
+      await ref.read(complianceAlertsProvider.notifier).review(alert.id, newStatus, notes.text);
+      if (context.mounted) showMetSnack(context, 'Alerta actualizada');
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ));
-      }
+      if (context.mounted) showErrorSnack(context, e);
+    }
+  }
+}
+
+// ── Listas restrictivas ─────────────────────────────────────────────────────
+
+class _RestrictiveListsSection extends ConsumerStatefulWidget {
+  const _RestrictiveListsSection();
+
+  @override
+  ConsumerState<_RestrictiveListsSection> createState() => _RestrictiveListsSectionState();
+}
+
+class _RestrictiveListsSectionState extends ConsumerState<_RestrictiveListsSection> {
+  bool _refreshing = false;
+
+  Future<void> _refreshLists() async {
+    setState(() => _refreshing = true);
+    try {
+      await ref.read(restrictiveListMatchesProvider.notifier).refreshLists();
+      if (mounted) showMetSnack(context, 'Listas OFAC y ONU actualizadas');
+    } catch (e) {
+      if (mounted) showErrorSnack(context, e);
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
     }
   }
 
-  String _dialogTitle(String status) => switch (status) {
-        'DISMISSED' => 'Descartar alerta',
-        'UNDER_REVIEW' => 'Marcar en revisión',
-        'REPORTED' => 'Marcar para Reporte de Operación Sospechosa (ROS)',
-        _ => 'Actualizar alerta',
-      };
-}
-
-// ── Tab: Listas restrictivas ────────────────────────────────────────────────
-
-class _RestrictiveListsTab extends ConsumerWidget {
-  const _RestrictiveListsTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final matchesState = ref.watch(restrictiveListMatchesProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Screening contra OFAC y la Lista Consolidada de la ONU. Las listas se refrescan solas cada noche.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                icon: const Icon(Icons.cloud_download_rounded, size: 18),
-                label: const Text('Refrescar ahora'),
-                onPressed: () async {
-                  try {
-                    final result = await ref.read(restrictiveListMatchesProvider.notifier).refreshLists();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Listas refrescadas: $result')),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                      ));
-                    }
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: matchesState.when(
-            loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
-            error: (e, _) => Center(
-                child: Text('Error: $e', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
-            data: (matches) {
-              if (matches.isEmpty) {
-                return Center(
-                  child: Text('Sin coincidencias en listas restrictivas',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                itemCount: matches.length,
-                itemBuilder: (context, i) => _MatchCard(match: matches[i]),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MatchCard extends StatelessWidget {
-  const _MatchCard({required this.match});
-  final RestrictiveListMatch match;
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    const color = Color(0xFFCF3232);
+    final matchesState = ref.watch(restrictiveListMatchesProvider);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDark ? 0.04 : 0.02),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0x22CF3232)),
-            child: const Icon(Icons.warning_amber_rounded, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionCard(
+          padding: const EdgeInsets.all(20),
+          child: LayoutBuilder(builder: (context, c) {
+            final text = const Row(
               children: [
-                Text('${match.userFullName} · ${match.userDocumentNumber}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 2),
-                Text('Lista ${match.listType} · ${match.checkedAt.replaceAll('T', ' ').substring(0, 19)}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
+                IconBadge(Icons.public_rounded, tone: Tone.info),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Screening automático', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      SizedBox(height: 2),
+                      Text('Cada socio se compara contra OFAC y la Lista Consolidada de la ONU. Las listas se actualizan solas cada noche.',
+                          style: TextStyle(fontSize: 13.5, color: MetColors.textMuted, height: 1.45)),
+                    ],
+                  ),
+                ),
               ],
-            ),
-          ),
-        ],
-      ),
+            );
+            final button = FilledButton.icon(
+              onPressed: _refreshing ? null : _refreshLists,
+              icon: _refreshing
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.cloud_download_rounded, size: 18),
+              label: Text(_refreshing ? 'Actualizando…' : 'Actualizar listas ahora'),
+            );
+            if (c.maxWidth < 700) {
+              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [text, const SizedBox(height: 14), button]);
+            }
+            return Row(children: [Expanded(child: text), const SizedBox(width: 20), button]);
+          }),
+        ),
+        const SizedBox(height: 16),
+        matchesState.when(
+          loading: () => const LoadingState(label: 'Cargando coincidencias…'),
+          error: (e, _) => ErrorState(error: e, onRetry: () => ref.read(restrictiveListMatchesProvider.notifier).load()),
+          data: (matches) {
+            if (matches.isEmpty) {
+              return const Card(
+                child: EmptyState(
+                  icon: Icons.verified_user_outlined,
+                  title: 'Sin coincidencias',
+                  message: 'Ningún socio aparece en las listas restrictivas.',
+                ),
+              );
+            }
+            return AdminTable<RestrictiveListMatch>(
+              rows: matches,
+              columns: [
+                AdminColumn(
+                  label: 'Socio',
+                  flex: 4,
+                  cell: (m) => TwoLineCell(m.userFullName, m.userDocumentNumber, leading: InitialsAvatar(m.userFullName)),
+                ),
+                AdminColumn(
+                  label: 'Lista',
+                  flex: 2,
+                  cell: (m) => StatusBadge.of('Coincide en ${m.listType}', Tone.danger),
+                ),
+                AdminColumn(
+                  label: 'Verificado',
+                  flex: 2,
+                  alignEnd: true,
+                  cell: (m) => CellText(formatDateTime(m.checkedAt), muted: true),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
