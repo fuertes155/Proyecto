@@ -33,7 +33,9 @@ public class GenerateSupersolidariaReportUseCase {
     private final MetComplianceProperties complianceProperties;
     private final RegulatoryReportMapper mapper;
 
-    @Transactional
+    // noRollbackFor: si la generación falla se guarda el reporte como FAILED y luego se lanza la
+    // excepción; con el rollback por defecto ese FAILED se perdía y no quedaba rastro del intento.
+    @Transactional(noRollbackFor = BusinessRuleException.class)
     public RegulatoryReportResponse execute(UUID userId, GenerateReportRequest request) {
         // userId puede ser null en generación automática programada
         var existing = reportPort.findByTypeAndPeriod(

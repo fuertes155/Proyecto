@@ -6,7 +6,6 @@ import com.cooperativa.met.application.lending.mapper.LendingMapper;
 import com.cooperativa.met.domain.account.model.AccountStatus;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
-import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.model.ComplianceListType;
 import com.cooperativa.met.domain.identity.model.ComplianceResult;
@@ -46,7 +45,6 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     @Mock private AmortizationSchedulePort schedulePort;
     @Mock private ComplianceCheckPort complianceCheckPort;
     @Mock private CoreAccountRepositoryPort accountRepository;
-    @Mock private CoreTransactionRepositoryPort transactionRepository;
     @Mock private CreditBureauPort creditBureauPort;
     @Mock private LendingMapper mapper;
 

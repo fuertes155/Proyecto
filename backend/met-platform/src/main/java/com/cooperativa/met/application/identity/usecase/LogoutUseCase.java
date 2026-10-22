@@ -1,7 +1,6 @@
 package com.cooperativa.met.application.identity.usecase;
 
 import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
-import com.cooperativa.met.domain.identity.port.TokenPort;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
 import com.cooperativa.met.infrastructure.security.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;

@@ -56,7 +56,10 @@ public class SarlaftAlertEngine {
         // este sistema es aceptable filtrar en memoria. Si el volumen crece mucho,
         // conviene una consulta acotada por fecha directamente en BD.
         List<CoreTransaction> history = transactionRepository.findByAccountId(accountId);
+        // Los llamadores guardan la transacción antes de evaluarla, así que ya viene en el
+        // historial; se excluye porque abajo se suma aparte (si no, se cuenta dos veces).
         List<CoreTransaction> last24h = history.stream()
+                .filter(t -> !t.getId().equals(transactionId))
                 .filter(t -> t.getCreatedAt() != null && t.getCreatedAt().isAfter(since24h))
                 .toList();
 

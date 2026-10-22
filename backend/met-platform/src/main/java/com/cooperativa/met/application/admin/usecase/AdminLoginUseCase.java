@@ -7,7 +7,6 @@ import com.cooperativa.met.domain.admin.model.AdminAuditEntry;
 import com.cooperativa.met.domain.admin.port.AdminAuditLogPort;
 import com.cooperativa.met.domain.admin.port.AdminRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
-import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
 import com.cooperativa.met.domain.identity.port.TokenPort;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
 import lombok.RequiredArgsConstructor;

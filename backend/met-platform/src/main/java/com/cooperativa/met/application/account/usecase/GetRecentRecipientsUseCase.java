@@ -6,7 +6,6 @@ import com.cooperativa.met.domain.account.model.CoreTransaction;
 import com.cooperativa.met.domain.account.model.TransactionType;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
-import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

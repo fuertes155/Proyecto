@@ -11,7 +11,6 @@ import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.lending.model.CreditScoreResult;
-import com.cooperativa.met.domain.lending.model.RiskTier;
 import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

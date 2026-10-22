@@ -1,7 +1,5 @@
 package com.cooperativa.met.application.investment.usecase;
 
-import com.cooperativa.met.domain.admin.model.PlatformRevenue;
-import com.cooperativa.met.domain.admin.port.PlatformRevenuePort;
 import com.cooperativa.met.domain.investment.model.InvestmentReturn;
 import com.cooperativa.met.domain.investment.model.InvestmentStatus;
 import com.cooperativa.met.domain.investment.model.MicroInvestment;
@@ -38,7 +36,6 @@ public class ProcessMaturingInvestmentsUseCase {
     private final MicroInvestmentPort investmentPort;
     private final InvestmentReturnPort returnPort;
     private final InvestmentCreditPort creditPort;
-    private final PlatformRevenuePort platformRevenuePort;
 
     @Transactional
     public int execute() {

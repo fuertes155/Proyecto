@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cooperativa.met.application.identity.dto.AuthResponse;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.model.RefreshToken;
+import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.model.UserStatus;
 import com.cooperativa.met.domain.identity.port.RefreshTokenRepositoryPort;
 import com.cooperativa.met.domain.identity.port.TokenPort;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
@@ -25,7 +27,9 @@ public class RefreshTokenUseCase {
     private final UserRepositoryPort userRepository;
     private final MetSecurityProperties securityProperties;
 
-    @Transactional
+    // noRollbackFor: varios rechazos revocan sesiones y justo después lanzan la excepción. Con el
+    // rollback por defecto esa revocación se deshacía y las sesiones quedaban abiertas.
+    @Transactional(noRollbackFor = BusinessRuleException.class)
     public AuthResponse execute(String refreshToken) {
         TokenPort.RefreshTokenClaims claims = tokenPort.validateRefreshTokenClaims(refreshToken);
 
@@ -51,9 +55,14 @@ public class RefreshTokenUseCase {
         // Revocar token actual (rotación)
         refreshTokenRepository.revoke(jti);
 
-        // (opcional) verificar que el usuario existe/está activo
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessRuleException("INVALID_TOKEN", "Usuario inválido"));
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            // El login ya rechaza cuentas no activas; sin esto, un usuario bloqueado (lista
+            // restrictiva, bloqueo de emergencia) seguiría renovando su sesión indefinidamente.
+            refreshTokenRepository.revokeAllByUserId(userId);
+            throw new BusinessRuleException("USER_NOT_ACTIVE", "La cuenta no está activa");
+        }
 
         String newAccessToken = tokenPort.generateAccessToken(userId, null);
         String newRefreshToken = tokenPort.generateRefreshToken(userId);

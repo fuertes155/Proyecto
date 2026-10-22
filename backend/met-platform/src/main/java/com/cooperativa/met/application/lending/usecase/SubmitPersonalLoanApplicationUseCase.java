@@ -16,11 +16,7 @@ import com.cooperativa.met.domain.lending.model.LoanSimulationResult;
 import com.cooperativa.met.domain.lending.model.PersonalLoanApplication;
 import com.cooperativa.met.domain.lending.port.AmortizationSchedulePort;
 import com.cooperativa.met.domain.account.model.CoreAccount;
-import com.cooperativa.met.domain.account.model.CoreTransaction;
-import com.cooperativa.met.domain.account.model.TransactionType;
-import com.cooperativa.met.domain.account.model.TransactionStatus;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
-import com.cooperativa.met.domain.account.port.CoreTransactionRepositoryPort;
 import com.cooperativa.met.domain.lending.port.PersonalLoanApplicationPort;
 import com.cooperativa.met.domain.lending.port.CreditBureauPort;
 import com.cooperativa.met.domain.lending.model.CreditScoreResult;
@@ -46,7 +42,6 @@ public class SubmitPersonalLoanApplicationUseCase {
     private final AmortizationSchedulePort schedulePort;
     private final ComplianceCheckPort complianceCheckPort;
     private final CoreAccountRepositoryPort accountRepository;
-    private final CoreTransactionRepositoryPort transactionRepository;
     private final CreditBureauPort creditBureauPort;
     private final LendingMapper mapper;
 

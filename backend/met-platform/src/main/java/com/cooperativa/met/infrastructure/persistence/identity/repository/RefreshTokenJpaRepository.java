@@ -1,6 +1,5 @@
 package com.cooperativa.met.infrastructure.persistence.identity.repository;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;

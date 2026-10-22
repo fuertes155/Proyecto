@@ -1,6 +1,5 @@
 package com.cooperativa.met.infrastructure.web.savings;
 
-import com.cooperativa.met.application.savings.dto.ContributionResponse;
 import com.cooperativa.met.application.savings.dto.CreateScheduledSavingsRequest;
 import com.cooperativa.met.application.savings.dto.ScheduledSavingsResponse;
 import com.cooperativa.met.application.savings.usecase.CreateScheduledSavingsUseCase;

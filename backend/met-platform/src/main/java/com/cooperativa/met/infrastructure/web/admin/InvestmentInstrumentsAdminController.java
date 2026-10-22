@@ -2,7 +2,6 @@ package com.cooperativa.met.infrastructure.web.admin;
 
 import com.cooperativa.met.application.investment.usecase.ListInvestmentInstrumentsUseCase;
 import com.cooperativa.met.domain.investment.model.InvestmentInstrument;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
