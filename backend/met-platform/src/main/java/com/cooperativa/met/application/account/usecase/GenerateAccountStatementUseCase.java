@@ -61,6 +61,11 @@ public class GenerateAccountStatementUseCase {
 
     private String csvEscape(String value) {
         if (value == null) return "";
+        // El concepto lo escribe quien envía la transferencia: si empieza como fórmula, Excel la
+        // ejecutaría al abrir el extracto (CSV injection). El apóstrofo la deja como texto.
+        if (!value.isEmpty() && "=+-@\t\r".indexOf(value.charAt(0)) >= 0) {
+            value = "'" + value;
+        }
         if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }

@@ -179,9 +179,12 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         Navigator.pop(context);
       }
     } catch (e) {
+      // El mensaje del backend ("El PIN actual es incorrecto"), no el texto técnico de DioException.
+      final data = e is DioException ? e.response?.data : null;
+      final message = data is Map ? data['message'] as String? : null;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(message ?? 'No pudimos actualizar el PIN. Intenta de nuevo.'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -235,12 +238,14 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _newPinController,
-                decoration: const InputDecoration(labelText: 'Nuevo PIN (4 a 6 dígitos)'),
+                decoration: const InputDecoration(labelText: 'Nuevo PIN (4 dígitos)'),
                 keyboardType: TextInputType.number,
                 obscureText: true,
+                // Exactamente 4 dígitos, como en el registro y la recuperación: el teclado del
+                // ingreso solo admite 4, así que con 5 o 6 el socio ya no podría entrar.
                 validator: (v) {
                   if (v!.isEmpty) return 'Requerido';
-                  if (v.length < 4 || v.length > 6) return 'Debe tener entre 4 y 6 dígitos';
+                  if (!RegExp(r'^\d{4}$').hasMatch(v)) return 'El PIN debe tener 4 dígitos';
                   return null;
                 },
               ),

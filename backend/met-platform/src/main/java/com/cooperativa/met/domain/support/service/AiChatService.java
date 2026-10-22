@@ -94,6 +94,10 @@ public class AiChatService {
             // 503 "high demand", 500, etc. — reintentable con el modelo de respaldo.
             log.warn("Gemini ({}) no disponible: {}", model, e.getStatusCode());
             return null;
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            // 429: cuota/saturación del modelo — reintentable con el de respaldo, igual que un 503.
+            log.warn("Gemini ({}) limitó la petición: {}", model, e.getStatusCode());
+            return null;
         } catch (HttpClientErrorException e) {
             // 400/401/403 → problema de key o request; no tiene sentido reintentar.
             log.error("Gemini ({}) rechazó la petición: {} {}", model, e.getStatusCode(), e.getResponseBodyAsString());

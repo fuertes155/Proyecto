@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/error_mapper.dart';
 import '../providers/loan_provider.dart';
 
 class LoanApplicationsListPage extends ConsumerWidget {
@@ -24,7 +25,7 @@ class LoanApplicationsListPage extends ConsumerWidget {
       ),
       body: applicationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(ErrorMapper.toUserMessage(e), textAlign: TextAlign.center)),
         data: (apps) {
           if (apps.isEmpty) {
             return const Center(child: Text('No tienes solicitudes de préstamo'));

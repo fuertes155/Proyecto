@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/scrollable_step.dart';
 import '../providers/transfer_ui_provider.dart';
 import '../providers/transfers_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -108,16 +109,17 @@ class _TransferPageState extends ConsumerState<TransferPage> {
     );
   }
 
+  // Los pasos con campos se desplazan si el teclado no deja espacio (celulares pequeños).
   Widget _buildStep(TransferState state, TransferNotifier notifier) {
     switch (state.step) {
       case 0:
         return _buildRecipientStep(state, notifier);
       case 1:
-        return _buildAmountStep(state, notifier);
+        return ScrollableStep(key: const ValueKey('step_1'), child: _buildAmountStep(state, notifier));
       case 2:
-        return _buildPinStep(state, notifier);
+        return ScrollableStep(key: const ValueKey('step_2'), child: _buildPinStep(state, notifier));
       case 3:
-        return _buildOtpStep(state, notifier);
+        return ScrollableStep(key: const ValueKey('step_3'), child: _buildOtpStep(state, notifier));
       case 4:
         return _buildSuccessStep(state);
       default:
@@ -298,7 +300,8 @@ class _TransferPageState extends ConsumerState<TransferPage> {
 
 
   Widget _buildAmountStep(TransferState state, TransferNotifier notifier) {
-    final accountOpt = ref.watch(myAccountProvider).value;
+    // valueOrNull: si el saldo no cargó, `.value` relanza el error y rompe toda la pantalla.
+    final accountOpt = ref.watch(myAccountProvider).valueOrNull;
     final maxAmount = accountOpt?.interestBalance ?? 0.0;
 
     return Column(
@@ -321,15 +324,17 @@ class _TransferPageState extends ConsumerState<TransferPage> {
                 ),
               ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Enviando a:', style: TextStyle(fontSize: 12)),
-                  Text(
-                    state.recipient!.ownerName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Enviando a:', style: TextStyle(fontSize: 12)),
+                    Text(
+                      state.recipient!.ownerName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

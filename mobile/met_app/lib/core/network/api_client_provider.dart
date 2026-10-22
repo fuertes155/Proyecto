@@ -12,6 +12,15 @@ import '../session/session_expired_provider.dart';
 import '../router/app_router.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
+/// Cliente solo para renovar la sesión: sin los interceptores de [apiClientProvider] (un 401 aquí
+/// no debe intentar otra renovación), pero con el mismo SSL pinning, porque es justo la petición
+/// que lleva el refresh token.
+final Provider<Dio> authRefreshClientProvider = Provider<Dio>((ref) {
+  final dio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl));
+  configureDioSecurity(dio, AppConfig.sslFingerprint);
+  return dio;
+});
+
 final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
     baseUrl: AppConfig.apiBaseUrl,
@@ -31,8 +40,7 @@ final Provider<Dio> apiClientProvider = Provider<Dio>((ref) {
         final refreshToken = await storage.readRefreshToken();
         if (refreshToken == null || refreshToken.isEmpty) return null;
 
-        final refreshDio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl));
-        final response = await refreshDio.post(
+        final response = await ref.read(authRefreshClientProvider).post(
           '/v1/auth/refresh',
           options: Options(headers: {'Authorization': 'Bearer $refreshToken'}),
         );

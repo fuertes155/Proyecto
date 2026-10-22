@@ -17,6 +17,7 @@ public record FeeScheduleRequest(
         @DecimalMin(value = "0.0", inclusive = false, message = "El valor debe ser mayor a 0")
         BigDecimal valor,
 
+        @NotNull(message = "Indica si la tarifa es un porcentaje")
         Boolean esPorcentaje,
 
         @NotNull(message = "La fecha de inicio de vigencia es requerida")

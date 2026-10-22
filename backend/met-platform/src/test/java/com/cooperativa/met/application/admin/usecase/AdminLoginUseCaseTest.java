@@ -11,6 +11,7 @@ import com.cooperativa.met.domain.admin.port.AdminRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.port.TokenPort;
 import com.cooperativa.met.infrastructure.config.MetSecurityProperties;
+import com.cooperativa.met.infrastructure.security.AdminLoginAttemptService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -42,6 +44,8 @@ class AdminLoginUseCaseTest {
     private TokenPort tokenPort;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private AdminLoginAttemptService loginAttempts;
 
     private AdminLoginUseCase adminLoginUseCase;
 
@@ -51,7 +55,33 @@ class AdminLoginUseCaseTest {
     void setUp() {
         MetSecurityProperties securityProperties = new MetSecurityProperties();
         securityProperties.getJwt().setExpirationMs(1_800_000L);
-        adminLoginUseCase = new AdminLoginUseCase(adminRepository, auditLog, tokenPort, passwordEncoder, securityProperties);
+        adminLoginUseCase = new AdminLoginUseCase(adminRepository, auditLog, tokenPort, passwordEncoder, securityProperties,
+                loginAttempts);
+    }
+
+    @Test
+    void shouldCountWrongPasswordsAndUnknownUsernamesTowardsTheLockout() {
+        when(adminRepository.findByUsername("oficial")).thenReturn(Optional.of(admin(AdminStatus.ACTIVE)));
+        when(passwordEncoder.matches("adivinada", "bcrypt-hash")).thenReturn(false);
+        when(adminRepository.findByUsername("nadie")).thenReturn(Optional.empty());
+
+        assertThrows(BusinessRuleException.class, () -> adminLoginUseCase.execute(new AdminLoginRequest("oficial", "adivinada"), IP));
+        assertThrows(BusinessRuleException.class, () -> adminLoginUseCase.execute(new AdminLoginRequest("nadie", "x"), IP));
+
+        verify(loginAttempts).recordFailure("oficial");
+        verify(loginAttempts).recordFailure("nadie");
+        verify(loginAttempts, org.mockito.Mockito.never()).resetAttempts(any());
+    }
+
+    @Test
+    void shouldRefuseALockedAccountWithoutEvenCheckingThePassword() {
+        doThrow(new BusinessRuleException("ADMIN_LOCKED", "Bloqueada")).when(loginAttempts).checkBlocked("oficial");
+
+        BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                () -> adminLoginUseCase.execute(new AdminLoginRequest("oficial", "S3gura!"), IP));
+
+        assertEquals("ADMIN_LOCKED", ex.getCode());
+        verifyNoInteractions(adminRepository, passwordEncoder, tokenPort);
     }
 
     @Test
@@ -63,6 +93,7 @@ class AdminLoginUseCaseTest {
         AdminAuthResponse response = adminLoginUseCase.execute(new AdminLoginRequest("oficial", "S3gura!"), IP);
 
         assertEquals("admin-token", response.accessToken());
+        verify(loginAttempts).resetAttempts("oficial");
         assertEquals("SUPER_ADMIN", response.role());
         assertEquals(1_800_000L, response.expiresInMs());
         ArgumentCaptor<AdminAuditEntry> entry = ArgumentCaptor.forClass(AdminAuditEntry.class);

@@ -50,8 +50,10 @@ class OperationLimitsNotifier extends StateNotifier<AsyncValue<List<OperationLim
   }
   final AdminRepository _repo;
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
+  /// [silent]: tras un cambio se actualiza sin pasar por "cargando". Así la lista no se desmonta
+  /// mientras llega la respuesta (con ella se perdía el aviso de éxito de la tarjeta que lo hizo).
+  Future<void> load({bool silent = false}) async {
+    if (!silent) state = const AsyncValue.loading();
     try {
       state = AsyncValue.data(await _repo.getOperationLimits());
     } catch (e, st) {
@@ -61,7 +63,7 @@ class OperationLimitsNotifier extends StateNotifier<AsyncValue<List<OperationLim
 
   Future<void> update(String tipo, int diario, int porTx) async {
     await _repo.updateLimit(tipo, diario, porTx);
-    await load();
+    await load(silent: true);
   }
 }
 
@@ -77,8 +79,9 @@ class RiskRulesNotifier extends StateNotifier<AsyncValue<List<RiskRule>>> {
   }
   final AdminRepository _repo;
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
+  /// [silent]: ver [OperationLimitsNotifier.load].
+  Future<void> load({bool silent = false}) async {
+    if (!silent) state = const AsyncValue.loading();
     try {
       state = AsyncValue.data(await _repo.getRiskRules());
     } catch (e, st) {
@@ -88,7 +91,7 @@ class RiskRulesNotifier extends StateNotifier<AsyncValue<List<RiskRule>>> {
 
   Future<void> toggle(String id, bool activo) async {
     await _repo.toggleRiskRule(id, activo);
-    await load();
+    await load(silent: true);
   }
 }
 
@@ -104,8 +107,9 @@ class FeeScheduleNotifier extends StateNotifier<AsyncValue<List<FeeSchedule>>> {
   }
   final AdminRepository _repo;
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
+  /// [silent]: ver [OperationLimitsNotifier.load].
+  Future<void> load({bool silent = false}) async {
+    if (!silent) state = const AsyncValue.loading();
     try {
       state = AsyncValue.data(await _repo.getFees());
     } catch (e, st) {
@@ -115,17 +119,17 @@ class FeeScheduleNotifier extends StateNotifier<AsyncValue<List<FeeSchedule>>> {
 
   Future<void> createFee(Map<String, dynamic> data) async {
     await _repo.createFee(data);
-    await load();
+    await load(silent: true);
   }
 
   Future<void> updateFee(String id, Map<String, dynamic> data) async {
     await _repo.updateFee(id, data);
-    await load();
+    await load(silent: true);
   }
 
   Future<void> deleteFee(String id) async {
     await _repo.deleteFee(id);
-    await load();
+    await load(silent: true);
   }
 }
 
@@ -141,8 +145,9 @@ class MaintenanceNotifier extends StateNotifier<AsyncValue<List<MaintenanceWindo
   }
   final AdminRepository _repo;
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
+  /// [silent]: ver [OperationLimitsNotifier.load].
+  Future<void> load({bool silent = false}) async {
+    if (!silent) state = const AsyncValue.loading();
     try {
       state = AsyncValue.data(await _repo.getMaintenanceWindows());
     } catch (e, st) {
@@ -152,7 +157,7 @@ class MaintenanceNotifier extends StateNotifier<AsyncValue<List<MaintenanceWindo
 
   Future<void> toggle(String id, bool activate) async {
     await _repo.toggleMaintenance(id, activate);
-    await load();
+    await load(silent: true);
   }
 }
 
@@ -198,9 +203,9 @@ class ComplianceAlertsNotifier extends StateNotifier<AsyncValue<Map<String, dyna
   final AdminRepository _repo;
   String _status = 'OPEN';
 
-  Future<void> load({String? status}) async {
+  Future<void> load({String? status, bool silent = false}) async {
     _status = status ?? _status;
-    state = const AsyncValue.loading();
+    if (!silent) state = const AsyncValue.loading();
     try {
       state = AsyncValue.data(await _repo.getComplianceAlerts(status: _status));
     } catch (e, st) {
@@ -210,7 +215,7 @@ class ComplianceAlertsNotifier extends StateNotifier<AsyncValue<Map<String, dyna
 
   Future<void> review(String id, String newStatus, String? notes) async {
     await _repo.reviewComplianceAlert(id, newStatus, notes);
-    await load();
+    await load(silent: true);
   }
 }
 
@@ -226,8 +231,9 @@ class RestrictiveListMatchesNotifier extends StateNotifier<AsyncValue<List<Restr
   }
   final AdminRepository _repo;
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
+  /// [silent]: ver [OperationLimitsNotifier.load].
+  Future<void> load({bool silent = false}) async {
+    if (!silent) state = const AsyncValue.loading();
     try {
       state = AsyncValue.data(await _repo.getRestrictiveListMatches());
     } catch (e, st) {
@@ -237,7 +243,7 @@ class RestrictiveListMatchesNotifier extends StateNotifier<AsyncValue<List<Restr
 
   Future<Map<String, dynamic>> refreshLists() async {
     final result = await _repo.refreshRestrictiveLists();
-    await load();
+    await load(silent: true);
     return result;
   }
 }
@@ -254,8 +260,9 @@ class GuaranteeFundNotifier extends StateNotifier<AsyncValue<GuaranteeFundSummar
   }
   final AdminRepository _repo;
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
+  /// [silent]: ver [OperationLimitsNotifier.load].
+  Future<void> load({bool silent = false}) async {
+    if (!silent) state = const AsyncValue.loading();
     try {
       state = AsyncValue.data(await _repo.getGuaranteeFund());
     } catch (e, st) {

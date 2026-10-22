@@ -8,12 +8,8 @@ import '../../../../core/network/api_client_provider.dart';
 class EmailVerificationPage extends ConsumerStatefulWidget {
   final String documentType;
   final String documentNumber;
-  
-  const EmailVerificationPage({
-    super.key, 
-    required this.documentType, 
-    required this.documentNumber
-  });
+
+  const EmailVerificationPage({super.key, required this.documentType, required this.documentNumber});
 
   @override
   ConsumerState<EmailVerificationPage> createState() => _EmailVerificationPageState();
@@ -129,66 +125,69 @@ class _EmailVerificationPageState extends ConsumerState<EmailVerificationPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Verificar Correo')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.mark_email_read_outlined, size: 72, color: primaryColor),
-            const SizedBox(height: 24),
-            const Text(
-              'Hemos enviado un código a tu correo electrónico. Ingrésalo a continuación para verificar tu cuenta.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 28, letterSpacing: 12, fontWeight: FontWeight.bold),
-              decoration: InputDecoration(
-                hintText: '------',
-                counterText: '',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      // Centrado pero desplazable: con el teclado abierto en un celular pequeño el botón
+      // "Verificar" quedaba fuera de la pantalla.
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.mark_email_read_outlined, size: 72, color: primaryColor),
+              const SizedBox(height: 24),
+              const Text(
+                'Hemos enviado un código a tu correo electrónico. Ingrésalo a continuación para verificar tu cuenta.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
               ),
-              onChanged: (_) => setState(() => _error = null),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-            ],
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton(
-                onPressed: _isLoading ? null : _verifyEmail,
-                child: _isLoading 
-                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Verificar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 32),
+              TextField(
+                controller: _otpController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 28, letterSpacing: 12, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  hintText: '------',
+                  counterText: '',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onChanged: (_) => setState(() => _error = null),
               ),
-            ),
-            const SizedBox(height: 20),
-
-            // Botón reenviar con contador
-            TextButton.icon(
-              onPressed: canResend ? _resendOtp : null,
-              icon: _isResending
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.refresh_rounded, size: 18),
-              label: Text(
-                _resendCooldown > 0
-                    ? 'Reenviar código en ${_resendCooldown}s'
-                    : 'Reenviar código',
-                style: TextStyle(
-                  color: canResend ? primaryColor : Colors.grey,
-                  fontWeight: FontWeight.w600,
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              ],
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton(
+                  onPressed: _isLoading ? null : _verifyEmail,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Verificar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+
+              // Botón reenviar con contador
+              TextButton.icon(
+                onPressed: canResend ? _resendOtp : null,
+                icon: _isResending
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.refresh_rounded, size: 18),
+                label: Text(
+                  _resendCooldown > 0 ? 'Reenviar código en ${_resendCooldown}s' : 'Reenviar código',
+                  style: TextStyle(
+                    color: canResend ? primaryColor : Colors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

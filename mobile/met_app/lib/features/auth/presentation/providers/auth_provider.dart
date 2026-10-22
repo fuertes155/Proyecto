@@ -11,6 +11,15 @@ final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<UserRes
   return AuthNotifier(ref.watch(authRepositoryProvider), ref);
 });
 
+/// ID del socio con sesión iniciada (null sin sesión).
+///
+/// Los datos de la cuenta que se guardan en memoria lo observan para descartarse al cerrar sesión o
+/// al entrar otro socio en el mismo celular: la app no se reinicia entre uno y otro, y sin esto el
+/// siguiente veía el saldo, la cuenta y los movimientos del anterior.
+final sessionUserIdProvider = Provider<String?>((ref) {
+  return ref.watch(authStateProvider.select((auth) => auth.valueOrNull?.id));
+});
+
 class AuthNotifier extends StateNotifier<AsyncValue<UserResponse?>> {
   AuthNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
 

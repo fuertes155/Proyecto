@@ -1,6 +1,8 @@
 spring:
   datasource:
-    url: 'jdbc:h2:mem:met;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;INIT=CREATE DOMAIN IF NOT EXISTS "TEXT" AS VARCHAR\;CREATE DOMAIN IF NOT EXISTS "BLOB" AS BYTEA\;CREATE DOMAIN IF NOT EXISTS jsonb AS JSON'
+    # DATABASE_TO_LOWER: como PostgreSQL, los nombres sin comillas del SQL directo (JdbcTemplate) se
+    # resuelven en minúscula; sin esto H2 busca "USERS" y no encuentra la tabla "users" de Hibernate.
+    url: 'jdbc:h2:mem:met;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;INIT=CREATE DOMAIN IF NOT EXISTS "TEXT" AS VARCHAR\;CREATE DOMAIN IF NOT EXISTS "BLOB" AS BYTEA\;CREATE DOMAIN IF NOT EXISTS jsonb AS JSON'
     username: sa
     password:
     driver-class-name: org.h2.Driver

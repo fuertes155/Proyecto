@@ -16,7 +16,8 @@ export default function SimulatorSection() {
     totalPagar: 0,
     totalIntereses: 0,
     tasa: 0,
-    loading: false
+    loading: false,
+    error: false
   });
 
   // Ahorro
@@ -25,14 +26,16 @@ export default function SimulatorSection() {
   const [tasaAhorro] = useState(0.8);
 
   const totalAhorro = aporte * meses;
-  const interesesAhorro = totalAhorro * (tasaAhorro / 100) * meses;
+  // Cada aporte rinde solo los meses que lleva ahorrado (el primero todos, el último uno). Calcularlo
+  // sobre el total por todos los meses casi duplicaba los intereses prometidos.
+  const interesesAhorro = aporte * (tasaAhorro / 100) * (meses * (meses + 1)) / 2;
   const totalFinal = totalAhorro + interesesAhorro;
 
   useEffect(() => {
     if (tab !== 'credito') return;
     
     const fetchSimulation = async () => {
-      setCreditoResult(prev => ({ ...prev, loading: true }));
+      setCreditoResult(prev => ({ ...prev, loading: true, error: false }));
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/v1/loans/simulate`, {
           method: 'POST',
@@ -47,11 +50,15 @@ export default function SimulatorSection() {
             totalPagar: data.totalPayment,
             totalIntereses: data.totalInterest,
             tasa: data.monthlyInterestRate, // El backend retorna la tasa mensual
-            loading: false
+            loading: false,
+            error: false
           });
+        } else {
+          // Sin esto, una respuesta de error dejaba el esqueleto de carga para siempre.
+          setCreditoResult(prev => ({ ...prev, loading: false, error: true }));
         }
-      } catch (err) {
-        setCreditoResult(prev => ({ ...prev, loading: false }));
+      } catch {
+        setCreditoResult(prev => ({ ...prev, loading: false, error: true }));
       }
     };
     
@@ -137,6 +144,11 @@ export default function SimulatorSection() {
                     )}
                   </div>
                 </div>
+                {creditoResult.error && (
+                  <p className={styles.disclaimer} role="alert">
+                    No pudimos calcular la cuota en este momento. Intenta de nuevo en unos segundos.
+                  </p>
+                )}
                 <p className={styles.disclaimer}>* Simulación referencial. La tasa final depende del estudio de crédito.</p>
               </div>
             </div>

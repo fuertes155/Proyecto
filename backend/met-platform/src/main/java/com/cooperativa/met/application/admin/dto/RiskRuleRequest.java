@@ -21,5 +21,6 @@ public record RiskRuleRequest(
         @NotBlank(message = "La acción es requerida")
         String accion,
 
+        /** Opcional: si no viene, la regla se crea activa (mismo default que la columna en BD). */
         Boolean activo
 ) {}

@@ -180,11 +180,14 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final eligibilityState = ref.watch(loanEligibilityProvider);
+    // valueOrNull: si DataCrédito falla, `.value` relanza el error y en vez del botón
+    // "Reintentar" se veía una pantalla de error.
+    final eligibility = eligibilityState.valueOrNull;
 
     // La primera vez que llegan los límites reales, encuadramos los valores
     // por defecto del simulador dentro de lo que el usuario puede pedir.
     ref.listen<AsyncValue<LoanEligibility?>>(loanEligibilityProvider, (previous, next) {
-      final eligibility = next.value;
+      final eligibility = next.valueOrNull;
       if (eligibility == null || !eligibility.approved || _boundsInitialized) return;
       if (eligibility.maxAmount < _kMinLoanAmount) return;
       setState(() {
@@ -224,15 +227,15 @@ class _LoanSimulationPageState extends ConsumerState<LoanSimulationPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      eligibilityState.value?.approved == true
-                          ? 'Según tu perfil (${eligibilityState.value!.tierLabel}) en DataCrédito'
+                      eligibility?.approved == true
+                          ? 'Según tu perfil (${eligibility!.tierLabel}) en DataCrédito'
                           : 'Encuentra la cuota ideal para ti',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: Colors.white70,
                       ),
                     ),
                     const Spacer(),
-                    if (eligibilityState.value?.approved == true)
+                    if (eligibility?.approved == true)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(

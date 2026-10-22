@@ -4,10 +4,12 @@ import com.cooperativa.met.domain.compliance.model.ReportDataRow;
 import com.cooperativa.met.domain.compliance.model.ReportDataset;
 import com.cooperativa.met.domain.compliance.model.SupersolidariaReportType;
 import com.cooperativa.met.domain.compliance.port.ReportDatasetPort;
+import com.cooperativa.met.domain.identity.port.EncryptionPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +18,9 @@ import java.util.List;
 public class ReportDatasetAdapter implements ReportDatasetPort {
 
     private final JdbcTemplate jdbcTemplate;
+    // users.document_number, first_name y last_name se guardan cifrados (convertidores JPA). Estas
+    // consultas van por JDBC directo, así que hay que descifrarlos aquí o el reporte sale cifrado.
+    private final EncryptionPort encryptionPort;
 
     @Override
     public ReportDataset buildDataset(SupersolidariaReportType type, int year, int month, String entityCode) {
@@ -35,22 +40,25 @@ public class ReportDatasetAdapter implements ReportDatasetPort {
                 SELECT document_type, document_number, first_name, last_name, COALESCE(email, '') AS email, status, kyc_status,
                        TO_CHAR(created_at, 'YYYYMMDD')
                 FROM users
-                WHERE EXTRACT(YEAR FROM created_at) <= ? AND EXTRACT(MONTH FROM created_at) <= ?
+                WHERE created_at < ?
                 ORDER BY created_at
                 """;
+        // Todos los vinculados hasta el cierre del período. Comparar año y mes por separado
+        // (año <= X AND mes <= Y) dejaba por fuera, p. ej., a quien se vinculó en noviembre del año anterior.
+        LocalDate endOfPeriodExclusive = LocalDate.of(year, month, 1).plusMonths(1);
         List<ReportDataRow> rows = jdbcTemplate.query(sql, (rs, rowNum) -> ReportDataRow.builder()
                 .fields(List.of(
                         String.valueOf(rowNum + 1),
                         rs.getString("document_type"),
-                        rs.getString("document_number"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"),
+                        encryptionPort.decryptDeterministic(rs.getString("document_number")),
+                        encryptionPort.decrypt(rs.getString("first_name")),
+                        encryptionPort.decrypt(rs.getString("last_name")),
                         rs.getString("email"),
                         rs.getString("status"),
                         rs.getString("kyc_status"),
                         rs.getString(8)
                 ))
-                .build(), year, month);
+                .build(), endOfPeriodExclusive);
 
         return baseDataset(SupersolidariaReportType.ASOCIADOS, year, month, entityCode,
                 List.of("SECUENCIA", "TIPO_DOC", "NUM_DOC", "NOMBRES", "APELLIDOS", "EMAIL", "ESTADO", "KYC", "FECHA_VINCULACION"),
@@ -113,7 +121,7 @@ public class ReportDatasetAdapter implements ReportDatasetPort {
         List<ReportDataRow> rows = jdbcTemplate.query(sql, (rs, rowNum) -> ReportDataRow.builder()
                 .fields(List.of(
                         String.valueOf(rowNum + 1),
-                        rs.getString("document_number"),
+                        encryptionPort.decryptDeterministic(rs.getString("document_number")),
                         rs.getString("list_type"),
                         rs.getString("result"),
                         rs.getString(4)
@@ -124,10 +132,12 @@ public class ReportDatasetAdapter implements ReportDatasetPort {
                 List.of("SECUENCIA", "DOC_ASOCIADO", "LISTA", "RESULTADO", "FECHA"), rows);
     }
 
+    /** Para consultas cuya primera columna es u.document_number (cifrada en la BD). */
     private List<ReportDataRow> queryRows(String sql, int year, int month, int columnCount) {
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             List<String> fields = new ArrayList<>();
-            for (int i = 1; i <= columnCount; i++) {
+            fields.add(encryptionPort.decryptDeterministic(rs.getString(1)));
+            for (int i = 2; i <= columnCount; i++) {
                 fields.add(rs.getString(i));
             }
             return ReportDataRow.builder().fields(fields).build();

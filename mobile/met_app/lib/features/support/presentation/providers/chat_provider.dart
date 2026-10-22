@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:met/features/auth/presentation/providers/auth_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:met/core/network/api_client_provider.dart';
 
@@ -116,6 +117,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
 }
 
 final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
+  // La conversación es de quien inició sesión: si cierra sesión o entra otro socio en el mismo
+  // celular, empieza de cero en vez de mostrarle lo que escribió el anterior.
+  ref.watch(sessionUserIdProvider);
   final dio = ref.read(apiClientProvider);
   return ChatNotifier(dio);
 });

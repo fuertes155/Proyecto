@@ -87,6 +87,19 @@ public class ExecuteTransferUseCase {
             }
         }
 
+        try {
+            transfer(userId, request, ip);
+        } catch (RuntimeException e) {
+            // Un intento fallido no movió dinero (la transacción se revierte): se libera la clave para que
+            // el socio pueda reintentar con ella, p. ej. el reenvío con el código OTP que pidió el primero.
+            if (request.idempotencyKey() != null) {
+                idempotencyService.release(request.idempotencyKey());
+            }
+            throw e;
+        }
+    }
+
+    private void transfer(UUID userId, TransferRequest request, String ip) {
         // 1. Verify User PIN & Status
         pinAttemptService.checkBlocked(userId);
         

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/investment_remote_datasource.dart';
 import '../../data/models/investment_models.dart';
 
@@ -8,5 +9,6 @@ import '../../data/models/investment_models.dart';
 /// distribución P2P.
 final investmentSummaryProvider =
     FutureProvider<InvestmentPortfolioSummary>((ref) {
+  ref.watch(sessionUserIdProvider); // se descarta al cambiar de socio
   return ref.watch(investmentRemoteDataSourceProvider).getMySummary();
 });

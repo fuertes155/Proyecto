@@ -105,6 +105,10 @@ public class ExecuteExternalPayoutUseCase {
     private record PhaseOneResult(CoreTransaction transaction, ExternalPayout payout) {
     }
 
+    /** Lo validado antes de llamar al proveedor, con el débito de la Fase 1 ya confirmado. */
+    private record ReservedPayout(User user, ExternalBankAccount externalAccount, Bank bank, PhaseOneResult phase1) {
+    }
+
     public void execute(UUID userId, ExecutePayoutRequest request, String ip) {
         if (request.idempotencyKey() != null) {
             if (!idempotencyService.tryAcquire(request.idempotencyKey())) {
@@ -116,6 +120,22 @@ public class ExecuteExternalPayoutUseCase {
             }
         }
 
+        ReservedPayout reserved;
+        try {
+            reserved = validateAndDebit(userId, request, ip);
+        } catch (RuntimeException e) {
+            // Nada quedó debitado (falló una validación o la Fase 1 se revirtió): se libera la clave para que
+            // el socio pueda reintentar con ella, p. ej. el reenvío con el código OTP que pidió el primero.
+            // Después del débito la clave se conserva: reintentar con ella podría duplicar el retiro.
+            if (request.idempotencyKey() != null) {
+                idempotencyService.release(request.idempotencyKey());
+            }
+            throw e;
+        }
+        sendToRail(userId, request, reserved);
+    }
+
+    private ReservedPayout validateAndDebit(UUID userId, ExecutePayoutRequest request, String ip) {
         pinAttemptService.checkBlocked(userId);
         fraudDetectionService.checkImpossibleTravel(userId, ip);
         fraudDetectionService.checkTransferVelocity(userId, request.externalBankAccountId());
@@ -218,6 +238,14 @@ public class ExecuteExternalPayoutUseCase {
 
             return new PhaseOneResult(savedTransaction, savedPayout);
         });
+        return new ReservedPayout(user, externalAccount, bank, phase1);
+    }
+
+    private void sendToRail(UUID userId, ExecutePayoutRequest request, ReservedPayout reserved) {
+        User user = reserved.user();
+        ExternalBankAccount externalAccount = reserved.externalAccount();
+        Bank bank = reserved.bank();
+        PhaseOneResult phase1 = reserved.phase1();
 
         // Control SARLAFT: operación inusual por monto/frecuencia/patrón (no bloquea).
         sarlaftAlertEngine.evaluate(userId, phase1.transaction().getSourceAccountId(),

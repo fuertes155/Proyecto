@@ -62,6 +62,21 @@ public class IdempotencyService {
     }
 
     /**
+     * Libera una clave que sigue "en proceso" porque la operación falló sin mover dinero, para que el
+     * cliente pueda reintentar con la misma clave (p. ej. el reenvío con el código OTP que pidió el
+     * primer intento). Un resultado ya guardado no se toca.
+     */
+    public void release(String key) {
+        try {
+            if (PROCESSING.equals(redisTemplate.opsForValue().get(PREFIX + key))) {
+                redisTemplate.delete(PREFIX + key);
+            }
+        } catch (Exception e) {
+            log.warn("Error al liberar la clave de idempotencia key={}: {}", key, e.getMessage());
+        }
+    }
+
+    /**
      * Guarda el resultado final de la operación asociado a la clave.
      *
      * @param key    la clave de idempotencia

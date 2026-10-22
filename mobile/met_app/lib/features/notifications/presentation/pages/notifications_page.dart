@@ -53,7 +53,8 @@ class NotificationsPage extends ConsumerWidget {
                       Text(notification.message),
                       const SizedBox(height: 4),
                       Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(notification.createdAt),
+                        // El backend envía la hora en UTC.
+                        DateFormat('dd/MM/yyyy HH:mm').format(notification.createdAt.toLocal()),
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),

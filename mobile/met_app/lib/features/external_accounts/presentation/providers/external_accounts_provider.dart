@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/external_accounts_remote_datasource.dart';
 import '../../data/models/bank_model.dart';
 import '../../data/models/external_bank_account_model.dart';
@@ -14,6 +15,7 @@ final banksProvider = FutureProvider.family<List<BankModel>, String>((ref, type)
 
 final externalBankAccountsListProvider =
     StateNotifierProvider<ExternalBankAccountsNotifier, AsyncValue<List<ExternalBankAccountModel>>>((ref) {
+  ref.watch(sessionUserIdProvider); // se descarta al cambiar de socio
   return ExternalBankAccountsNotifier(ref.watch(externalAccountsRemoteDataSourceProvider));
 });
 

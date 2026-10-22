@@ -84,14 +84,7 @@ class TransferNotifier extends StateNotifier<TransferState> {
       nextStep();
       return true;
     } on DioException catch (e) {
-      String errorMessage = 'No se encontró el destinatario';
-      if (e.response != null && e.response!.data != null) {
-        final data = e.response!.data as Map<String, dynamic>;
-        if (data.containsKey('message')) {
-          errorMessage = data['message'];
-        }
-      }
-      state = state.copyWith(isLoading: false, error: errorMessage);
+      state = state.copyWith(isLoading: false, error: _backendMessage(e, 'No se encontró el destinatario'));
       return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'No se encontró el destinatario');
@@ -121,14 +114,7 @@ class TransferNotifier extends StateNotifier<TransferState> {
       nextStep();
       return true;
     } on DioException catch (e) {
-      String errorMessage = 'Ocurrió un error inesperado';
-      if (e.response != null && e.response!.data != null) {
-        final data = e.response!.data as Map<String, dynamic>;
-        if (data.containsKey('message')) {
-          errorMessage = data['message'];
-        }
-      }
-      state = state.copyWith(isLoading: false, error: errorMessage);
+      state = state.copyWith(isLoading: false, error: _backendMessage(e, 'Ocurrió un error inesperado'));
       return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Ocurrió un error inesperado');
@@ -145,6 +131,14 @@ class TransferNotifier extends StateNotifier<TransferState> {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Error solicitando código OTP');
     }
+  }
+
+  /// El cuerpo de error no siempre es JSON (un 502 de Render llega como HTML): castearlo a Map
+  /// lanzaba un TypeError dentro del catch y la pantalla se quedaba cargando para siempre.
+  String _backendMessage(DioException e, String fallback) {
+    final data = e.response?.data;
+    final message = data is Map ? data['message'] : null;
+    return message is String && message.isNotEmpty ? message : fallback;
   }
 }
 

@@ -28,7 +28,9 @@ public class ConfirmBankAccountVerificationUseCase {
     private final ExternalBankAccountRepositoryPort externalBankAccountRepository;
     private final AuditLogService auditLogService;
 
-    @Transactional
+    // noRollbackFor: cada intento fallido guarda el contador y luego lanza la excepción. Con el
+    // rollback por defecto el contador nunca subía y el monto se podía adivinar sin límite.
+    @Transactional(noRollbackFor = BusinessRuleException.class)
     public void execute(UUID userId, UUID externalBankAccountId, int submittedAmount) {
         ExternalBankAccount account = externalBankAccountRepository.findById(externalBankAccountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cuenta bancaria no encontrada"));

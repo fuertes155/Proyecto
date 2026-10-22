@@ -149,7 +149,7 @@ class _DepositWaitingPageState extends ConsumerState<DepositWaitingPage> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Enviamos una notificación al +573000000000 para que autorices la compra.',
+                'Enviamos una notificación a tu celular para que autorices la compra.',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.black54,

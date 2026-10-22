@@ -136,6 +136,33 @@ class IdempotencyServiceTest {
         assertDoesNotThrow(() -> service.saveResult("idem-001", "txn-12345"));
     }
 
+    // ── release ───────────────────────────────────────────────────────────────
+
+    @Test
+    void release_freesAKeyThatIsStillProcessing() {
+        when(valueOps.get("idempotency:idem-001")).thenReturn("PROCESSING");
+
+        service.release("idem-001");
+
+        verify(redisTemplate).delete("idempotency:idem-001");
+    }
+
+    @Test
+    void release_keepsTheResultOfAnOperationThatAlreadyFinished() {
+        when(valueOps.get("idempotency:idem-done")).thenReturn("txn-uuid-abc123");
+
+        service.release("idem-done");
+
+        verify(redisTemplate, never()).delete(anyString());
+    }
+
+    @Test
+    void release_doesNotThrow_whenRedisIsUnavailable() {
+        when(valueOps.get(any())).thenThrow(new RuntimeException("Redis down"));
+
+        assertDoesNotThrow(() -> service.release("idem-001"));
+    }
+
     // ── Flujo completo ────────────────────────────────────────────────────────
 
     @Test

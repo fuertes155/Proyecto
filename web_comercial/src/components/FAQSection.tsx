@@ -49,7 +49,7 @@ export default function FAQSection() {
         <div className={styles.list}>
           {faqs.map((faq, i) => (
             <div key={i} className={`${styles.item} ${open === i ? styles.itemOpen : ''}`}>
-              <button className={styles.question} onClick={() => setOpen(open === i ? null : i)}>
+              <button className={styles.question} aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)}>
                 <span>{faq.q}</span>
                 <ChevronDown size={20} className={`${styles.chevron} ${open === i ? styles.chevronOpen : ''}`} />
               </button>

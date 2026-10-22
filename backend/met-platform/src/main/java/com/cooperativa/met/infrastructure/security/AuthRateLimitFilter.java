@@ -36,6 +36,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     private static final String[] PROTECTED_PATHS = {
             "/v1/auth/login",
+            "/v1/admin/auth/login",
             "/v1/auth/biometric",
             "/v1/auth/biometric-login",
             "/v1/auth/register",

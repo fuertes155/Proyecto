@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/error_mapper.dart';
 import '../providers/loan_provider.dart';
 
 class LoanApplicationDetailPage extends ConsumerWidget {
@@ -17,7 +18,7 @@ class LoanApplicationDetailPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('Detalle solicitud')),
       body: appAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(ErrorMapper.toUserMessage(e), textAlign: TextAlign.center)),
         data: (app) => SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(

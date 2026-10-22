@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/transfers_remote_datasource.dart';
 import '../../data/models/core_account_model.dart';
 import '../../data/models/recent_recipient_model.dart';
@@ -12,6 +13,7 @@ final transfersRepositoryProvider = Provider<TransfersRepositoryImpl>((ref) {
 });
 
 final myAccountProvider = FutureProvider<CoreAccountModel>((ref) async {
+  ref.watch(sessionUserIdProvider); // se descarta al cambiar de socio
   final repository = ref.watch(transfersRepositoryProvider);
   return repository.getMyAccount();
 });

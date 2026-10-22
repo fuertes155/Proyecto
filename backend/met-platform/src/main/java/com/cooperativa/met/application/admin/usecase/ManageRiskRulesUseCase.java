@@ -40,7 +40,7 @@ public class ManageRiskRulesUseCase {
                 .descripcion(request.descripcion())
                 .condicion(request.condicion())
                 .accion(accion)
-                .activo(request.activo())
+                .activo(!Boolean.FALSE.equals(request.activo()))
                 .creadoPor(actorAdminId)
                 .createdAt(Instant.now())
                 .build();

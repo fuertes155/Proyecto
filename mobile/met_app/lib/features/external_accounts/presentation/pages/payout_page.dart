@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/error_mapper.dart';
+import '../../../../core/widgets/scrollable_step.dart';
 import '../../../transfers/presentation/providers/transfers_provider.dart';
 import '../../data/models/external_bank_account_model.dart';
 import '../providers/external_accounts_provider.dart';
@@ -128,16 +130,17 @@ class _PayoutPageState extends ConsumerState<PayoutPage> {
     );
   }
 
+  // Los pasos con campos se desplazan si el teclado no deja espacio (celulares pequeños).
   Widget _buildStep(PayoutState state, PayoutNotifier notifier) {
     switch (state.step) {
       case 0:
         return _buildAccountStep(notifier);
       case 1:
-        return _buildAmountStep(state, notifier);
+        return ScrollableStep(key: const ValueKey('step_1'), child: _buildAmountStep(state, notifier));
       case 2:
-        return _buildPinStep(state, notifier);
+        return ScrollableStep(key: const ValueKey('step_2'), child: _buildPinStep(state, notifier));
       case 3:
-        return _buildOtpStep(state, notifier);
+        return ScrollableStep(key: const ValueKey('step_3'), child: _buildOtpStep(state, notifier));
       case 4:
         return _buildSuccessStep(state);
       default:
@@ -160,7 +163,7 @@ class _PayoutPageState extends ConsumerState<PayoutPage> {
         Expanded(
           child: accountsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(child: Text('Error: $error')),
+            error: (error, _) => Center(child: Text(ErrorMapper.toUserMessage(error), textAlign: TextAlign.center)),
             data: (accounts) {
               final usable = accounts.where((a) => a.isUsable).toList();
               if (usable.isEmpty) {
@@ -211,7 +214,8 @@ class _PayoutPageState extends ConsumerState<PayoutPage> {
   }
 
   Widget _buildAmountStep(PayoutState state, PayoutNotifier notifier) {
-    final accountOpt = ref.watch(myAccountProvider).value;
+    // valueOrNull: si el saldo no cargó, `.value` relanza el error y rompe toda la pantalla.
+    final accountOpt = ref.watch(myAccountProvider).valueOrNull;
     // Solo se puede retirar de las ganancias (interestBalance) — el capital
     // (principalBalance) permanece invertido en la plataforma.
     final maxAmount = accountOpt?.interestBalance ?? 0.0;
@@ -234,15 +238,17 @@ class _PayoutPageState extends ConsumerState<PayoutPage> {
                 child: const Icon(Icons.account_balance_outlined, color: Colors.white),
               ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Retirando a:', style: TextStyle(fontSize: 12)),
-                  Text(
-                    '${account.bankName} · ${account.maskedAccountNumber}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Retirando a:', style: TextStyle(fontSize: 12)),
+                    Text(
+                      '${account.bankName} · ${account.maskedAccountNumber}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

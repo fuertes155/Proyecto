@@ -50,7 +50,7 @@ export default function Navbar() {
         </div>
 
         {/* Hamburger */}
-        <button className={styles.hamburger} onClick={() => setMenuOpen(!menuOpen)} aria-label="Menú">
+        <button className={styles.hamburger} onClick={() => setMenuOpen(!menuOpen)} aria-label="Menú" aria-expanded={menuOpen}>
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </nav>

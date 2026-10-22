@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/utils/error_mapper.dart';
 import '../providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,7 +22,7 @@ class ProfilePage extends ConsumerWidget {
       ),
       body: authState.when(
         loading: () => Center(child: CircularProgressIndicator(color: primaryColor)),
-        error: (err, _) => Center(child: Text('Error al cargar el perfil: $err')),
+        error: (err, _) => Center(child: Text('Error al cargar el perfil. ${ErrorMapper.toUserMessage(err)}', textAlign: TextAlign.center)),
         data: (user) {
           if (user == null) return const Center(child: Text('No hay sesión activa'));
           
@@ -99,8 +100,11 @@ class ProfilePage extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                onPressed: () {
-                  ref.read(authStateProvider.notifier).logout();
+                // Como el cierre por inactividad: sin esto el socio quedaba en un perfil sin sesión
+                // y al volver atrás veía el inicio con los datos de antes.
+                onPressed: () async {
+                  await ref.read(authStateProvider.notifier).logout();
+                  if (context.mounted) context.go('/login');
                 },
               ),
             ],

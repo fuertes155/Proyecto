@@ -15,6 +15,7 @@ import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.domain.identity.port.EncryptionPort;
 import com.cooperativa.met.infrastructure.audit.AuditLogService;
 import com.cooperativa.met.infrastructure.security.IdempotencyService;
+import com.cooperativa.met.infrastructure.security.InMemoryIdempotency;
 import com.cooperativa.met.application.account.service.TransferLimitService;
 import com.cooperativa.met.infrastructure.security.PinAttemptService;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,19 +107,24 @@ class ExecuteTransferUseCaseTest {
                 .build();
 
         meterRegistry = new SimpleMeterRegistry();
-        executeTransferUseCase = new ExecuteTransferUseCase(
+        executeTransferUseCase = useCaseWith(idempotencyService);
+    }
+
+    private ExecuteTransferUseCase useCaseWith(IdempotencyService idempotency) {
+        ExecuteTransferUseCase useCase = new ExecuteTransferUseCase(
             accountRepository, transactionRepository, userRepository,
-            encryptionPort, otpService, auditLogService, idempotencyService,
+            encryptionPort, otpService, auditLogService, idempotency,
             transferLimitService, pinAttemptService, fraudDetectionService,
             sarlaftAlertEngine, meterRegistry
         );
         try {
             java.lang.reflect.Method initMethod = ExecuteTransferUseCase.class.getDeclaredMethod("initMetrics");
             initMethod.setAccessible(true);
-            initMethod.invoke(executeTransferUseCase);
+            initMethod.invoke(useCase);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return useCase;
     }
 
     @Test
@@ -217,6 +223,47 @@ class ExecuteTransferUseCaseTest {
             
         assertEquals("SAME_ACCOUNT", exception.getCode());
         verify(accountRepository, never()).save(any());
+    }
+
+    @Test
+    void execute_completesTheRetryWithTheOtpUnderTheSameIdempotencyKey() {
+        // La app envía primero sin código, recibe OTP_REQUIRED, pide el código y reenvía con la
+        // misma clave de idempotencia: el primer intento fallido no debe dejar la clave tomada.
+        ExecuteTransferUseCase useCase = useCaseWith(InMemoryIdempotency.service());
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(true);
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
+        when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(destAccount));
+        when(otpService.validateOtp("123456789", "000000")).thenReturn(true);
+        TransferRequest withoutOtp = new TransferRequest(destAccountId, new BigDecimal("100.00"), "Test transfer", "1234", null, "idem-1234");
+
+        BusinessRuleException otpRequired = assertThrows(BusinessRuleException.class,
+                () -> useCase.execute(userId, withoutOtp, "127.0.0.1"));
+        assertEquals("OTP_REQUIRED", otpRequired.getCode());
+
+        useCase.execute(userId, transferRequest, "127.0.0.1");
+        verify(accountRepository, times(2)).save(any());
+
+        // Un reintento de red de la petición que ya se procesó no vuelve a mover dinero.
+        useCase.execute(userId, transferRequest, "127.0.0.1");
+        verify(accountRepository, times(2)).save(any());
+    }
+
+    @Test
+    void execute_letsTheMemberRetryAfterAWrongOtp() {
+        ExecuteTransferUseCase useCase = useCaseWith(InMemoryIdempotency.service());
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
+        when(encryptionPort.verifyPin("1234_decrypted", "hashed_pin")).thenReturn(true);
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(sourceAccount));
+        when(accountRepository.findById(destAccountId)).thenReturn(Optional.of(destAccount));
+        when(otpService.validateOtp("123456789", "000000")).thenReturn(false, true);
+
+        assertThrows(BusinessRuleException.class, () -> useCase.execute(userId, transferRequest, "127.0.0.1"));
+        useCase.execute(userId, transferRequest, "127.0.0.1");
+
+        verify(accountRepository, times(2)).save(any());
     }
 
     @Test

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/utils/error_mapper.dart';
 import '../../../external_accounts/data/models/bank_model.dart';
 import '../../../external_accounts/presentation/providers/external_accounts_provider.dart';
 import '../providers/deposit_provider.dart';
@@ -215,20 +216,24 @@ class _DepositPageState extends ConsumerState<DepositPage> {
                               color: Colors.black54,
                             ),
                           ),
-                          IntrinsicWidth(
-                            child: TextField(
-                              controller: _amountController,
-                              keyboardType: TextInputType.number,
-                              style: const TextStyle(
-                                fontSize: 48,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF6B7A99),
-                              ),
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                hintText: '0',
-                                hintStyle: TextStyle(
+                          // Flexible: un monto largo ("10.000.000") se desplaza dentro del campo
+                          // en vez de desbordar la tarjeta en celulares angostos.
+                          Flexible(
+                            child: IntrinsicWidth(
+                              child: TextField(
+                                controller: _amountController,
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
                                   color: Color(0xFF6B7A99),
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: '0',
+                                  hintStyle: TextStyle(
+                                    color: Color(0xFF6B7A99),
+                                  ),
                                 ),
                               ),
                             ),
@@ -384,7 +389,7 @@ class _BankSelector extends ConsumerWidget {
                     ),
                     error: (error, _) => Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('No fue posible cargar la lista de bancos: $error'),
+                      child: Text('No fue posible cargar la lista de bancos. ${ErrorMapper.toUserMessage(error)}'),
                     ),
                     data: (banks) {
                       if (banks.isEmpty) {

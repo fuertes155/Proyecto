@@ -61,6 +61,17 @@ class ManageRiskRulesUseCaseTest {
     }
 
     @Test
+    void shouldCreateTheRuleActiveWhenTheRequestDoesNotSay() {
+        // Antes: request.activo() nulo se desempaquetaba en un boolean y reventaba con NPE (HTTP 500).
+        when(riskRuleRepository.save(any())).thenAnswer(inv -> ((RiskRule) inv.getArgument(0)).toBuilder().id(ruleId).build());
+
+        RiskRule created = manageRiskRulesUseCase.create(adminId,
+                new RiskRuleRequest("Montos altos", null, CONDICION, "BLOCK", null), IP);
+
+        assertTrue(created.isActivo());
+    }
+
+    @Test
     void shouldRejectUnknownActionWithoutSavingAnything() {
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> manageRiskRulesUseCase.create(adminId,
                 new RiskRuleRequest("Montos altos", null, CONDICION, "APROBAR", true), IP));

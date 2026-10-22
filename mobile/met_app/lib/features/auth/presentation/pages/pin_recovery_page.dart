@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/scrollable_step.dart';
 import '../providers/pin_recovery_provider.dart';
 
 class PinRecoveryPage extends ConsumerStatefulWidget {
@@ -105,14 +106,15 @@ class _PinRecoveryPageState extends ConsumerState<PinRecoveryPage> {
     );
   }
 
+  // Cada paso se desplaza si el teclado no deja espacio (celulares pequeños).
   Widget _buildCurrentStep(PinRecoveryState state, PinRecoveryNotifier notifier) {
     switch (state.currentStep) {
       case 0:
-        return _buildStep0(state, notifier);
+        return ScrollableStep(key: const ValueKey(0), child: _buildStep0(state, notifier));
       case 1:
-        return _buildStep1(state, notifier);
+        return ScrollableStep(key: const ValueKey(1), child: _buildStep1(state, notifier));
       case 2:
-        return _buildStep2(state, notifier);
+        return ScrollableStep(key: const ValueKey(2), child: _buildStep2(state, notifier));
       default:
         return const SizedBox();
     }

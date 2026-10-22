@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_client_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/home_summary.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../../data/repositories/home_remote_repository.dart';
@@ -15,6 +16,7 @@ final homeRepositoryProvider = Provider<HomeRepository>((ref) {
 class HomeNotifier extends AsyncNotifier<HomeSummary> {
   @override
   Future<HomeSummary> build() async {
+    ref.watch(sessionUserIdProvider); // se descarta al cambiar de socio
     return _fetchSummary();
   }
 

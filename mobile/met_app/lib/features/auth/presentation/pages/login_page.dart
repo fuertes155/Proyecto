@@ -20,16 +20,26 @@ import '../../../../core/security/behavioral_biometrics_service.dart';
 import '../../../../core/session/session_expired_provider.dart';
 
 // MEJORA 7 — Código reusable
-class _AnimatedEntrance extends StatelessWidget {
+class _AnimatedEntrance extends StatefulWidget {
   final Widget child;
   final int delayMs;
 
   const _AnimatedEntrance({required this.child, required this.delayMs});
 
   @override
+  State<_AnimatedEntrance> createState() => _AnimatedEntranceState();
+}
+
+class _AnimatedEntranceState extends State<_AnimatedEntrance> {
+  // Se crea una sola vez: creado en build, cada setState de la pantalla (cada tecla del PIN)
+  // reiniciaba la animación y el teclado desaparecía y volvía a aparecer.
+  late final Future<void> _delay = Future.delayed(Duration(milliseconds: widget.delayMs));
+
+  @override
   Widget build(BuildContext context) {
+    final child = widget.child;
     return FutureBuilder(
-      future: Future.delayed(Duration(milliseconds: delayMs)),
+      future: _delay,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Opacity(

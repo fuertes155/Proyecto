@@ -98,12 +98,17 @@ class _AccountStatementPageState extends ConsumerState<AccountStatementPage> {
       return _StatementRow(
         date: parts.isNotEmpty ? parts[0] : '',
         type: parts.length > 1 ? parts[1] : '',
-        description: parts.length > 2 ? parts[2] : '',
+        description: parts.length > 2 ? _withoutFormulaGuard(parts[2]) : '',
         amount: parts.length > 3 ? double.tryParse(parts[3]) ?? 0 : 0,
         isCredit: parts.length > 4 && parts[4] == 'CREDITO',
       );
     }).toList();
   }
+
+  /// El backend antepone un apóstrofo a los textos que empiezan por =, +, - o @ para que Excel no
+  /// los ejecute como fórmula; en la app se muestra el texto tal como lo escribió el socio.
+  String _withoutFormulaGuard(String value) =>
+      value.length > 1 && value.startsWith("'") && '=+-@\t\r'.contains(value[1]) ? value.substring(1) : value;
 
   List<String> _splitCsvLine(String line) {
     final result = <String>[];

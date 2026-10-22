@@ -4,7 +4,9 @@ import '../../data/models/auth_models.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-final pinRecoveryProvider = StateNotifierProvider<PinRecoveryNotifier, PinRecoveryState>((ref) {
+// autoDispose: cada recuperación empieza desde el documento. Si el estado sobreviviera a la
+// pantalla, al volver a abrirla retomaba el paso del PIN nuevo con el documento y el código de antes.
+final pinRecoveryProvider = StateNotifierProvider.autoDispose<PinRecoveryNotifier, PinRecoveryState>((ref) {
   final authRepo = ref.watch(authRepositoryProvider);
   return PinRecoveryNotifier(authRepo);
 });
@@ -75,14 +77,7 @@ class PinRecoveryNotifier extends StateNotifier<PinRecoveryState> {
       nextStep();
       return true;
     } on DioException catch (e) {
-      String errorMessage = 'No se encontró el usuario';
-      if (e.response != null && e.response!.data != null) {
-        final data = e.response!.data as Map<String, dynamic>;
-        if (data.containsKey('message')) {
-          errorMessage = data['message'];
-        }
-      }
-      state = state.copyWith(isLoading: false, error: errorMessage);
+      state = state.copyWith(isLoading: false, error: _backendMessage(e, 'No se encontró el usuario'));
       return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Error inesperado al solicitar recuperación');
@@ -103,18 +98,19 @@ class PinRecoveryNotifier extends StateNotifier<PinRecoveryState> {
       state = state.copyWith(isLoading: false);
       return true; // Success!
     } on DioException catch (e) {
-      String errorMessage = 'El código OTP es incorrecto o expiró';
-      if (e.response != null && e.response!.data != null) {
-        final data = e.response!.data as Map<String, dynamic>;
-        if (data.containsKey('message')) {
-          errorMessage = data['message'];
-        }
-      }
-      state = state.copyWith(isLoading: false, error: errorMessage);
+      state = state.copyWith(isLoading: false, error: _backendMessage(e, 'El código OTP es incorrecto o expiró'));
       return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Error inesperado al cambiar el PIN');
       return false;
     }
+  }
+
+  /// El cuerpo de error no siempre es JSON (un 502 de Render llega como HTML): castearlo a Map
+  /// lanzaba un TypeError dentro del catch y la pantalla se quedaba cargando para siempre.
+  String _backendMessage(DioException e, String fallback) {
+    final data = e.response?.data;
+    final message = data is Map ? data['message'] : null;
+    return message is String && message.isNotEmpty ? message : fallback;
   }
 }

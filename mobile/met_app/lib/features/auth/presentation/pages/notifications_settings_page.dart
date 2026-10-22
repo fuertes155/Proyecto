@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/utils/error_mapper.dart';
 import '../providers/auth_provider.dart';
 
 class NotificationsSettingsPage extends ConsumerStatefulWidget {
@@ -40,7 +41,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(ErrorMapper.toUserMessage(e)), backgroundColor: Colors.red),
         );
       }
     } finally {

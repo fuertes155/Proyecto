@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/error_mapper.dart';
 import '../../../../core/widgets/accessible_button.dart';
 import '../../data/models/external_bank_account_model.dart';
 import '../providers/external_accounts_provider.dart';
@@ -42,7 +43,7 @@ class _ExternalBankAccountsPageState extends ConsumerState<ExternalBankAccountsP
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: $error'),
+              Text(ErrorMapper.toUserMessage(error), textAlign: TextAlign.center),
               const SizedBox(height: 16),
               AccessibleButton(
                 label: 'Reintentar',

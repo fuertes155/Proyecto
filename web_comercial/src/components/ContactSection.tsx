@@ -22,7 +22,7 @@ export default function ContactSection() {
       setError(false);
       setForm({ name: '', email: '', message: '' });
       setTimeout(() => setSent(false), 5000);
-    } catch (err) {
+    } catch {
       setError(true);
     }
   };

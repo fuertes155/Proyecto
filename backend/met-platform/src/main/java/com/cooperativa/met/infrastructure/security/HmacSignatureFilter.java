@@ -60,8 +60,12 @@ public class HmacSignatureFilter extends OncePerRequestFilter {
         // correcto para un cliente web. La firma HMAC con secreto compartido es para la app
         // móvil (binario compilado); embeber ese mismo secreto en el bundle del panel web lo
         // dejaría visible para cualquiera que inspeccione el código — no aporta seguridad real.
+        //
+        // /v1/loans/simulate también: es un cálculo público y sin efectos (permitAll) que usa el
+        // simulador del sitio comercial, que por la misma razón no puede firmar con el secreto.
         String path = request.getServletPath();
-        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/v1/webhooks") || path.startsWith("/v1/auth") || path.startsWith("/v1/admin")) {
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/v1/webhooks") || path.startsWith("/v1/auth") || path.startsWith("/v1/admin")
+                || path.equals("/v1/loans/simulate")) {
             filterChain.doFilter(request, response);
             return;
         }
