@@ -38,7 +38,7 @@ class SyncBankCatalogUseCaseTest {
     private SyncBankCatalogUseCase useCase;
 
     @Test
-    void sandboxTestBanksAreCreatedWithTheirWompiCodes() {
+    void losBancosDePruebaDelSandboxSeCreanConSusCodigosDeWompi() {
         when(pseGatewayPort.fetchFinancialInstitutions()).thenReturn(List.of(
                 new PseFinancialInstitution("1", "Banco que aprueba")));
         when(bankRepository.findAllActive()).thenReturn(List.of(
@@ -56,7 +56,7 @@ class SyncBankCatalogUseCaseTest {
     }
 
     @Test
-    void longBankNamesFitTheTwentyCharacterCodeWithoutOverwritingAnotherBank() {
+    void losNombresLargosCabenEnElCodigoDeVeinteCaracteresSinPisarOtroBanco() {
         when(pseGatewayPort.fetchFinancialInstitutions()).thenReturn(List.of(
                 new PseFinancialInstitution("1066", "Banco Cooperativo Coopcentral S.A.")));
         when(bankRepository.findAllActive()).thenReturn(List.of());

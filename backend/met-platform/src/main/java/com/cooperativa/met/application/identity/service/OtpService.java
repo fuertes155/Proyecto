@@ -53,12 +53,12 @@ public class OtpService {
                 "Tu código de recuperación de PIN",
                 "Hola,\n\nHas solicitado recuperar tu PIN. Tu código de verificación es: " + otpCode +
                     "\n\nEste código expirará en 5 minutos.\nSi no fuiste tú, ignora este mensaje.\n\nSaludos,\nEquipo de Finanzas");
-            log.info("OTP Email sent successfully to {}", email);
+            log.info("Correo con el código OTP enviado a {}", email);
         } catch (Exception e) {
-            log.error("Failed to send OTP Email to {}", email, e);
+            log.error("No se pudo enviar el correo con el código OTP a {}", email, e);
             if (logOtpOnFailure) {
                 log.warn("=================================================");
-                log.warn("MOCK DEV MODE - Tu código OTP es: {}", otpCode);
+                log.warn("MODO DESARROLLO (simulado) - Tu código OTP es: {}", otpCode);
                 log.warn("=================================================");
             } else {
                 throw new BusinessRuleException("EMAIL_DELIVERY_FAILED",
@@ -105,11 +105,11 @@ public class OtpService {
                 "Verificación de Correo Electrónico",
                 "Hola,\n\nTu código de verificación de correo es: " + otpCode +
                     "\n\nEste código expirará en 5 minutos.\n\nSaludos,\nEquipo MET");
-            log.info("Email Verification OTP sent successfully to {}", email);
+            log.info("Correo de verificación con el código OTP enviado a {}", email);
         } catch (Exception e) {
-            log.error("Failed to send Email Verification OTP to {}", email, e);
+            log.error("No se pudo enviar el correo de verificación con el código OTP a {}", email, e);
             if (logOtpOnFailure) {
-                log.warn("MOCK DEV MODE - Tu código OTP de verificación es: {}", otpCode);
+                log.warn("MODO DESARROLLO (simulado) - Tu código OTP de verificación es: {}", otpCode);
             } else {
                 throw new BusinessRuleException("EMAIL_DELIVERY_FAILED",
                     "No pudimos enviar el correo de verificación. Intenta nuevamente en unos minutos.");

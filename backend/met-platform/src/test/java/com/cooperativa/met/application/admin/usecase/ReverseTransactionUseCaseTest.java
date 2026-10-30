@@ -32,7 +32,7 @@ class ReverseTransactionUseCaseTest {
     private final UUID adminId = UUID.randomUUID();
 
     @Test
-    void shouldAuditReversalWhenConfirmationCodeMatches() {
+    void auditaLaReversionSiElCodigoDeConfirmacionCoincide() {
         reverseTransactionUseCase.execute(adminId,
                 new ReverseTransactionRequest(TX_ID, "Cobro duplicado", "confirm-a1b2c3d4"), "181.50.10.2");
 
@@ -45,7 +45,7 @@ class ReverseTransactionUseCaseTest {
     }
 
     @Test
-    void shouldRejectWrongConfirmationCodeAndLeaveNoTrace() {
+    void rechazaUnCodigoDeConfirmacionErradoSinDejarRastro() {
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> reverseTransactionUseCase.execute(adminId,
                 new ReverseTransactionRequest(TX_ID, "Cobro duplicado", "CONFIRM-FFFFFFFF"), "181.50.10.2"));
 

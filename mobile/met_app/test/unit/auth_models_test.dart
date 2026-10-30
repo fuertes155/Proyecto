@@ -3,7 +3,7 @@ import 'package:met/features/auth/data/models/auth_models.dart';
 
 void main() {
   group('RegisterRequest', () {
-    test('toJson sends only document, full name, pin and terms', () {
+    test('toJson envía solo documento, nombre completo, PIN y términos', () {
       final json = RegisterRequest(
         documentType: 'CC',
         documentNumber: '1086578123',
@@ -23,7 +23,7 @@ void main() {
   });
 
   group('UserResponse', () {
-    test('fromJson accepts an account without email or phone', () {
+    test('fromJson acepta una cuenta sin correo ni teléfono', () {
       // Así llega una cuenta recién creada: el correo se agrega después.
       final user = UserResponse.fromJson({
         'id': 'user-1',
@@ -41,7 +41,7 @@ void main() {
       expect(user.fullName, 'Juan Carlos Pabón Gómez');
     });
 
-    test('hasEmail is true once the email is registered', () {
+    test('hasEmail es verdadero cuando el correo ya está registrado', () {
       final user = UserResponse.fromJson({
         'id': 'user-1',
         'firstName': 'Juan Carlos',

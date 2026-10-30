@@ -45,7 +45,7 @@ public class CoreAccount {
 
     public CoreAccount creditPrincipal(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
+            throw new IllegalArgumentException("El monto debe ser mayor a cero");
         }
         return this.toBuilder()
                 .principalBalance(this.principalBalance.add(amount))
@@ -55,7 +55,7 @@ public class CoreAccount {
 
     public CoreAccount creditInterest(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
+            throw new IllegalArgumentException("El monto debe ser mayor a cero");
         }
         return this.toBuilder()
                 .interestBalance(this.interestBalance.add(amount))
@@ -65,10 +65,10 @@ public class CoreAccount {
 
     public CoreAccount debitInterest(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
+            throw new IllegalArgumentException("El monto debe ser mayor a cero");
         }
         if (this.interestBalance.compareTo(amount) < 0) {
-            throw new IllegalStateException("Insufficient interest funds");
+            throw new IllegalStateException("Ganancias insuficientes");
         }
         return this.toBuilder()
                 .interestBalance(this.interestBalance.subtract(amount))
@@ -78,7 +78,7 @@ public class CoreAccount {
 
     public CoreAccount debitPrincipal(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
+            throw new IllegalArgumentException("El monto debe ser mayor a cero");
         }
         if (this.principalBalance.compareTo(amount) < 0) {
             throw new IllegalStateException("Fondos insuficientes");

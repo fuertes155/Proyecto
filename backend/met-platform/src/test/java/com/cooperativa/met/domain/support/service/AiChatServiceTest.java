@@ -32,7 +32,7 @@ class AiChatServiceTest {
     }
 
     @Test
-    void shouldAnswerWithGeminiKeepingTheAdvisorInstructions() {
+    void respondeConGeminiConservandoLasInstruccionesDelAsesor() {
         server.expect(requestTo(PRIMARY))
                 .andExpect(jsonPath("$.contents[0].parts[0].text").value(org.hamcrest.Matchers.containsString("¿Cómo ahorro más?")))
                 .andExpect(jsonPath("$.contents[0].parts[0].text").value(org.hamcrest.Matchers.containsString("máximo 2 oraciones")))
@@ -42,7 +42,7 @@ class AiChatServiceTest {
     }
 
     @Test
-    void shouldFallBackToTheSecondModelWhenTheFirstIsSaturated() {
+    void pasaAlSegundoModeloSiElPrimeroEstaSaturado() {
         server.expect(requestTo(PRIMARY)).andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
         server.expect(requestTo(FALLBACK)).andRespond(withSuccess(reply("Respuesta de respaldo."), MediaType.APPLICATION_JSON));
 
@@ -51,7 +51,7 @@ class AiChatServiceTest {
     }
 
     @Test
-    void shouldAlsoFallBackWhenTheFirstModelIsRateLimited() {
+    void tambienPasaAlSegundoModeloSiElPrimeroLimitaLasPeticiones() {
         server.expect(requestTo(PRIMARY)).andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS));
         server.expect(requestTo(FALLBACK)).andRespond(withSuccess(reply("Respuesta de respaldo."), MediaType.APPLICATION_JSON));
 
@@ -59,7 +59,7 @@ class AiChatServiceTest {
     }
 
     @Test
-    void shouldAskToRetryWhenBothModelsAreDown() {
+    void pideReintentarSiAmbosModelosEstanCaidos() {
         server.expect(requestTo(PRIMARY)).andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
         server.expect(requestTo(FALLBACK)).andRespond(withStatus(HttpStatus.BAD_GATEWAY));
 
@@ -67,7 +67,7 @@ class AiChatServiceTest {
     }
 
     @Test
-    void shouldNotRetryARejectedRequest() {
+    void noReintentaUnaPeticionRechazada() {
         server.expect(requestTo(PRIMARY)).andRespond(withStatus(HttpStatus.FORBIDDEN).body("API key invalid"));
 
         assertTrue(chat.generateReply("hola").contains("asesor"));
@@ -75,7 +75,7 @@ class AiChatServiceTest {
     }
 
     @Test
-    void shouldAnswerWithAMockWhenNoApiKeyIsConfigured() {
+    void respondeConUnaSimulacionSiNoHayLlaveDeApi() {
         ReflectionTestUtils.setField(chat, "geminiApiKey", "tu_api_key_aqui");
 
         assertTrue(chat.generateReply("hola").contains("Mock"));

@@ -75,8 +75,8 @@ public class HmacSignatureFilter extends OncePerRequestFilter {
         String timestampHeader = request.getHeader(HEADER_TIMESTAMP);
 
         if (signatureHeader == null || timestampHeader == null) {
-            log.warn("Faltan headers de seguridad HMAC en {}", path);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing Security Headers");
+            log.warn("Faltan las cabeceras de seguridad HMAC en {}", path);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Faltan las cabeceras de seguridad");
             return;
         }
 
@@ -87,12 +87,12 @@ public class HmacSignatureFilter extends OncePerRequestFilter {
             long diffSeconds = Math.abs((now - requestTime) / 1000);
             
             if (diffSeconds > MAX_TIME_DIFF_SECONDS) {
-                log.warn("Replay attack detectado o reloj desincronizado. Diff: {}s", diffSeconds);
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Request Expired");
+                log.warn("Posible reenvío de una petición vieja o reloj desincronizado. Diferencia: {}s", diffSeconds);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "La petición venció");
                 return;
             }
         } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Timestamp");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Marca de tiempo inválida");
             return;
         }
 
@@ -107,8 +107,8 @@ public class HmacSignatureFilter extends OncePerRequestFilter {
 
         // 6. Comparar firmas
         if (!MessageDigest.isEqual(expectedSignature.getBytes(StandardCharsets.UTF_8), signatureHeader.getBytes(StandardCharsets.UTF_8))) {
-            log.warn("Invalid HMAC signature para {}", path);
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid Signature");
+            log.warn("Firma HMAC inválida para {}", path);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Firma inválida");
             return;
         }
 

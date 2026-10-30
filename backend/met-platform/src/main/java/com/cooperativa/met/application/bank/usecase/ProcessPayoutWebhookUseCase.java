@@ -49,7 +49,7 @@ public class ProcessPayoutWebhookUseCase {
             return;
         }
         if (payout.getSettledAt() != null) {
-            log.info("Payout {} ya fue liquidado previamente, se ignora evento duplicado", payoutId);
+            log.info("Retiro {} ya liquidado antes; se ignora el evento duplicado", payoutId);
             return;
         }
 
@@ -70,7 +70,7 @@ public class ProcessPayoutWebhookUseCase {
             externalPayoutRepository.save(payout.markSettled());
             auditLogService.logSuccess(account.getUserId(), "EXTERNAL_PAYOUT_SETTLED",
                     "EXTERNAL_PAYOUT", transaction.getId().toString(), "{}");
-            log.info("Payout {} confirmado por el riel de pago", payoutId);
+            log.info("Retiro {} confirmado por el riel de pago", payoutId);
         } else {
             accountReversalService.creditWithRetry(transaction.getSourceAccountId(), transaction.getAmount());
             transactionRepository.save(transaction.toBuilder().status(TransactionStatus.REVERSED).build());
@@ -78,7 +78,7 @@ public class ProcessPayoutWebhookUseCase {
             auditLogService.logFailure(account.getUserId(), "EXTERNAL_PAYOUT_REVERSED",
                     "EXTERNAL_PAYOUT", transaction.getId().toString(),
                     String.format("{\"failureCode\":\"%s\"}", failureCode));
-            log.warn("Payout {} rechazado por el riel de pago (code={}), monto revertido a la wallet", payoutId, failureCode);
+            log.warn("Retiro {} rechazado por el riel de pago (código={}); el monto se devolvió a la billetera", payoutId, failureCode);
         }
     }
 

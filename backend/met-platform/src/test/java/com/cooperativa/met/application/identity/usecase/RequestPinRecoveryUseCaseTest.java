@@ -42,7 +42,7 @@ class RequestPinRecoveryUseCaseTest {
     }
 
     @Test
-    void shouldSendOtpToRegisteredEmail() {
+    void enviaElOtpAlCorreoRegistrado() {
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT))
                 .thenReturn(Optional.of(user("socio@example.com")));
 
@@ -52,7 +52,7 @@ class RequestPinRecoveryUseCaseTest {
     }
 
     @Test
-    void shouldAnswerLikeUnknownDocumentWhenAccountHasNoEmail() {
+    void respondeComoDocumentoDesconocidoSiLaCuentaNoTieneCorreo() {
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user(null)));
 
         assertDoesNotThrow(() -> requestPinRecoveryUseCase.execute(request));

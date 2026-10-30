@@ -47,7 +47,7 @@ void setupFirebaseAuthMocks([Callback? customHandlers]) {
 void main() {
   setupFirebaseAuthMocks();
   
-  testWidgets('App starts and shows SplashPage', (WidgetTester tester) async {
+  testWidgets('La app arranca y muestra SplashPage', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     // Envuelto en ProviderScope porque usamos Riverpod en toda la app.
     await tester.pumpWidget(const ProviderScope(child: MetApp()));

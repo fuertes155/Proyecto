@@ -46,7 +46,7 @@ class AuthControllerTest {
     private TokenPort tokenPort;
 
     @Test
-    void shouldReturnTokenOnSuccessfulLogin() throws Exception {
+    void devuelveElTokenAlIngresarCorrectamente() throws Exception {
         AuthResponse mockResponse = AuthResponse.of(UUID.randomUUID(), "mocked-jwt-token", "refresh-token", 3600000L);
 
         Mockito.when(loginUseCase.execute(Mockito.any(LoginRequest.class), Mockito.anyString())).thenReturn(mockResponse);
@@ -61,7 +61,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenLoginRequestIsInvalid() throws Exception {
+    void respondePeticionInvalidaSiElIngresoEstaMalFormado() throws Exception {
         String invalidJson = "{\"password\": \"password123\"}";
 
         mockMvc.perform(post("/v1/auth/login").with(csrf())
@@ -72,7 +72,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldRegisterUser() throws Exception {
+    void registraUnUsuario() throws Exception {
         UserResponse mockResponse = new UserResponse(
             UUID.randomUUID(),
             DocumentType.CC,
@@ -102,7 +102,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldRegisterUserWithOnlyDocumentFullNameAndPin() throws Exception {
+    void registraUnUsuarioSoloConDocumentoNombreCompletoYPin() throws Exception {
         UserResponse mockResponse = new UserResponse(
             UUID.randomUUID(),
             DocumentType.CC,
@@ -133,7 +133,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldLogoutUser() throws Exception {
+    void cierraLaSesionDelUsuario() throws Exception {
         Mockito.doNothing().when(logoutUseCase).execute(Mockito.any(), Mockito.anyString());
         // JwtAuthenticationFilter (real, no mockeado) valida el header Authorization en
         // cada request; con un token no reconocido limpia el SecurityContext y responde 401,

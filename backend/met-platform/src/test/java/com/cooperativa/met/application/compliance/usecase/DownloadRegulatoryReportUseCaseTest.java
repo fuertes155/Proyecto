@@ -36,7 +36,7 @@ class DownloadRegulatoryReportUseCaseTest {
     private final UUID reportId = UUID.randomUUID();
 
     @Test
-    void shouldReturnFileWithItsChecksum() {
+    void devuelveElArchivoConSuChecksum() {
         when(reportPort.findById(reportId)).thenReturn(Optional.of(report(ReportStatus.COMPLETED, "/reports/a.txt")));
         when(storagePort.read("/reports/a.txt")).thenReturn(new byte[]{1, 2, 3});
 
@@ -48,7 +48,7 @@ class DownloadRegulatoryReportUseCaseTest {
     }
 
     @Test
-    void shouldRefuseReportThatIsNotFinished() {
+    void rechazaUnReporteQueNoHaTerminado() {
         when(reportPort.findById(reportId)).thenReturn(Optional.of(report(ReportStatus.GENERATING, null)));
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> downloadUseCase.execute(reportId));
@@ -58,7 +58,7 @@ class DownloadRegulatoryReportUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownReport() {
+    void fallaConUnReporteDesconocido() {
         when(reportPort.findById(reportId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> downloadUseCase.execute(reportId));

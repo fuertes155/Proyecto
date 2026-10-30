@@ -13,14 +13,14 @@ public class WompiTokenizedPaymentAdapter implements PaymentGatewayPort {
 
     @Override
     public boolean chargeTokenizedCard(UUID userId, String token, BigDecimal amount, String reference) {
-        log.info("[WOMPI MOCK] Intentando cargo silencioso a tarjeta tokenizada.");
+        log.info("[WOMPI SIMULADO] Intentando cargo silencioso a la tarjeta guardada.");
         log.info(" - Usuario: {}", userId);
         log.info(" - Token: {}", token);
         log.info(" - Monto: {}", amount);
         log.info(" - Ref: {}", reference);
 
         // Simulamos que el cargo con el token a Wompi fue exitoso
-        log.info("[WOMPI MOCK] ¡Cargo exitoso!");
+        log.info("[WOMPI SIMULADO] ¡Cargo exitoso!");
         return true;
     }
 }

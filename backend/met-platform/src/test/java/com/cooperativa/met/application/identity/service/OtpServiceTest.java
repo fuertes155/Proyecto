@@ -75,7 +75,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldStoreSixDigitCodeForFiveMinutesAndEmailIt() {
+    void guardaUnCodigoDeSeisDigitosPorCincoMinutosYLoEnviaPorCorreo() {
         String code = otpService.generateAndSendOtp(DOCUMENT, EMAIL);
 
         assertTrue(code.matches("\\d{6}"), "el OTP debe tener 6 dígitos: " + code);
@@ -85,7 +85,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldAcceptCorrectCodeOnlyOnce() {
+    void aceptaElCodigoCorrectoUnaSolaVez() {
         String code = otpService.generateAndSendOtp(DOCUMENT, EMAIL);
 
         assertTrue(otpService.validateOtp(DOCUMENT, code));
@@ -93,7 +93,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldRejectWhenNoCodeWasIssuedOrItExpired() {
+    void rechazaSiNoSeEmitioCodigoOSiVencio() {
         assertFalse(otpService.validateOtp(DOCUMENT, "123456"));
 
         // Sin código vigente no hay nada que adivinar: no se cuenta como intento fallido.
@@ -101,7 +101,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldLockOutForFifteenMinutesOnThirdWrongCode() {
+    void bloqueaQuinceMinutosAlTercerCodigoErrado() {
         String code = otpService.generateAndSendOtp(DOCUMENT, EMAIL);
         String wrong = wrongCode(code);
 
@@ -116,7 +116,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldRejectEvenTheCorrectCodeWhileLockedOut() {
+    void rechazaInclusoElCodigoCorrectoMientrasEstaBloqueado() {
         String code = otpService.generateAndSendOtp(DOCUMENT, EMAIL);
         redis.put(LOCKOUT_KEY, "LOCKED");
 
@@ -128,7 +128,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldNotIssueNewCodeWhileLockedOut() {
+    void noEmiteCodigoNuevoMientrasEstaBloqueado() {
         redis.put(LOCKOUT_KEY, "LOCKED");
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -140,7 +140,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldReportDeliveryFailureInsteadOfPretendingTheCodeWasSent() {
+    void avisaQueFalloElEnvioEnVezDeFingirQueSeEnvio() {
         doThrow(new EmailSenderPort.EmailDeliveryException("SMTP caído"))
                 .when(emailSender).sendPlainText(anyString(), anyString(), anyString());
 
@@ -151,7 +151,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldStillReturnCodeWhenEmailFailsWithDevFallbackEnabled() {
+    void devuelveElCodigoSiFallaElCorreoConElRespaldoDeDesarrollo() {
         ReflectionTestUtils.setField(otpService, "logOtpOnFailure", true);
         doThrow(new EmailSenderPort.EmailDeliveryException("SMTP caído"))
                 .when(emailSender).sendPlainText(anyString(), anyString(), anyString());
@@ -162,7 +162,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldAcceptEmailVerificationCodeOnlyOnce() {
+    void aceptaElCodigoDeVerificacionDeCorreoUnaSolaVez() {
         String code = otpService.generateAndSendEmailVerificationOtp(DOCUMENT, EMAIL);
 
         assertEquals(Duration.ofMinutes(5), ttls.get(EMAIL_OTP_KEY));
@@ -172,14 +172,14 @@ class OtpServiceTest {
     }
 
     @Test
-    void shouldNotAcceptEmailVerificationCodeForPinRecovery() {
+    void noAceptaElCodigoDeVerificacionDeCorreoParaRecuperarElPin() {
         String emailCode = otpService.generateAndSendEmailVerificationOtp(DOCUMENT, EMAIL);
 
         assertFalse(otpService.validateOtp(DOCUMENT, emailCode));
     }
 
     @Test
-    void shouldShareLockoutBetweenEmailVerificationAndPinRecovery() {
+    void comparteElBloqueoEntreVerificacionDeCorreoYRecuperacionDePin() {
         String code = otpService.generateAndSendEmailVerificationOtp(DOCUMENT, EMAIL);
         String wrong = wrongCode(code);
         otpService.validateEmailVerificationOtp(DOCUMENT, wrong);

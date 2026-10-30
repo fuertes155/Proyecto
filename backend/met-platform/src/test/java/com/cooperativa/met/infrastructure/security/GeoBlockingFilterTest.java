@@ -29,7 +29,7 @@ class GeoBlockingFilterTest {
     }
 
     @Test
-    void shouldAllowLocalhost() throws ServletException, IOException {
+    void permiteLocalhost() throws ServletException, IOException {
         when(request.getRequestURI()).thenReturn("/v1/auth/login");
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
 
@@ -39,7 +39,7 @@ class GeoBlockingFilterTest {
     }
 
     @Test
-    void shouldBlockBlacklistedIp() throws ServletException, IOException {
+    void bloqueaUnaIpEnListaNegra() throws ServletException, IOException {
         when(request.getRequestURI()).thenReturn("/v1/auth/login");
         when(request.getRemoteAddr()).thenReturn("198.51.100.15");
         

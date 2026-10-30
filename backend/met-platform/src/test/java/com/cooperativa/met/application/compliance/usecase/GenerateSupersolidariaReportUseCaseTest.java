@@ -61,7 +61,7 @@ class GenerateSupersolidariaReportUseCaseTest {
     }
 
     @Test
-    void shouldGenerateStoreAndFingerprintTheFlatFile() throws Exception {
+    void generaGuardaYCalculaLaHuellaDelArchivoPlano() throws Exception {
         when(reportPort.findByTypeAndPeriod(SupersolidariaReportType.ASOCIADOS, 2026, 9)).thenReturn(Optional.empty());
         when(reportPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(datasetPort.buildDataset(SupersolidariaReportType.ASOCIADOS, 2026, 9, "COOP001")).thenReturn(dataset());
@@ -83,7 +83,7 @@ class GenerateSupersolidariaReportUseCaseTest {
     }
 
     @Test
-    void shouldNotOverwriteAReportThatWasAlreadySubmitted() {
+    void noSobrescribeUnReporteQueYaSeEnvio() {
         when(reportPort.findByTypeAndPeriod(SupersolidariaReportType.ASOCIADOS, 2026, 9))
                 .thenReturn(Optional.of(report(ReportStatus.COMPLETED)));
 
@@ -95,7 +95,7 @@ class GenerateSupersolidariaReportUseCaseTest {
     }
 
     @Test
-    void shouldRetryAPreviouslyFailedReportInsteadOfCreatingADuplicate() {
+    void reintentaUnReporteQueFalloEnVezDeCrearUnDuplicado() {
         RegulatoryReport failed = report(ReportStatus.FAILED);
         when(reportPort.findByTypeAndPeriod(SupersolidariaReportType.ASOCIADOS, 2026, 9)).thenReturn(Optional.of(failed));
         when(reportPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -109,7 +109,7 @@ class GenerateSupersolidariaReportUseCaseTest {
     }
 
     @Test
-    void shouldMarkReportFailedWhenDataCannotBeBuilt() {
+    void marcaElReporteComoFallidoSiNoSePuedenArmarLosDatos() {
         when(reportPort.findByTypeAndPeriod(SupersolidariaReportType.ASOCIADOS, 2026, 9)).thenReturn(Optional.empty());
         when(reportPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(datasetPort.buildDataset(any(), eq(2026), eq(9), anyString())).thenThrow(new IllegalStateException("consulta falló"));

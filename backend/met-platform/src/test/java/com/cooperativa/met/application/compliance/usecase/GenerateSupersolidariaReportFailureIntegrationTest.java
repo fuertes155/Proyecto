@@ -37,7 +37,7 @@ class GenerateSupersolidariaReportFailureIntegrationTest {
     private ReportDatasetPort datasetPort;
 
     @Test
-    void shouldLeaveTheFailedAttemptRecorded() {
+    void dejaRegistradoElIntentoFallido() {
         when(datasetPort.buildDataset(any(), anyInt(), anyInt(), anyString()))
                 .thenThrow(new IllegalStateException("consulta de asociados falló"));
 

@@ -9,18 +9,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class PersonNameTest {
 
     @Test
-    void shouldSplitNameAndSurname() {
+    void separaNombreYApellido() {
         assertEquals(new PersonName("Juan", "Pérez"), PersonName.fromFullName("Juan Pérez"));
     }
 
     @Test
-    void shouldTakeLastTwoWordsAsSurnames() {
+    void tomaLasDosUltimasPalabrasComoApellidos() {
         assertEquals(new PersonName("Carlos", "Pérez Gómez"), PersonName.fromFullName("Carlos Pérez Gómez"));
         assertEquals(new PersonName("Juan Carlos", "Pabón Gómez"), PersonName.fromFullName("Juan Carlos Pabón Gómez"));
     }
 
     @Test
-    void shouldKeepParticlesWithTheWordTheyBelongTo() {
+    void mantieneLasParticulasConLaPalabraALaQuePertenecen() {
         assertEquals(new PersonName("María del Carmen", "Pérez Gómez"),
                 PersonName.fromFullName("María del Carmen Pérez Gómez"));
         assertEquals(new PersonName("Juan", "De la Cruz Rodríguez"),
@@ -29,13 +29,13 @@ class PersonNameTest {
     }
 
     @Test
-    void shouldIgnoreExtraWhitespace() {
+    void ignoraLosEspaciosDeMas() {
         assertEquals(new PersonName("Ana María", "López Ruiz"),
                 PersonName.fromFullName("  Ana   María  López   Ruiz "));
     }
 
     @Test
-    void shouldRejectNamesWithoutSurname() {
+    void rechazaNombresSinApellido() {
         for (String invalid : new String[]{null, "", "   ", "Juan", "de la", "Juan de"}) {
             BusinessRuleException ex = assertThrows(BusinessRuleException.class,
                     () -> PersonName.fromFullName(invalid));

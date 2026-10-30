@@ -41,7 +41,7 @@ class VerifyEmailUseCaseTest {
     private VerifyEmailUseCase verifyEmailUseCase;
 
     @Test
-    void shouldActivateAccountWhenCodeIsValid() {
+    void activaLaCuentaSiElCodigoEsValido() {
         givenUser(UserStatus.PENDING_VERIFICATION);
         when(otpService.validateEmailVerificationOtp(DOCUMENT, "482913")).thenReturn(true);
 
@@ -53,7 +53,7 @@ class VerifyEmailUseCaseTest {
     }
 
     @Test
-    void shouldKeepAccountPendingWhenCodeIsWrong() {
+    void dejaLaCuentaPendienteSiElCodigoEsErrado() {
         givenUser(UserStatus.PENDING_VERIFICATION);
         when(otpService.validateEmailVerificationOtp(DOCUMENT, "482913")).thenReturn(false);
 
@@ -64,7 +64,7 @@ class VerifyEmailUseCaseTest {
     }
 
     @Test
-    void shouldNotReactivateBlockedAccountThroughEmailVerification() {
+    void noReactivaUnaCuentaBloqueadaAlVerificarElCorreo() {
         // Un usuario bloqueado no puede volver a ACTIVE "verificando el correo" otra vez.
         givenUser(UserStatus.BLOCKED);
 
@@ -76,7 +76,7 @@ class VerifyEmailUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownDocument() {
+    void fallaConUnDocumentoDesconocido() {
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> verifyEmailUseCase.execute(REQUEST));

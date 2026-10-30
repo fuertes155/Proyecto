@@ -70,7 +70,7 @@ class FraudDetectionServiceTest {
     }
 
     @Test
-    void checkIpReputation_throwsException_whenIpIsProxy() {
+    void reputacionDeIpFallaSiLaIpEsUnProxy() {
         GeoLocationResponse response = new GeoLocationResponse();
         response.setStatus("success");
         response.setProxy(true);
@@ -82,7 +82,7 @@ class FraudDetectionServiceTest {
     }
 
     @Test
-    void checkIpReputation_passes_whenIpIsClean() {
+    void reputacionDeIpPasaSiLaIpEstaLimpia() {
         GeoLocationResponse response = new GeoLocationResponse();
         response.setStatus("success");
         response.setProxy(false);
@@ -92,7 +92,7 @@ class FraudDetectionServiceTest {
     }
 
     @Test
-    void checkImpossibleTravel_throwsException_whenSpeedExceedsLimit() {
+    void viajeImposibleFallaSiLaVelocidadSuperaElLimite() {
         // Mock Last Location (Bogota, Colombia) - recorded 1 hour ago
         long oneHourAgo = System.currentTimeMillis() - (60 * 60 * 1000);
         String lastLocData = "4.7110,-74.0721," + oneHourAgo;
@@ -113,7 +113,7 @@ class FraudDetectionServiceTest {
     }
 
     @Test
-    void checkImpossibleTravel_passes_whenTravelIsPossible() {
+    void viajeImposiblePasaSiElViajeEsPosible() {
         // Mock Last Location (Bogota, Colombia) - recorded 10 hours ago
         long tenHoursAgo = System.currentTimeMillis() - (10 * 60 * 60 * 1000);
         String lastLocData = "4.7110,-74.0721," + tenHoursAgo;
@@ -132,7 +132,7 @@ class FraudDetectionServiceTest {
     }
 
     @Test
-    void checkTransferVelocity_throwsException_whenThresholdExceeded() {
+    void velocidadDeTransferenciasFallaSiSeSuperaElUmbral() {
         UUID destAccountId = UUID.randomUUID();
         when(redisTemplate.opsForSet()).thenReturn(setOperations);
         when(setOperations.add(eq("transfer_vel:" + userId), eq(destAccountId.toString()))).thenReturn(1L);

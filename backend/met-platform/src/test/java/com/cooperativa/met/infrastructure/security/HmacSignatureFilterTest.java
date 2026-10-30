@@ -55,7 +55,7 @@ class HmacSignatureFilterTest {
     }
 
     @Test
-    void acceptsAWriteSignedWithTheSharedSecret() throws Exception {
+    void aceptaUnaEscrituraFirmadaConElSecretoCompartido() throws Exception {
         MockHttpServletRequest request = post("/v1/accounts/transactions/transfer");
         sign(request, "/v1/accounts/transactions/transfer", Instant.now().toEpochMilli(), SECRET);
 
@@ -66,7 +66,7 @@ class HmacSignatureFilterTest {
     }
 
     @Test
-    void rejectsAnUnsignedWrite() throws Exception {
+    void rechazaUnaEscrituraSinFirma() throws Exception {
         Outcome outcome = run(post("/v1/accounts/transactions/transfer"));
 
         assertFalse(outcome.passedThrough());
@@ -74,7 +74,7 @@ class HmacSignatureFilterTest {
     }
 
     @Test
-    void rejectsASignatureMadeWithAnotherSecret() throws Exception {
+    void rechazaUnaFirmaHechaConOtroSecreto() throws Exception {
         MockHttpServletRequest request = post("/v1/accounts/transactions/transfer");
         sign(request, "/v1/accounts/transactions/transfer", Instant.now().toEpochMilli(), "otro-secreto");
 
@@ -85,7 +85,7 @@ class HmacSignatureFilterTest {
     }
 
     @Test
-    void rejectsAReplayedRequestWithAnOldTimestamp() throws Exception {
+    void rechazaUnaPeticionRepetidaConMarcaDeTiempoVieja() throws Exception {
         MockHttpServletRequest request = post("/v1/accounts/transactions/transfer");
         sign(request, "/v1/accounts/transactions/transfer", Instant.now().minusSeconds(120).toEpochMilli(), SECRET);
 
@@ -96,7 +96,7 @@ class HmacSignatureFilterTest {
     }
 
     @Test
-    void readsAndWebClientRoutesDoNotNeedASignature() throws Exception {
+    void lasLecturasYLasRutasDelClienteWebNoNecesitanFirma() throws Exception {
         MockHttpServletRequest read = new MockHttpServletRequest("GET", "/api/v1/accounts/me");
         read.setServletPath("/v1/accounts/me");
         assertTrue(run(read).passedThrough());
@@ -107,7 +107,7 @@ class HmacSignatureFilterTest {
     }
 
     @Test
-    void thePublicLoanSimulatorWorksFromTheWebsiteWithoutTheMobileSecret() throws Exception {
+    void elSimuladorPublicoDeCreditoFuncionaDesdeLaWebSinElSecretoDeLaApp() throws Exception {
         // El simulador del sitio comercial es un cálculo sin efectos y público (permitAll). Un sitio
         // web no puede guardar el secreto de la app: si exigiera firma, el simulador nunca funcionaría.
         Outcome outcome = run(post("/v1/loans/simulate"));

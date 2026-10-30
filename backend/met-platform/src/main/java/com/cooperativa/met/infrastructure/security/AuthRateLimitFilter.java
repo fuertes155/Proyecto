@@ -123,7 +123,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         if (allowed) {
             filterChain.doFilter(request, response);
         } else {
-            log.warn("Rate limit excedido. path={} ip={}", request.getRequestURI(), clientIp);
+            log.warn("Límite de peticiones excedido. path={} ip={}", request.getRequestURI(), clientIp);
             sendRateLimitResponse(response, isOtpPath ? OTP_WINDOW_SECONDS : windowSeconds());
         }
     }

@@ -42,7 +42,7 @@ class ReportDatasetIntegrationTest {
     @Autowired private ComplianceCheckPort complianceCheckPort;
 
     @Test
-    void shouldReportAssociatesWithTheirRealDocumentAndName() {
+    void reportaALosAsociadosConSuDocumentoYNombreReales() {
         String document = randomDocument();
         saveUser(document, "Ana María", "Pérez Gómez", at(2026, 3, 10));
 
@@ -57,7 +57,7 @@ class ReportDatasetIntegrationTest {
     }
 
     @Test
-    void shouldIncludeEveryAssociateLinkedUpToTheEndOfThePeriod() {
+    void incluyeATodoAsociadoVinculadoHastaElFinDelPeriodo() {
         String linkedLastNovember = randomDocument();
         String linkedInApril = randomDocument();
         saveUser(linkedLastNovember, "Luis", "Rojas", at(2025, 11, 20));
@@ -71,7 +71,7 @@ class ReportDatasetIntegrationTest {
     }
 
     @Test
-    void shouldReportSarlaftScreeningsWithTheRealDocument() {
+    void reportaLasConsultasSarlaftConElDocumentoReal() {
         String document = randomDocument();
         User user = saveUser(document, "Carlos", "Mejía", at(2026, 1, 5));
         complianceCheckPort.persistCheck(user.getId(), ComplianceListType.OFAC, ComplianceResult.CLEAR, null);

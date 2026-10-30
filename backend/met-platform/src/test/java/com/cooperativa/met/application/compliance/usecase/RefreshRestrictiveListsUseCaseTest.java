@@ -46,7 +46,7 @@ class RefreshRestrictiveListsUseCaseTest {
     }
 
     @Test
-    void shouldReplaceEachListCompletely() {
+    void reemplazaCadaListaCompleta() {
         List<RestrictiveListEntry> ofac = List.of(entry(ComplianceListType.OFAC, "PABLO EMILIO"), entry(ComplianceListType.OFAC, "JUAN PEREZ"));
         when(ofacProvider.fetchEntries()).thenReturn(ofac);
         when(onuProvider.fetchEntries()).thenReturn(List.of());
@@ -60,7 +60,7 @@ class RefreshRestrictiveListsUseCaseTest {
     }
 
     @Test
-    void shouldKeepTheOldListWhenItsProviderFailsAndStillRefreshTheOthers() {
+    void conservaLaListaAnteriorSiSuProveedorFallaYActualizaLasDemas() {
         // Si borráramos antes de descargar, una caída del sitio de la OFAC dejaría el screening sin lista.
         when(ofacProvider.fetchEntries()).thenThrow(new IllegalStateException("treasury.gov no responde"));
         List<RestrictiveListEntry> onu = List.of(entry(ComplianceListType.ONU, "SANCIONADO UNO"));
@@ -76,7 +76,7 @@ class RefreshRestrictiveListsUseCaseTest {
     }
 
     @Test
-    void shouldAuditManualRefreshWithTheOutcomeOfEachList() {
+    void auditaLaActualizacionManualConElResultadoDeCadaLista() {
         when(ofacProvider.fetchEntries()).thenThrow(new IllegalStateException("timeout"));
         when(onuProvider.fetchEntries()).thenReturn(List.of(entry(ComplianceListType.ONU, "SANCIONADO UNO")));
         UUID adminId = UUID.randomUUID();

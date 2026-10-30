@@ -52,7 +52,7 @@ class InvestmentPersistenceIntegrationTest {
     @Autowired private InvestmentReturnPort returnPort;
 
     @Test
-    void shouldTrackFractionsAndTheLoansTheyFund() {
+    void registraLasFraccionesYLosCreditosQueFinancian() {
         UUID investorAccount = UUID.randomUUID();
         UUID depositId = UUID.randomUUID();
         UUID loanId = UUID.randomUUID();
@@ -74,7 +74,7 @@ class InvestmentPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldKeepTheLedgerPerAccountAndPerTransaction() {
+    void llevaElLibroContablePorCuentaYPorTransaccion() {
         UUID accountId = UUID.randomUUID();
         UUID reference = UUID.randomUUID();
         ledgerPort.save(ledger(accountId, reference, LedgerEntryType.DEBIT, "10000.00"));
@@ -86,7 +86,7 @@ class InvestmentPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldComputeTheGuaranteeFundBalanceFromItsMovements() {
+    void calculaElSaldoDelFondoDeGarantiasDesdeSusMovimientos() {
         BigDecimal before = guaranteeFundPort.getBalance();
         UUID reference = UUID.randomUUID();
         guaranteeFundPort.save(movement(GuaranteeFundMovementType.CONTRIBUTION, "1000.00", reference));
@@ -98,7 +98,7 @@ class InvestmentPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldManageInstrumentsPortfoliosPositionsAndReturns() {
+    void manejaInstrumentosPortafoliosPosicionesYRendimientos() {
         InvestmentInstrument instrument = instrumentPort.save(InvestmentInstrument.builder()
                 .id(UUID.randomUUID()).nombre("CDT prueba").descripcion("90 días").tasaAnual(new BigDecimal("0.0950"))
                 .plazoDias(90).montoMinimo(new BigDecimal("50000.00")).cupoMaximo(new BigDecimal("100000000.00"))

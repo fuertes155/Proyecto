@@ -23,7 +23,7 @@ class CoreTransactionJpaRepositoryTest {
     private CoreTransactionJpaRepository repository;
 
     @Test
-    void shouldFindTransactionsOnlyForSpecificAccount() {
+    void encuentraSoloLasTransaccionesDeLaCuentaIndicada() {
         // Arrange: Crear cuentas de prueba
         UUID accountA = UUID.randomUUID();
         UUID accountB = UUID.randomUUID();

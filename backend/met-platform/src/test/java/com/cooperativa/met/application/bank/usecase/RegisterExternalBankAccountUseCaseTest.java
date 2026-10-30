@@ -59,7 +59,7 @@ class RegisterExternalBankAccountUseCaseTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldRegisterPendingAccountAndSendTheVerificationDeposit() {
+    void registraLaCuentaPendienteYEnviaElDepositoDeVerificacion() {
         givenUser(KycStatus.APPROVED);
         when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank("1007", true, true)));
         when(externalBankAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -75,7 +75,7 @@ class RegisterExternalBankAccountUseCaseTest {
     }
 
     @Test
-    void shouldKeepTheAccountEvenIfTheVerificationDepositFails() {
+    void conservaLaCuentaAunqueFalleElDepositoDeVerificacion() {
         givenUser(KycStatus.APPROVED);
         when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank("1007", true, true)));
         when(externalBankAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -87,7 +87,7 @@ class RegisterExternalBankAccountUseCaseTest {
     }
 
     @Test
-    void shouldRequireApprovedKyc() {
+    void exigeKycAprobado() {
         givenUser(KycStatus.PENDING);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> registerUseCase.execute(userId, REQUEST));
@@ -97,7 +97,7 @@ class RegisterExternalBankAccountUseCaseTest {
     }
 
     @Test
-    void shouldRefuseBankThatDoesNotSupportWithdrawals() {
+    void rechazaUnBancoQueNoAdmiteRetiros() {
         givenUser(KycStatus.APPROVED);
         when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank("1007", true, false)));
 
@@ -108,7 +108,7 @@ class RegisterExternalBankAccountUseCaseTest {
     }
 
     @Test
-    void shouldRefuseUnknownBank() {
+    void rechazaUnBancoDesconocido() {
         givenUser(KycStatus.APPROVED);
         when(bankRepository.findByCode("1007")).thenReturn(Optional.empty());
 
@@ -118,7 +118,7 @@ class RegisterExternalBankAccountUseCaseTest {
     }
 
     @Test
-    void shouldListOnlyBanksOfTheRequestedCatalog() {
+    void listaSoloLosBancosDelCatalogoPedido() {
         Bank pseOnly = bank("1051", true, false).toBuilder().supportsPse(true).build();
         Bank payoutOnly = bank("1007", true, true);
         when(bankRepository.findAllActive()).thenReturn(List.of(pseOnly, payoutOnly));
@@ -131,7 +131,7 @@ class RegisterExternalBankAccountUseCaseTest {
     }
 
     @Test
-    void shouldShowOnlyTheLastFourDigitsOfEachAccount() {
+    void muestraSoloLosUltimosCuatroDigitosDeCadaCuenta() {
         when(externalBankAccountRepository.findActiveByUserId(userId)).thenReturn(List.of(
                 account("00123456789", "1007", 2731),
                 account("123", "9999", null)));

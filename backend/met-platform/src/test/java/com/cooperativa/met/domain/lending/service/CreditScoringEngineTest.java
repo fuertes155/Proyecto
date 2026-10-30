@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CreditScoringEngineTest {
 
     @Test
-    void evaluate_rejectsScoreBelow600() {
+    void rechazaPuntajeMenorA600() {
         LoanEligibilityDecision decision = CreditScoringEngine.evaluate(599, new BigDecimal("10000000"));
 
         assertFalse(decision.isApproved());
@@ -23,7 +23,7 @@ class CreditScoringEngineTest {
     }
 
     @Test
-    void evaluate_riesgoAlto_appliesOneTimesSavingsMultiplier() {
+    void riesgoAltoMultiplicaElAhorroPorUno() {
         LoanEligibilityDecision decision = CreditScoringEngine.evaluate(650, new BigDecimal("2000000"));
 
         assertTrue(decision.isApproved());
@@ -34,7 +34,7 @@ class CreditScoringEngineTest {
     }
 
     @Test
-    void evaluate_riesgoAlto_capsAtAbsoluteLimitRegardlessOfSavings() {
+    void riesgoAltoSeLimitaAlTopeAbsolutoSinImportarElAhorro() {
         // Saldo muy alto no debe superar el tope absoluto de la banda ($5,000,000 para RIESGO_ALTO)
         LoanEligibilityDecision decision = CreditScoringEngine.evaluate(650, new BigDecimal("50000000"));
 
@@ -42,7 +42,7 @@ class CreditScoringEngineTest {
     }
 
     @Test
-    void evaluate_riesgoMedio_appliesTwoTimesSavingsMultiplier() {
+    void riesgoMedioMultiplicaElAhorroPorDos() {
         LoanEligibilityDecision decision = CreditScoringEngine.evaluate(750, new BigDecimal("5000000"));
 
         assertEquals(RiskTier.RIESGO_MEDIO, decision.getTier());
@@ -52,7 +52,7 @@ class CreditScoringEngineTest {
     }
 
     @Test
-    void evaluate_riesgoBajo_appliesThreeTimesSavingsMultiplier() {
+    void riesgoBajoMultiplicaElAhorroPorTres() {
         LoanEligibilityDecision decision = CreditScoringEngine.evaluate(850, new BigDecimal("5000000"));
 
         assertEquals(RiskTier.RIESGO_BAJO, decision.getTier());
@@ -62,7 +62,7 @@ class CreditScoringEngineTest {
     }
 
     @Test
-    void evaluate_prime_appliesFiveTimesSavingsMultiplier() {
+    void primeMultiplicaElAhorroPorCinco() {
         LoanEligibilityDecision decision = CreditScoringEngine.evaluate(920, new BigDecimal("5000000"));
 
         assertEquals(RiskTier.PRIME, decision.getTier());
@@ -72,14 +72,14 @@ class CreditScoringEngineTest {
     }
 
     @Test
-    void evaluate_prime_capsAtSixtyMillionAbsoluteLimit() {
+    void primeSeLimitaAlTopeAbsolutoDeSesentaMillones() {
         LoanEligibilityDecision decision = CreditScoringEngine.evaluate(950, new BigDecimal("100000000"));
 
         assertEquals(new BigDecimal("60000000"), decision.getMaxAmount());
     }
 
     @Test
-    void fromScore_handlesTierBoundariesExactly() {
+    void respetaExactamenteLosLimitesEntreNiveles() {
         assertEquals(RiskTier.RECHAZADO, RiskTier.fromScore(0));
         assertEquals(RiskTier.RECHAZADO, RiskTier.fromScore(599));
         assertEquals(RiskTier.RIESGO_ALTO, RiskTier.fromScore(600));

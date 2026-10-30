@@ -27,7 +27,7 @@ void main() {
     );
   }
 
-  testWidgets('RegisterPage only asks for cédula, full name and PIN', (WidgetTester tester) async {
+  testWidgets('RegisterPage solo pide cédula, nombre completo y PIN', (WidgetTester tester) async {
     await pumpRegisterPage(tester);
 
     expect(find.byType(TextFormField), findsNWidgets(3));
@@ -38,7 +38,7 @@ void main() {
     expect(find.text('Teléfono (10 dígitos)'), findsNothing);
   });
 
-  testWidgets('RegisterPage lets the user choose the type of cédula', (WidgetTester tester) async {
+  testWidgets('RegisterPage deja elegir el tipo de cédula', (WidgetTester tester) async {
     await pumpRegisterPage(tester);
 
     // Las dos opciones están a la vista; ciudadanía viene elegida por defecto.
@@ -53,7 +53,7 @@ void main() {
     expect(find.widgetWithText(TextFormField, 'Número de cédula de extranjería'), findsOneWidget);
   });
 
-  testWidgets('RegisterPage rejects a name without surname', (WidgetTester tester) async {
+  testWidgets('RegisterPage rechaza un nombre sin apellido', (WidgetTester tester) async {
     await pumpRegisterPage(tester);
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Número de cédula'), '1086578123');
@@ -66,7 +66,7 @@ void main() {
     expect(find.text('Escribe tu nombre y apellido'), findsOneWidget);
   });
 
-  testWidgets('RegisterPage registers a cédula de extranjería as CE', (WidgetTester tester) async {
+  testWidgets('RegisterPage registra la cédula de extranjería como CE', (WidgetTester tester) async {
     final repository = MockAuthRepository();
     when(() => repository.register(any())).thenAnswer(
       (_) async => UserResponse(

@@ -61,7 +61,7 @@ class ScheduledSavingsControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldCreateScheduledSavings() throws Exception {
+    void creaUnAhorroProgramado() throws Exception {
         ScheduledSavingsResponse response = new ScheduledSavingsResponse(
                 UUID.randomUUID(),
                 "Vacaciones",
@@ -94,7 +94,7 @@ class ScheduledSavingsControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldListScheduledSavings() throws Exception {
+    void listaLosAhorrosProgramados() throws Exception {
         ScheduledSavingsResponse response = new ScheduledSavingsResponse(
                 UUID.randomUUID(),
                 "Vacaciones",

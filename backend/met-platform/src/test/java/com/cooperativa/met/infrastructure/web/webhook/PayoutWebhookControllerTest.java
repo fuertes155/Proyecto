@@ -43,7 +43,7 @@ class PayoutWebhookControllerTest {
     }
 
     @Test
-    void shouldSettlePayoutOnSignedApprovedEvent() throws Exception {
+    void liquidaElRetiroConUnEventoAprobadoYFirmado() throws Exception {
         String payload = payload("APPROVED", null);
 
         ResponseEntity<Void> response = controller.handlePayoutWebhook(signature(payload), payload);
@@ -53,7 +53,7 @@ class PayoutWebhookControllerTest {
     }
 
     @Test
-    void shouldReverseThePayoutWithTheProvidersReasonOnFailedEvent() throws Exception {
+    void reversaElRetiroConElMotivoDelProveedorSiElEventoFalla() throws Exception {
         String payload = payload("declined", "{\"code\":\"ACCOUNT_CLOSED\",\"message\":\"Cuenta cerrada\"}");
 
         ResponseEntity<Void> response = controller.handlePayoutWebhook(signature(payload), payload);
@@ -63,7 +63,7 @@ class PayoutWebhookControllerTest {
     }
 
     @Test
-    void shouldIgnoreIntermediateStates() throws Exception {
+    void ignoraLosEstadosIntermedios() throws Exception {
         String payload = payload("PENDING", null);
 
         assertEquals(HttpStatus.OK, controller.handlePayoutWebhook(signature(payload), payload).getStatusCode());
@@ -73,7 +73,7 @@ class PayoutWebhookControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "v1=abc", "t=1792629663", "t=1792629663,v1=0000000000000000000000000000000000000000000000000000000000000000"})
-    void shouldRejectMissingMalformedOrForgedSignatures(String header) {
+    void rechazaFirmasAusentesMalFormadasOFalsas(String header) {
         String payload = payload("APPROVED", null);
 
         assertEquals(HttpStatus.UNAUTHORIZED, controller.handlePayoutWebhook(header, payload).getStatusCode());
@@ -82,12 +82,12 @@ class PayoutWebhookControllerTest {
     }
 
     @Test
-    void shouldRejectAnUnsignedRequest() {
+    void rechazaUnaPeticionSinFirma() {
         assertEquals(HttpStatus.UNAUTHORIZED, controller.handlePayoutWebhook(null, payload("APPROVED", null)).getStatusCode());
     }
 
     @Test
-    void shouldRejectAPayloadChangedAfterSigning() throws Exception {
+    void rechazaUnContenidoCambiadoDespuesDeFirmar() throws Exception {
         String signedAsFailed = payload("FAILED", null);
         String tamperedToApproved = payload("APPROVED", null);
 
@@ -97,14 +97,14 @@ class PayoutWebhookControllerTest {
     }
 
     @Test
-    void shouldAnswerBadRequestWhenTheEventHasNoTransaction() throws Exception {
+    void respondePeticionInvalidaSiElEventoNoTieneTransaccion() throws Exception {
         String payload = "{\"event\":\"payout.updated\",\"data\":{}}";
 
         assertEquals(HttpStatus.BAD_REQUEST, controller.handlePayoutWebhook(signature(payload), payload).getStatusCode());
     }
 
     @Test
-    void shouldAnswerServerErrorSoTheProviderRetriesWhenProcessingFails() throws Exception {
+    void respondeErrorDelServidorParaQueElProveedorReintenteSiFallaElProceso() throws Exception {
         String payload = payload("APPROVED", null);
         doThrow(new IllegalStateException("BD caída")).when(processPayoutWebhookUseCase).execute(any(), anyBoolean(), any(), any());
 

@@ -63,7 +63,7 @@ class ScheduledSavingsProcessingTest {
             "1.5, true, 101500.00, 1500.00",
             "2500, false, 102500, 2500"
     })
-    void shouldChargeSavingPlusFeeButOnlyAddTheSavingToTheGoal(String feeValue, boolean percentage, String totalCharge, String fee) {
+    void cobraElAhorroMasLaComisionPeroSoloSumaElAhorroALaMeta(String feeValue, boolean percentage, String totalCharge, String fee) {
         givenDueAccount("400000", "1000000");
         givenDepositFee(feeValue, percentage);
         when(debitSourcePort.debit(userId, new BigDecimal(totalCharge), "SCHED-SAV-" + accountId)).thenReturn(true);
@@ -84,7 +84,7 @@ class ScheduledSavingsProcessingTest {
     }
 
     @Test
-    void shouldCompleteTheGoalWhenTheTargetIsReached() {
+    void cumpleLaMetaAlAlcanzarElObjetivo() {
         givenDueAccount("900000", "1000000");
         when(feeRepositoryPort.findVigentes()).thenReturn(List.of());
         when(debitSourcePort.debit(eq(userId), eq(new BigDecimal("100000")), anyString())).thenReturn(true);
@@ -97,7 +97,7 @@ class ScheduledSavingsProcessingTest {
     }
 
     @Test
-    void shouldRecordFailedContributionAndTryAgainNextPeriod() {
+    void registraElAporteFallidoYReintentaElSiguientePeriodo() {
         givenDueAccount("400000", "1000000");
         when(feeRepositoryPort.findVigentes()).thenReturn(List.of());
         when(debitSourcePort.debit(any(), any(), any())).thenReturn(false);
@@ -115,7 +115,7 @@ class ScheduledSavingsProcessingTest {
     }
 
     @Test
-    void shouldPauseResumeAndCancelFollowingTheAllowedTransitions() {
+    void pausaReanudaYCancelaSegunLosCambiosPermitidos() {
         UpdateScheduledSavingsUseCase update = new UpdateScheduledSavingsUseCase(accountPort, balanceCachePort, new ScheduledSavingsMapper());
         when(accountPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -133,7 +133,7 @@ class ScheduledSavingsProcessingTest {
     }
 
     @Test
-    void shouldRejectTransitionsThatMakeNoSense() {
+    void rechazaCambiosDeEstadoSinSentido() {
         UpdateScheduledSavingsUseCase update = new UpdateScheduledSavingsUseCase(accountPort, balanceCachePort, new ScheduledSavingsMapper());
 
         givenOwnedAccount(ScheduledSavingsStatus.PAUSED);
@@ -154,7 +154,7 @@ class ScheduledSavingsProcessingTest {
     }
 
     @Test
-    void shouldNotLetUsersEditSomeoneElsesSavings() {
+    void noDejaEditarElAhorroDeOtro() {
         UpdateScheduledSavingsUseCase update = new UpdateScheduledSavingsUseCase(accountPort, balanceCachePort, new ScheduledSavingsMapper());
         when(accountPort.findByIdAndUserId(accountId, userId)).thenReturn(Optional.empty());
 

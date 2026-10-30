@@ -51,7 +51,7 @@ class WebhookControllerTest {
     }
 
     @Test
-    void approvedSandboxEventCreditsTheDeposit() {
+    void unEventoAprobadoDeSandboxAcreditaElDeposito() {
         when(processedWebhookRepository.existsById("tx-42")).thenReturn(false);
 
         ResponseEntity<Void> response = controller.handlePaymentWebhook(
@@ -62,7 +62,7 @@ class WebhookControllerTest {
     }
 
     @Test
-    void checksumFromHeaderIsAccepted() {
+    void aceptaElChecksumEnviadoEnLaCabecera() {
         when(processedWebhookRepository.existsById("tx-42")).thenReturn(false);
 
         ResponseEntity<Void> response = controller.handlePaymentWebhook(
@@ -73,7 +73,7 @@ class WebhookControllerTest {
     }
 
     @Test
-    void tamperedAmountIsRejected() {
+    void rechazaUnMontoAlterado() {
         ResponseEntity<Void> response = controller.handlePaymentWebhook(
                 null, null, event("APPROVED", 900_000_000L, APPROVED_CHECKSUM));
 
@@ -82,7 +82,7 @@ class WebhookControllerTest {
     }
 
     @Test
-    void eventSignedWithAnotherSecretIsRejected() {
+    void rechazaUnEventoFirmadoConOtroSecreto() {
         ReflectionTestUtils.setField(controller, "wompiWebhookSecret", "prod_events_other");
 
         ResponseEntity<Void> response = controller.handlePaymentWebhook(
@@ -93,7 +93,7 @@ class WebhookControllerTest {
     }
 
     @Test
-    void declinedTransactionIsAcknowledgedWithoutCrediting() {
+    void confirmaUnaTransaccionRechazadaSinAcreditar() {
         ResponseEntity<Void> response = controller.handlePaymentWebhook(
                 null, null, event("DECLINED", 5_000_000L, DECLINED_CHECKSUM));
 
@@ -102,7 +102,7 @@ class WebhookControllerTest {
     }
 
     @Test
-    void unsignedEventIsRejected() {
+    void rechazaUnEventoSinFirma() {
         ResponseEntity<Void> response = controller.handlePaymentWebhook(
                 null, null, event("APPROVED", 5_000_000L, null));
 
@@ -111,7 +111,7 @@ class WebhookControllerTest {
     }
 
     @Test
-    void alreadyProcessedTransactionIsNotCreditedTwice() {
+    void noAcreditaDosVecesUnaTransaccionYaProcesada() {
         when(processedWebhookRepository.existsById("tx-42")).thenReturn(true);
 
         ResponseEntity<Void> response = controller.handlePaymentWebhook(

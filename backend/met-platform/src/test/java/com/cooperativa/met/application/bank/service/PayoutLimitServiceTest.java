@@ -37,7 +37,7 @@ class PayoutLimitServiceTest {
     private final CoreAccount account = CoreAccount.builder().id(UUID.randomUUID()).build();
 
     @Test
-    void shouldApplyTheStricterLimitToUnverifiedDestinations() {
+    void aplicaElLimiteMasEstrictoACuentasDestinoSinVerificar() {
         givenLimit("EXTERNAL_PAYOUT_UNVERIFIED", true, 500_000, 200_000);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -48,7 +48,7 @@ class PayoutLimitServiceTest {
     }
 
     @Test
-    void shouldCountWhatWasAlreadyWithdrawnToday() {
+    void cuentaLoQueYaSeRetiroHoy() {
         givenLimit("EXTERNAL_PAYOUT", true, 5_000_000, 2_000_000);
         givenWithdrawnToday("4000000");
 
@@ -58,7 +58,7 @@ class PayoutLimitServiceTest {
     }
 
     @Test
-    void shouldBlockWithdrawalsWhenAnAdminDisabledThem() {
+    void bloqueaLosRetirosSiUnAdministradorLosDesactivo() {
         givenLimit("EXTERNAL_PAYOUT", false, 5_000_000, 2_000_000);
 
         assertEquals("PAYOUT_DISABLED", assertThrows(BusinessRuleException.class,
@@ -66,7 +66,7 @@ class PayoutLimitServiceTest {
     }
 
     @Test
-    void shouldFailClosedWhenNoLimitIsConfigured() {
+    void noPermiteNadaSiNoHayLimiteConfigurado() {
         when(operationLimitRepository.findByTipo("EXTERNAL_PAYOUT")).thenReturn(Optional.empty());
 
         assertEquals("PAYOUT_LIMIT_NOT_CONFIGURED", assertThrows(BusinessRuleException.class,

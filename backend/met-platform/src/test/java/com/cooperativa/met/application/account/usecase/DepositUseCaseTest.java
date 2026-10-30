@@ -50,7 +50,7 @@ class DepositUseCaseTest {
     }
 
     @Test
-    void shouldExecuteDeposit() {
+    void ejecutaElDeposito() {
         UUID userId = UUID.randomUUID();
 
         DepositRequest request = new DepositRequest();
@@ -105,7 +105,7 @@ class DepositUseCaseTest {
     }
 
     @Test
-    void shouldThrowWhenAmountInvalid() {
+    void fallaConUnMontoInvalido() {
         UUID userId = UUID.randomUUID();
         DepositRequest request = new DepositRequest();
         request.setMethod("PSE");

@@ -28,9 +28,9 @@ public class EmailNotificationAdapter implements NotificationPort {
                 "Por favor, contacta a soporte para desbloquearla.\n\n" +
                 "Saludos,\nEquipo MET"
             );
-            log.info("Account locked email sent successfully");
+            log.info("Correo de cuenta bloqueada enviado");
         } catch (Exception e) {
-            log.error("Failed to send account locked email: {}", e.getMessage());
+            log.error("No se pudo enviar el correo de cuenta bloqueada: {}", e.getMessage());
         }
     }
 
@@ -45,9 +45,9 @@ public class EmailNotificationAdapter implements NotificationPort {
                 "Si no fuiste tú, por favor cambia tu PIN inmediatamente y contacta a soporte.\n\n" +
                 "Saludos,\nEquipo de Seguridad MET"
             );
-            log.info("New IP login alert email sent successfully");
+            log.info("Correo de alerta de ingreso desde una IP nueva enviado");
         } catch (Exception e) {
-            log.error("Failed to send new IP login alert email: {}", e.getMessage());
+            log.error("No se pudo enviar el correo de alerta de ingreso desde una IP nueva: {}", e.getMessage());
         }
     }
 }

@@ -86,7 +86,7 @@ class MatchFractionsToDebtorsUseCaseTest {
     }
 
     @Test
-    void splitsAFractionAcrossTwoLoansWhenNeitherAloneCoversIt() {
+    void reparteUnaFraccionEntreDosCreditosSiNingunoSoloLaCubre() {
         properties.setConcentrationCapPercentage(new BigDecimal("1.00")); // sin tope, para aislar el split
 
         PersonalLoanApplication loan1 = loanNeeding(new BigDecimal("10000.00"));
@@ -124,7 +124,7 @@ class MatchFractionsToDebtorsUseCaseTest {
     }
 
     @Test
-    void neverAllocatesMoreThanALoanActuallyNeeds_noOverfunding() {
+    void nuncaAsignaMasDeLoQueUnCreditoNecesita() {
         properties.setConcentrationCapPercentage(new BigDecimal("1.00"));
 
         PersonalLoanApplication loan = loanNeeding(new BigDecimal("5000.00"));
@@ -158,7 +158,7 @@ class MatchFractionsToDebtorsUseCaseTest {
     }
 
     @Test
-    void concentrationCapLimitsHowMuchOfADepositGoesToASingleDebtor() {
+    void elTopeDeConcentracionLimitaCuantoDeUnDepositoVaAUnSoloDeudor() {
         properties.setConcentrationCapPercentage(new BigDecimal("0.20")); // máx 20% del depósito por deudor
 
         PersonalLoanApplication loan1 = loanNeeding(new BigDecimal("10000.00"));

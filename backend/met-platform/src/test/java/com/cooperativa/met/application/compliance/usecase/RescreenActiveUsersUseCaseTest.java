@@ -34,7 +34,7 @@ class RescreenActiveUsersUseCaseTest {
     private RescreenActiveUsersUseCase rescreenActiveUsersUseCase;
 
     @Test
-    void shouldScreenEveryActiveUserAgainstOfacAndOnuAndCountNewMatches() {
+    void revisaCadaUsuarioActivoContraOfacYOnuYCuentaLasCoincidenciasNuevas() {
         User clean = user(UserStatus.ACTIVE);
         User sanctioned = user(UserStatus.ACTIVE);
         when(userRepository.findAll()).thenReturn(List.of(clean, sanctioned));
@@ -52,7 +52,7 @@ class RescreenActiveUsersUseCaseTest {
     }
 
     @Test
-    void shouldSkipAccountsThatAreNotActive() {
+    void omiteLasCuentasQueNoEstanActivas() {
         when(userRepository.findAll()).thenReturn(List.of(user(UserStatus.BLOCKED), user(UserStatus.PENDING_VERIFICATION)));
 
         assertEquals(0, rescreenActiveUsersUseCase.execute());

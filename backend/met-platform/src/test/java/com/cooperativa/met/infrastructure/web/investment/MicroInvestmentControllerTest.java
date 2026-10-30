@@ -63,7 +63,7 @@ class MicroInvestmentControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldListInstruments() throws Exception {
+    void listaLosInstrumentos() throws Exception {
         InvestmentInstrument instrument = InvestmentInstrument.builder()
                 .id(UUID.randomUUID())
                 .nombre("Agro-Inversión")
@@ -94,7 +94,7 @@ class MicroInvestmentControllerTest {
     }
 
     @Test
-    void shouldCreatePortfolio() throws Exception {
+    void creaUnPortafolio() throws Exception {
         PortfolioResponse response = new PortfolioResponse(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
@@ -125,7 +125,7 @@ class MicroInvestmentControllerTest {
     }
 
     @Test
-    void shouldCancelPortfolio() throws Exception {
+    void cancelaUnPortafolio() throws Exception {
         UUID portfolioId = UUID.randomUUID();
 
         Mockito.doNothing().when(cancelUseCase).execute(any(UUID.class), any(UUID.class));

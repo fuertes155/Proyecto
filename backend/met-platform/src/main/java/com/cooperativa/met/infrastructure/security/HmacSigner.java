@@ -26,7 +26,7 @@ public final class HmacSigner {
             byte[] hmacBytes = mac.doFinal(dataToSign.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(hmacBytes);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to calculate HMAC", e);
+            throw new RuntimeException("No se pudo calcular la firma HMAC", e);
         }
     }
 }

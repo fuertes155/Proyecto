@@ -59,7 +59,7 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
     }
 
     @Test
-    void execute_createsPortfolioSuccessfully_withNoFees() {
+    void creaElPortafolioSinComisiones() {
         // Arrange
         CreatePortfolioRequest request = new CreatePortfolioRequest(
                 new BigDecimal("1000000.00"), "EQUAL"
@@ -99,7 +99,7 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
     }
 
     @Test
-    void execute_createsPortfolioAndChargesFee_whenFeeScheduleExists() {
+    void creaElPortafolioYCobraLaComisionSiHayTarifa() {
         // Arrange: Comisión del 1%
         CreatePortfolioRequest request = new CreatePortfolioRequest(
                 new BigDecimal("1000000.00"), "EQUAL"
@@ -134,7 +134,7 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
     }
 
     @Test
-    void execute_throwsIllegalState_whenInsufficientBalance() {
+    void fallaConSaldoInsuficiente() {
         CreatePortfolioRequest request = new CreatePortfolioRequest(
                 new BigDecimal("1000000.00"), "EQUAL"
         );
@@ -147,7 +147,7 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
     }
 
     @Test
-    void execute_throwsIllegalArgument_whenInvalidStrategy() {
+    void fallaConUnaEstrategiaInvalida() {
         CreatePortfolioRequest request = new CreatePortfolioRequest(
                 new BigDecimal("1000000.00"), "INVALID_STRATEGY"
         );
@@ -156,7 +156,7 @@ class CreateMicroInvestmentPortfolioUseCaseTest {
     }
 
     @Test
-    void execute_usesEqualStrategyByDefault_whenStrategyIsNull() {
+    void usaLaEstrategiaEquitativaPorDefectoSiNoSeIndica() {
         CreatePortfolioRequest request = new CreatePortfolioRequest(
                 new BigDecimal("1000000.00"), null // null → EQUAL por defecto
         );

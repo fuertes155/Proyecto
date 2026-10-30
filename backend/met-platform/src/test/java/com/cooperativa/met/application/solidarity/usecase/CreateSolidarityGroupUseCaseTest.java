@@ -51,7 +51,7 @@ class CreateSolidarityGroupUseCaseTest {
     }
 
     @Test
-    void execute_createsGroupSuccessfully_andAddsCreatorAsAdmin() {
+    void creaElGrupoYAgregaAlCreadorComoAdministrador() {
         // Arrange
         CreateSolidarityGroupRequest request = new CreateSolidarityGroupRequest(
                 "Grupo Familiar", "Ahorro grupal", null, null
@@ -84,7 +84,7 @@ class CreateSolidarityGroupUseCaseTest {
     }
 
     @Test
-    void execute_usesDefaultValues_whenMaxMembersAndContributionAreNull() {
+    void usaValoresPorDefectoSiNoSeIndicanMaximoNiAporte() {
         // Arrange: request sin minContribution ni maxMembers (usan defaults)
         CreateSolidarityGroupRequest request = new CreateSolidarityGroupRequest(
                 "Grupo Test", "Desc", null, null
@@ -113,7 +113,7 @@ class CreateSolidarityGroupUseCaseTest {
     }
 
     @Test
-    void execute_regeneratesInviteCode_whenCodeAlreadyExists() {
+    void regeneraElCodigoDeInvitacionSiYaExiste() {
         // Arrange: el primer código generado ya existe, el segundo no
         CreateSolidarityGroupRequest request = new CreateSolidarityGroupRequest(
                 "Grupo Código Colision", "Desc", null, null
@@ -139,7 +139,7 @@ class CreateSolidarityGroupUseCaseTest {
     }
 
     @Test
-    void execute_throwsUserNotFound_whenUserDoesNotExist() {
+    void fallaSiElUsuarioNoExiste() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -150,7 +150,7 @@ class CreateSolidarityGroupUseCaseTest {
     }
 
     @Test
-    void execute_throwsUserNotActive_whenUserIsPending() {
+    void fallaSiElUsuarioEstaPendiente() {
         User pendingUser = User.builder().id(userId).status(UserStatus.PENDING_VERIFICATION).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(pendingUser));
 

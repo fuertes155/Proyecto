@@ -60,7 +60,7 @@ class AdminLoginUseCaseTest {
     }
 
     @Test
-    void shouldCountWrongPasswordsAndUnknownUsernamesTowardsTheLockout() {
+    void cuentaContrasenasErradasYUsuariosDesconocidosParaElBloqueo() {
         when(adminRepository.findByUsername("oficial")).thenReturn(Optional.of(admin(AdminStatus.ACTIVE)));
         when(passwordEncoder.matches("adivinada", "bcrypt-hash")).thenReturn(false);
         when(adminRepository.findByUsername("nadie")).thenReturn(Optional.empty());
@@ -74,7 +74,7 @@ class AdminLoginUseCaseTest {
     }
 
     @Test
-    void shouldRefuseALockedAccountWithoutEvenCheckingThePassword() {
+    void rechazaUnaCuentaBloqueadaSinSiquieraRevisarLaContrasena() {
         doThrow(new BusinessRuleException("ADMIN_LOCKED", "Bloqueada")).when(loginAttempts).checkBlocked("oficial");
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -85,7 +85,7 @@ class AdminLoginUseCaseTest {
     }
 
     @Test
-    void shouldIssueTokenWithRoleAndAuditTheLogin() {
+    void emiteElTokenConElRolYAuditaElIngreso() {
         when(adminRepository.findByUsername("oficial")).thenReturn(Optional.of(admin(AdminStatus.ACTIVE)));
         when(passwordEncoder.matches("S3gura!", "bcrypt-hash")).thenReturn(true);
         when(tokenPort.generateAdminAccessToken(adminId, "oficial", "SUPER_ADMIN")).thenReturn("admin-token");
@@ -104,7 +104,7 @@ class AdminLoginUseCaseTest {
     }
 
     @Test
-    void shouldRejectWrongPasswordWithoutIssuingToken() {
+    void rechazaContrasenaErradaSinEmitirToken() {
         when(adminRepository.findByUsername("oficial")).thenReturn(Optional.of(admin(AdminStatus.ACTIVE)));
         when(passwordEncoder.matches("adivinada", "bcrypt-hash")).thenReturn(false);
 
@@ -116,7 +116,7 @@ class AdminLoginUseCaseTest {
     }
 
     @Test
-    void shouldAnswerUnknownUsernameExactlyLikeWrongPassword() {
+    void respondeAUnUsuarioDesconocidoIgualQueAUnaContrasenaErrada() {
         when(adminRepository.findByUsername("nadie")).thenReturn(Optional.empty());
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -127,7 +127,7 @@ class AdminLoginUseCaseTest {
     }
 
     @Test
-    void shouldRefuseSuspendedAdmin() {
+    void rechazaAlAdministradorSuspendido() {
         when(adminRepository.findByUsername("oficial")).thenReturn(Optional.of(admin(AdminStatus.SUSPENDED)));
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,

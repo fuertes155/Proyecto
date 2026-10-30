@@ -69,7 +69,7 @@ class ProcessLoanCollectionsUseCaseTest {
     }
 
     @Test
-    void shouldProcessDueInstallmentsSuccessfullyWithToken() {
+    void cobraLasCuotasVencidasConElToken() {
         LocalDate today = LocalDate.now();
         UUID loanId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -140,7 +140,7 @@ class ProcessLoanCollectionsUseCaseTest {
     }
 
     @Test
-    void shouldReportPagado_whenLastInstallmentIsPaidOff() {
+    void reportaPagadoAlSaldarLaUltimaCuota() {
         LocalDate today = LocalDate.now();
         UUID loanId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -199,7 +199,7 @@ class ProcessLoanCollectionsUseCaseTest {
     }
 
     @Test
-    void shouldReportMora_whenInstallmentIsSixDaysLate() {
+    void reportaMoraSiUnaCuotaLlevaSeisDiasDeRetraso() {
         LocalDate today = LocalDate.now();
         UUID loanId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();

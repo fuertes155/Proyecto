@@ -57,7 +57,7 @@ class WompiPseAdapterTest {
     }
 
     @Test
-    void createsSignedPseTransactionAndWaitsForTheBankUrl() {
+    void creaLaTransaccionPseFirmadaYEsperaLaUrlDelBanco() {
         server.expect(requestTo(BASE + "/merchants/info"))
                 .andExpect(header("x-merchant-public-key", PUBLIC_KEY))
                 .andRespond(withSuccess(MERCHANT, MediaType.APPLICATION_JSON));
@@ -96,7 +96,7 @@ class WompiPseAdapterTest {
     }
 
     @Test
-    void fallsBackToLegacyMerchantEndpointWhenInfoIsNotAvailable() {
+    void usaLaRutaAntiguaDelComercioSiInfoNoEstaDisponible() {
         server.expect(requestTo(BASE + "/merchants/info")).andRespond(withStatus(HttpStatus.NOT_FOUND));
         server.expect(requestTo(BASE + "/merchants/" + PUBLIC_KEY))
                 .andRespond(withSuccess(MERCHANT, MediaType.APPLICATION_JSON));
@@ -114,7 +114,7 @@ class WompiPseAdapterTest {
     }
 
     @Test
-    void declinedTransactionFailsWithWompiReason() {
+    void unaTransaccionRechazadaFallaConElMotivoDeWompi() {
         server.expect(requestTo(BASE + "/merchants/info")).andRespond(withSuccess(MERCHANT, MediaType.APPLICATION_JSON));
         server.expect(requestTo(BASE + "/transactions"))
                 .andRespond(withSuccess("""
@@ -128,7 +128,7 @@ class WompiPseAdapterTest {
     }
 
     @Test
-    void validationErrorFromWompiBecomesBusinessError() {
+    void unErrorDeValidacionDeWompiSeVuelveErrorDeNegocio() {
         server.expect(requestTo(BASE + "/merchants/info")).andRespond(withSuccess(MERCHANT, MediaType.APPLICATION_JSON));
         server.expect(requestTo(BASE + "/transactions"))
                 .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -142,7 +142,7 @@ class WompiPseAdapterTest {
     }
 
     @Test
-    void givesUpWhenTheBankUrlNeverArrives() {
+    void desisteSiLaUrlDelBancoNuncaLlega() {
         server.expect(requestTo(BASE + "/merchants/info")).andRespond(withSuccess(MERCHANT, MediaType.APPLICATION_JSON));
         String pending = "{ \"data\": { \"id\": \"tx-4\", \"status\": \"PENDING\", \"payment_method\": { \"extra\": {} } } }";
         server.expect(requestTo(BASE + "/transactions")).andRespond(withSuccess(pending, MediaType.APPLICATION_JSON));
@@ -158,7 +158,7 @@ class WompiPseAdapterTest {
     }
 
     @Test
-    void listsPseBanksWithThePublicKey() {
+    void listaLosBancosPseConLaLlavePublica() {
         server.expect(requestTo(BASE + "/pse/financial_institutions"))
                 .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + PUBLIC_KEY))
                 .andRespond(withSuccess("""

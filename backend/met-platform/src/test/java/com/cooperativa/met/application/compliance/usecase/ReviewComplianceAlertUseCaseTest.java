@@ -48,7 +48,7 @@ class ReviewComplianceAlertUseCaseTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldRecordWhoReviewedTheAlertAndWhy() {
+    void registraQuienRevisoLaAlertaYPorQue() {
         when(alertRepository.findById(alertId)).thenReturn(Optional.of(openAlert()));
         when(alertRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder()
@@ -72,7 +72,7 @@ class ReviewComplianceAlertUseCaseTest {
     }
 
     @Test
-    void shouldStillAnswerWhenTheUserNoLongerExists() {
+    void respondeAunqueElUsuarioYaNoExista() {
         when(alertRepository.findById(alertId)).thenReturn(Optional.of(openAlert()));
         when(alertRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -85,7 +85,7 @@ class ReviewComplianceAlertUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownAlert() {
+    void fallaConUnaAlertaDesconocida() {
         when(alertRepository.findById(alertId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> reviewComplianceAlertUseCase.execute(officerId, alertId,

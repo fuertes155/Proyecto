@@ -14,7 +14,7 @@ class MarginStrategyTest {
     private static final BigDecimal MARGIN_RATE = new BigDecimal("0.02");
 
     @Test
-    void interestCommission_modelB_matchesBusinessExample() {
+    void comisionSobreInteresesModeloBCoincideConElEjemploDelNegocio() {
         MarginStrategy strategy = MarginStrategy.of(MarginModel.INTEREST_COMMISSION);
 
         MarginCalculationResult result = strategy.calculate(CAPITAL, GENERATED_INTEREST, MARGIN_RATE);
@@ -25,7 +25,7 @@ class MarginStrategyTest {
     }
 
     @Test
-    void capitalCommission_modelC_matchesBusinessExample() {
+    void comisionSobreCapitalModeloCCoincideConElEjemploDelNegocio() {
         MarginStrategy strategy = MarginStrategy.of(MarginModel.CAPITAL_COMMISSION);
 
         MarginCalculationResult result = strategy.calculate(CAPITAL, GENERATED_INTEREST, MARGIN_RATE);
@@ -35,7 +35,7 @@ class MarginStrategyTest {
     }
 
     @Test
-    void directRateSubtraction_modelA_matchesBusinessExample() {
+    void restaDirectaDeTasaModeloACoincideConElEjemploDelNegocio() {
         MarginStrategy strategy = MarginStrategy.of(MarginModel.DIRECT_RATE_SUBTRACTION);
 
         MarginCalculationResult result = strategy.calculate(CAPITAL, GENERATED_INTEREST, MARGIN_RATE);
@@ -45,7 +45,7 @@ class MarginStrategyTest {
     }
 
     @Test
-    void modelA_and_modelC_areMathematicallyEquivalent() {
+    void losModelosAYCSonMatematicamenteEquivalentes() {
         MarginCalculationResult a = MarginStrategy.of(MarginModel.DIRECT_RATE_SUBTRACTION)
                 .calculate(CAPITAL, GENERATED_INTEREST, MARGIN_RATE);
         MarginCalculationResult c = MarginStrategy.of(MarginModel.CAPITAL_COMMISSION)
@@ -56,7 +56,7 @@ class MarginStrategyTest {
     }
 
     @Test
-    void interestCommission_scalesWithGeneratedInterest_notWithCapital() {
+    void laComisionSobreInteresesCreceConElInteresGeneradoNoConElCapital() {
         // Con interés generado más bajo (deudor pagó menos), la comisión B debe bajar proporcionalmente,
         // a diferencia de C que solo depende del capital.
         MarginStrategy strategy = MarginStrategy.of(MarginModel.INTEREST_COMMISSION);
@@ -67,19 +67,19 @@ class MarginStrategyTest {
     }
 
     @Test
-    void rateBasis_nominalAnnual_dividesBy12() {
+    void tasaNominalAnualSeDivideEntre12() {
         BigDecimal monthly = RateBasis.NOMINAL_ANNUAL.toMonthlyRate(new BigDecimal("0.24"));
         assertEquals(0, monthly.compareTo(new BigDecimal("0.02")));
     }
 
     @Test
-    void rateBasis_monthly_isPassThrough() {
+    void tasaMensualSeUsaTalCual() {
         BigDecimal monthly = RateBasis.MONTHLY.toMonthlyRate(new BigDecimal("0.02"));
         assertEquals(0, monthly.compareTo(new BigDecimal("0.02")));
     }
 
     @Test
-    void rateBasis_effectiveAnnual_usesTwelfthRoot_notSimpleDivision() {
+    void tasaEfectivaAnualUsaRaizDoceavaNoDivisionSimple() {
         // Una EA del 12.68% ronda a ~1.00% mensual efectivo, distinto de 12.68/12=1.0567% nominal.
         BigDecimal monthly = RateBasis.EFFECTIVE_ANNUAL.toMonthlyRate(new BigDecimal("0.1268"));
         assertEquals(0, monthly.setScale(4, java.math.RoundingMode.HALF_UP)

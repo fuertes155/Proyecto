@@ -67,7 +67,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldStayQuietForAnOrdinaryOperation() {
+    void noAlertaUnaOperacionCorriente() {
         evaluate(TransactionType.TRANSFER, "150000",
                 tx(TransactionType.DEPOSIT, "200000", Duration.ofDays(10)),
                 tx(TransactionType.TRANSFER, "80000", Duration.ofDays(4)));
@@ -76,7 +76,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldRaiseHighAlertAboveTheAbsoluteThreshold() {
+    void generaAlertaAltaPorEncimaDelUmbralAbsoluto() {
         evaluate(TransactionType.DEPOSIT, "12000000");
 
         ComplianceAlert alert = alerts().get(AlertType.UNUSUAL_AMOUNT);
@@ -87,14 +87,14 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldNotFlagAmountExactlyAtTheThreshold() {
+    void noMarcaUnMontoExactamenteEnElUmbral() {
         evaluate(TransactionType.DEPOSIT, "10000000");
 
         verify(alertRepository, never()).save(any());
     }
 
     @Test
-    void shouldRaiseMediumAlertForAmountFarAboveThisAccountsAverage() {
+    void generaAlertaMediaParaUnMontoMuyPorEncimaDelPromedioDeLaCuenta() {
         // La operación actual no debe inflar el promedio contra el que se compara.
         evaluate(TransactionType.TRANSFER, "600000",
                 tx(TransactionType.DEPOSIT, "100000", Duration.ofDays(30)),
@@ -104,21 +104,21 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldFlagTheEleventhOperationOfTheDay() {
+    void marcaLaOperacionNumeroOnceDelDia() {
         evaluate(TransactionType.DEPOSIT, "10000", earlierSmallTransactionsToday(10));
 
         assertTrue(alerts().containsKey(AlertType.UNUSUAL_FREQUENCY));
     }
 
     @Test
-    void shouldAllowTheTenthOperationOfTheDay() {
+    void permiteLaOperacionNumeroDiezDelDia() {
         evaluate(TransactionType.DEPOSIT, "10000", earlierSmallTransactionsToday(9));
 
         verify(alertRepository, never()).save(any());
     }
 
     @Test
-    void shouldIgnoreOperationsOlderThan24HoursForFrequency() {
+    void ignoraOperacionesDeMasDe24HorasParaLaFrecuencia() {
         List<CoreTransaction> old = new ArrayList<>();
         for (int i = 0; i < 15; i++) {
             old.add(tx(TransactionType.DEPOSIT, "10000", Duration.ofHours(25 + i)));
@@ -130,7 +130,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldFlagStructuringOnThirdOperationJustBelowTheThreshold() {
+    void marcaFraccionamientoEnLaTerceraOperacionJustoBajoElUmbral() {
         // Fraccionamiento ("pitufeo"): partir ~$28M en tres operaciones de ~$9M para no superar el umbral.
         evaluate(TransactionType.DEPOSIT, "9500000",
                 tx(TransactionType.DEPOSIT, "9000000", Duration.ofHours(5)),
@@ -142,7 +142,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldNotFlagStructuringWithOnlyTwoOperationsNearTheThreshold() {
+    void noMarcaFraccionamientoConSoloDosOperacionesCercaDelUmbral() {
         evaluate(TransactionType.DEPOSIT, "9500000",
                 tx(TransactionType.DEPOSIT, "9000000", Duration.ofHours(5)));
 
@@ -150,7 +150,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldFlagMoneyThatLeavesRightAfterArriving() {
+    void marcaDineroQueSaleJustoDespuesDeLlegar() {
         evaluate(TransactionType.EXTERNAL_PAYOUT, "950000",
                 tx(TransactionType.DEPOSIT, "1000000", Duration.ofMinutes(10)));
 
@@ -158,7 +158,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldNotFlagRapidInOutWhenTheDepositIsOlderThanTheWindow() {
+    void noMarcaEntradaYSalidaRapidaSiElDepositoEsAnteriorALaVentana() {
         evaluate(TransactionType.WITHDRAWAL, "950000",
                 tx(TransactionType.DEPOSIT, "1000000", Duration.ofMinutes(90)));
 
@@ -166,7 +166,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldNotFlagRapidInOutWhenAmountsAreNotSimilar() {
+    void noMarcaEntradaYSalidaRapidaSiLosMontosNoSeParecen() {
         evaluate(TransactionType.TRANSFER, "300000",
                 tx(TransactionType.DEPOSIT, "1000000", Duration.ofMinutes(10)));
 
@@ -174,7 +174,7 @@ class SarlaftAlertEngineTest {
     }
 
     @Test
-    void shouldNeverBlockTheOperationWhenEvaluationFails() {
+    void nuncaBloqueaLaOperacionSiLaEvaluacionFalla() {
         when(transactionRepository.findByAccountId(accountId)).thenThrow(new IllegalStateException("BD caída"));
 
         assertDoesNotThrow(() ->

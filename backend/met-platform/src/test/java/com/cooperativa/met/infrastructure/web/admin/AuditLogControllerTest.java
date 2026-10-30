@@ -35,7 +35,7 @@ class AuditLogControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldGetAllAuditLogs() throws Exception {
+    void consultaTodaLaAuditoria() throws Exception {
         AdminAuditEntry entry = AdminAuditEntry.builder()
                 .id(UUID.randomUUID())
                 .actorAdminId(UUID.randomUUID())
@@ -61,7 +61,7 @@ class AuditLogControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldGetByAdmin() throws Exception {
+    void consultaPorAdministrador() throws Exception {
         AdminAuditEntry entry = AdminAuditEntry.builder()
                 .id(UUID.randomUUID())
                 .actorAdminId(UUID.randomUUID())

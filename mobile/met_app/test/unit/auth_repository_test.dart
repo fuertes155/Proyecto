@@ -14,7 +14,7 @@ void main() {
   });
 
   group('AuthRepository', () {
-    test('loginWithPin returns AuthResponse on success', () async {
+    test('loginWithPin devuelve AuthResponse cuando el ingreso es correcto', () async {
       // Arrange
       final response = AuthResponse(
         userId: 'test-user-id',
@@ -41,7 +41,7 @@ void main() {
       verify(() => authRepository.loginWithPin(any())).called(1);
     });
 
-    test('loginWithPin throws exception on failure', () async {
+    test('loginWithPin lanza una excepción cuando el ingreso falla', () async {
       // Arrange
       when(() => authRepository.loginWithPin(any()))
           .thenThrow(Exception('Unauthorized'));
@@ -53,7 +53,7 @@ void main() {
       );
     });
 
-    test('logout completes successfully', () async {
+    test('logout termina sin errores', () async {
       // Arrange
       when(() => authRepository.logout()).thenAnswer((_) async => {});
 

@@ -39,7 +39,7 @@ public class TwilioSmsAdapter implements MessagingPort {
     @Override
     public void sendSms(String phoneNumber, String message) {
         if ("mock-sid".equals(accountSid)) {
-            log.info("[TWILIO MOCK SMS] Enviando SMS a {}: {}", phoneNumber, message);
+            log.info("[TWILIO SIMULADO - SMS] Enviando SMS a {}: {}", phoneNumber, message);
             return;
         }
         sendMessage(phoneNumber, fromPhoneNumber, message);
@@ -48,7 +48,7 @@ public class TwilioSmsAdapter implements MessagingPort {
     @Override
     public void sendWhatsApp(String phoneNumber, String message) {
         if ("mock-sid".equals(accountSid)) {
-            log.info("[TWILIO MOCK WHATSAPP] Enviando WA a {}: {}", phoneNumber, message);
+            log.info("[TWILIO SIMULADO - WHATSAPP] Enviando WhatsApp a {}: {}", phoneNumber, message);
             return;
         }
         sendMessage("whatsapp:" + phoneNumber, "whatsapp:" + fromWhatsappNumber, message);

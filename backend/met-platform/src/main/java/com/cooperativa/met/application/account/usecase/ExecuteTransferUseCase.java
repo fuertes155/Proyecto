@@ -113,7 +113,7 @@ public class ExecuteTransferUseCase {
         }
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         
         if (user.getKycStatus() != com.cooperativa.met.domain.identity.model.KycStatus.APPROVED) {
             throw new BusinessRuleException("KYC_REQUIRED", "Debe completar la validación de identidad biométrica para transferir");

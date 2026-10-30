@@ -51,7 +51,7 @@ public class BrevoEmailSender implements EmailSenderPort {
         this.apiKey = apiKey.trim();
         this.fromEmail = fromEmail;
         this.fromName = fromName;
-        log.info("Email provider: Brevo (from {} <{}>)", fromName, fromEmail);
+        log.info("Proveedor de correo: Brevo (remitente {} <{}>)", fromName, fromEmail);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class BrevoEmailSender implements EmailSenderPort {
             throw new EmailDeliveryException(
                 "Brevo respondió " + response.statusCode() + ": " + response.body());
         }
-        log.info("Brevo email sent to {}", to);
+        log.info("Correo enviado por Brevo a {}", to);
     }
 
     /** Escapa un string como literal JSON (comillas incluidas). */

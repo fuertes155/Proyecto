@@ -81,7 +81,7 @@ class FinancialProductsPersistenceIntegrationTest {
     private final String suffix = UUID.randomUUID().toString().substring(0, 6);
 
     @Test
-    void shouldStoreBanksAccountsAndPayouts() {
+    void guardaBancosCuentasYRetiros() {
         Bank bank = bankRepository.save(Bank.builder().code("T" + suffix).name("Banco prueba").wompiBankId("1507")
                 .wompiPseCode("1040").supportsPse(true).supportsPayout(true).active(true).updatedAt(Instant.now()).build());
         assertEquals("1507", bankRepository.findByCode(bank.getCode()).orElseThrow().getWompiBankId());
@@ -109,7 +109,7 @@ class FinancialProductsPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldStoreLoanApplicationsAndTheirSchedule() {
+    void guardaSolicitudesDeCreditoYSuPlanDePagos() {
         UUID userId = UUID.randomUUID();
         PersonalLoanApplication application = loanRepository.save(PersonalLoanApplication.builder()
                 .id(UUID.randomUUID()).userId(userId).amount(new BigDecimal("3000000.00")).termMonths(2)
@@ -135,7 +135,7 @@ class FinancialProductsPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldStoreScheduledSavingsTheirContributionsAndWithdrawals() {
+    void guardaAhorrosProgramadosSusAportesYRetiros() {
         UUID userId = UUID.randomUUID();
         ScheduledSavingsAccount account = savingsRepository.save(ScheduledSavingsAccount.builder()
                 .id(UUID.randomUUID()).userId(userId).name("Vacaciones").targetAmount(new BigDecimal("1000000.00"))
@@ -164,7 +164,7 @@ class FinancialProductsPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldStoreSolidarityGroupsMembersLoansAndPoolMovements() {
+    void guardaGruposSolidariosMiembrosCreditosYMovimientosDelFondo() {
         UUID creator = UUID.randomUUID();
         String inviteCode = ("G" + suffix + "XX").substring(0, 8).toUpperCase();
         SolidarityGroup group = groupPort.save(SolidarityGroup.builder()
@@ -210,7 +210,7 @@ class FinancialProductsPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldStoreTheSignedMandateWithItsPdf() {
+    void guardaElMandatoFirmadoConSuPdf() {
         UUID userId = UUID.randomUUID();
         byte[] pdf = "%PDF-1.7 mandato".getBytes(StandardCharsets.US_ASCII);
         MandateContract saved = mandateRepository.save(MandateContract.builder()

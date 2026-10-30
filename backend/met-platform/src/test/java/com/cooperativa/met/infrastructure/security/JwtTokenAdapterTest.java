@@ -38,7 +38,7 @@ class JwtTokenAdapterTest {
     // ── Access Token ──────────────────────────────────────────────────────────
 
     @Test
-    void generateAccessToken_returnsNonNullToken() {
+    void generaUnTokenDeAcceso() {
         UUID userId = UUID.randomUUID();
         String token = adapter.generateAccessToken(userId, "test@met.com");
         assertNotNull(token);
@@ -46,7 +46,7 @@ class JwtTokenAdapterTest {
     }
 
     @Test
-    void validateAccessToken_returnsCorrectUserId() {
+    void validarTokenDeAccesoDevuelveElUsuarioCorrecto() {
         UUID userId = UUID.randomUUID();
         String token = adapter.generateAccessToken(userId, "test@met.com");
 
@@ -56,7 +56,7 @@ class JwtTokenAdapterTest {
     }
 
     @Test
-    void validateAccessToken_throwsBusinessRuleException_forRefreshToken() {
+    void validarTokenDeAccesoRechazaUnTokenDeRenovacion() {
         // Un refresh token no debe validarse como access token
         UUID userId = UUID.randomUUID();
         String refreshToken = adapter.generateRefreshToken(userId);
@@ -68,7 +68,7 @@ class JwtTokenAdapterTest {
     }
 
     @Test
-    void validateAccessToken_throwsBusinessRuleException_forTamperedToken() {
+    void validarTokenDeAccesoRechazaUnTokenAlterado() {
         UUID userId = UUID.randomUUID();
         String token = adapter.generateAccessToken(userId, "test@met.com");
         String tampered = token.substring(0, token.length() - 4) + "XXXX";
@@ -80,7 +80,7 @@ class JwtTokenAdapterTest {
     }
 
     @Test
-    void validateAccessToken_throwsBusinessRuleException_forEmptyToken() {
+    void validarTokenDeAccesoRechazaUnTokenVacio() {
         assertThrows(BusinessRuleException.class,
                 () -> adapter.validateAccessToken(""));
     }
@@ -88,14 +88,14 @@ class JwtTokenAdapterTest {
     // ── Refresh Token ─────────────────────────────────────────────────────────
 
     @Test
-    void generateRefreshToken_returnsNonNullToken() {
+    void generaUnTokenDeRenovacion() {
         String token = adapter.generateRefreshToken(UUID.randomUUID());
         assertNotNull(token);
         assertFalse(token.isBlank());
     }
 
     @Test
-    void validateRefreshTokenClaims_returnsCorrectUserIdAndJti() {
+    void validarTokenDeRenovacionDevuelveElUsuarioYElJtiCorrectos() {
         UUID userId = UUID.randomUUID();
         String token = adapter.generateRefreshToken(userId);
 
@@ -106,7 +106,7 @@ class JwtTokenAdapterTest {
     }
 
     @Test
-    void validateRefreshTokenClaims_throwsBusinessRuleException_forAccessToken() {
+    void validarTokenDeRenovacionRechazaUnTokenDeAcceso() {
         UUID userId = UUID.randomUUID();
         String accessToken = adapter.generateAccessToken(userId, "x@met.com");
 
@@ -119,7 +119,7 @@ class JwtTokenAdapterTest {
     // ── Admin Token ───────────────────────────────────────────────────────────
 
     @Test
-    void generateAdminAccessToken_roleExtractedCorrectly() {
+    void elTokenDeAdministradorLlevaSuRol() {
         UUID adminId = UUID.randomUUID();
         String token = adapter.generateAdminAccessToken(adminId, "admin_user", "SUPERADMIN");
 
@@ -129,7 +129,7 @@ class JwtTokenAdapterTest {
     }
 
     @Test
-    void extractRole_returnsNull_forTokenWithoutRole() {
+    void extraerRolDevuelveNuloSiElTokenNoTieneRol() {
         // Un access token de usuario normal no tiene claim "role"
         String token = adapter.generateAccessToken(UUID.randomUUID(), "user@met.com");
 
@@ -141,7 +141,7 @@ class JwtTokenAdapterTest {
     // ── Diferente secret key ──────────────────────────────────────────────────
 
     @Test
-    void validateAccessToken_throwsBusinessRuleException_whenSignedWithDifferentSecret() {
+    void validarTokenDeAccesoRechazaUnTokenFirmadoConOtroSecreto() {
         // Crear un adapter con diferente clave
         MetSecurityProperties otherProps = new MetSecurityProperties();
         MetSecurityProperties.Jwt otherJwt = new MetSecurityProperties.Jwt();

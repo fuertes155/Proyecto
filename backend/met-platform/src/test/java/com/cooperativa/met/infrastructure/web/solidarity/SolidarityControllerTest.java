@@ -66,7 +66,7 @@ class SolidarityControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldCreateGroup() throws Exception {
+    void creaUnGrupo() throws Exception {
         SolidarityGroupResponse response = new SolidarityGroupResponse(
                 UUID.randomUUID(),
                 "Fondo de Vecinos",
@@ -101,7 +101,7 @@ class SolidarityControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldListGroups() throws Exception {
+    void listaLosGrupos() throws Exception {
         SolidarityGroupResponse response = new SolidarityGroupResponse(
                 UUID.randomUUID(),
                 "Fondo de Vecinos",

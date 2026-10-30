@@ -51,7 +51,7 @@ class CreateScheduledSavingsUseCaseTest {
     }
 
     @Test
-    void execute_createsAccountSuccessfully_whenUserActiveAndMonthly() {
+    void creaElAhorroMensualDeUnUsuarioActivo() {
         // Arrange
         CreateScheduledSavingsRequest request = new CreateScheduledSavingsRequest(
                 "Ahorro vacaciones", new BigDecimal("5000000"), new BigDecimal("100000"),
@@ -76,7 +76,7 @@ class CreateScheduledSavingsUseCaseTest {
     }
 
     @Test
-    void execute_createsAccountSuccessfully_whenWeeklyFrequency() {
+    void creaElAhorroSemanal() {
         // Arrange
         CreateScheduledSavingsRequest request = new CreateScheduledSavingsRequest(
                 "Ahorro semanal", new BigDecimal("1000000"), new BigDecimal("50000"),
@@ -94,7 +94,7 @@ class CreateScheduledSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsUserNotFound_whenUserDoesNotExist() {
+    void fallaSiElUsuarioNoExiste() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         CreateScheduledSavingsRequest request = new CreateScheduledSavingsRequest(
                 "Test", BigDecimal.TEN, BigDecimal.ONE, ContributionFrequency.MONTHLY, null, 15
@@ -108,7 +108,7 @@ class CreateScheduledSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsUserNotActive_whenUserIsSuspended() {
+    void fallaSiElUsuarioEstaSuspendido() {
         User suspendedUser = User.builder().id(userId).status(UserStatus.SUSPENDED).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(suspendedUser));
         CreateScheduledSavingsRequest request = new CreateScheduledSavingsRequest(
@@ -123,7 +123,7 @@ class CreateScheduledSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsInvalidSchedule_whenMonthlyWithoutDayOfMonth() {
+    void fallaSiEsMensualSinDiaDelMes() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         CreateScheduledSavingsRequest request = new CreateScheduledSavingsRequest(
                 "Test", BigDecimal.TEN, BigDecimal.ONE,
@@ -138,7 +138,7 @@ class CreateScheduledSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsInvalidSchedule_whenWeeklyWithoutDayOfWeek() {
+    void fallaSiEsSemanalSinDiaDeLaSemana() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         CreateScheduledSavingsRequest request = new CreateScheduledSavingsRequest(
                 "Test", BigDecimal.TEN, BigDecimal.ONE,

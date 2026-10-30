@@ -96,7 +96,7 @@ class AdminLoanUseCaseTest {
     }
 
     @Test
-    void updateLoanStatus_approved_disbursesAndNotifies() {
+    void alAprobarDesembolsaYNotifica() {
         // Arrange
         when(loanApplicationPort.findById(loanId)).thenReturn(Optional.of(loanApp));
         when(userRepository.findById(userId)).thenReturn(Optional.of(kycApprovedUser));
@@ -128,7 +128,7 @@ class AdminLoanUseCaseTest {
     }
 
     @Test
-    void updateLoanStatus_approved_throwsMaxLoanExceeded_whenBalanceNoLongerSupportsRiskTier() {
+    void alAprobarFallaSiElSaldoYaNoSoportaElNivelDeRiesgo() {
         // El saldo bajó desde la solicitud: score 750 (RIESGO_MEDIO, 2x) sobre 100,000 -> máximo 200,000 < 1,000,000
         CoreAccount lowBalanceAccount = account.toBuilder().principalBalance(new BigDecimal("100000.00")).build();
         when(loanApplicationPort.findById(loanId)).thenReturn(Optional.of(loanApp));
@@ -146,7 +146,7 @@ class AdminLoanUseCaseTest {
     }
 
     @Test
-    void updateLoanStatus_rejected_notifiesUserAndDoesNotDisburse() {
+    void alRechazarNotificaAlUsuarioYNoDesembolsa() {
         // Arrange
         when(loanApplicationPort.findById(loanId)).thenReturn(Optional.of(loanApp));
         

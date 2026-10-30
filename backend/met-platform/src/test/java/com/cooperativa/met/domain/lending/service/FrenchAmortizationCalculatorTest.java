@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FrenchAmortizationCalculatorTest {
 
     @Test
-    void shouldCalculateFixedMonthlyPayment() {
+    void calculaLaCuotaMensualFija() {
         LoanSimulationResult result = FrenchAmortizationCalculator.simulate(
                 new BigDecimal("1000000"),
                 12,
@@ -30,7 +30,7 @@ class FrenchAmortizationCalculatorTest {
     }
 
     @Test
-    void shouldConvertEffectiveAnnualToMonthly() {
+    void convierteLaTasaEfectivaAnualAMensual() {
         BigDecimal monthly = FrenchAmortizationCalculator.effectiveAnnualToMonthly(new BigDecimal("0.2400"));
         // Ahora usamos TNA (24% / 12 = 2%)
         assertEquals(new BigDecimal("0.02000000"), monthly);

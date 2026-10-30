@@ -11,14 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UserTest {
 
     @Test
-    void shouldReportNoEmailWhenAccountWasCreatedWithoutOne() {
+    void indicaQueNoHayCorreoSiLaCuentaSeCreoSinUno() {
         assertFalse(User.builder().build().hasEmail());
         assertFalse(User.builder().email("  ").build().hasEmail());
         assertTrue(User.builder().email("socio@example.com").build().hasEmail());
     }
 
     @Test
-    void shouldRequireEmailForOperationsThatSendSecurityCodes() {
+    void exigeCorreoParaOperacionesQueEnvianCodigosDeSeguridad() {
         assertEquals("socio@example.com", User.builder().email("socio@example.com").build().requireEmail());
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,

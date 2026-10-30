@@ -26,7 +26,7 @@ class GetAuditLogUseCaseTest {
     private GetAuditLogUseCase getAuditLogUseCase;
 
     @Test
-    void shouldFilterByAdmin() {
+    void filtraPorAdministrador() {
         UUID adminId = UUID.randomUUID();
         List<AdminAuditEntry> entries = List.of(AdminAuditEntry.builder().actorAdminId(adminId).accion("ADMIN_LOGIN").build());
         when(auditLog.findByAdminId(adminId, 0, 20)).thenReturn(entries);
@@ -35,7 +35,7 @@ class GetAuditLogUseCaseTest {
     }
 
     @Test
-    void shouldReturnNothingForMalformedAdminIdInsteadOfFailing() {
+    void noDevuelveNadaConIdDeAdministradorMalFormadoEnVezDeFallar() {
         assertTrue(getAuditLogUseCase.getByAdmin("'; DROP TABLE admin_audit_log; --", 0, 20).isEmpty());
 
         verifyNoInteractions(auditLog);

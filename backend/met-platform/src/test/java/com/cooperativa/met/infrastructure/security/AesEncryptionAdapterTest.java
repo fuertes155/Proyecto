@@ -35,7 +35,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldRoundTripSensitiveDataWithAFreshIvEachTime() {
+    void cifraYDescifraDatosSensiblesConUnIvNuevoCadaVez() {
         String first = adapter.encrypt("1086578123");
         String second = adapter.encrypt("1086578123");
 
@@ -46,7 +46,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldRejectTamperedCiphertext() {
+    void rechazaUnTextoCifradoAlterado() {
         byte[] bytes = Base64.getDecoder().decode(adapter.encrypt("saldo:1500000"));
         bytes[bytes.length - 1] ^= 0x01;
 
@@ -54,7 +54,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldNotDecryptWithAnotherKey() {
+    void noDescifraConOtraLlave() {
         String cipherText = adapter.encrypt("dato");
         AesEncryptionAdapter otherKey = newAdapter("otra-llave-de-32-caracteres-xxxxx", null, null);
 
@@ -62,7 +62,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldEncryptSearchableValuesAlwaysTheSameWay() {
+    void cifraLosValoresBuscablesSiempreIgual() {
         String first = adapter.encryptDeterministic("socio@example.com");
 
         assertEquals(first, adapter.encryptDeterministic("socio@example.com"), "debe poder buscarse por igualdad en la BD");
@@ -71,13 +71,13 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldKeepNullsAsNullInSearchableEncryption() {
+    void mantieneLosNulosComoNulosEnElCifradoBuscable() {
         assertNull(adapter.encryptDeterministic(null));
         assertNull(adapter.decryptDeterministic(null));
     }
 
     @Test
-    void shouldRejectTamperedSearchableCiphertextBeforeDecrypting() {
+    void rechazaUnCifradoBuscableAlteradoAntesDeDescifrar() {
         byte[] bytes = Base64.getDecoder().decode(adapter.encryptDeterministic("1086578123"));
         bytes[bytes.length - 1] ^= 0x01;
 
@@ -89,7 +89,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldHashPinWithSaltAndVerifyIt() {
+    void calculaElHashDelPinConSalYLoVerifica() {
         String hash = adapter.hashPin("4821");
 
         assertNotEquals("4821", hash);
@@ -99,7 +99,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldHashBiometricPayloadWithSha256() throws Exception {
+    void calculaElHashSha256DeLosDatosBiometricos() throws Exception {
         String expected = Base64.getEncoder().encodeToString(
                 MessageDigest.getInstance("SHA-256").digest("template".getBytes(StandardCharsets.UTF_8)));
 
@@ -107,7 +107,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldGenerateRsaKeysForDevelopmentAndDecryptWhatTheAppEncrypts() throws Exception {
+    void generaLlavesRsaParaDesarrolloYDescifraLoQueCifraLaApp() throws Exception {
         String encryptedPin = rsaEncrypt(publicKey(adapter.getRsaPublicKeyBase64()), "4821");
 
         assertEquals("4821", adapter.decryptRsa(encryptedPin));
@@ -115,7 +115,7 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldUseConfiguredRsaKeysEvenWhenPastedWithLineBreaks() throws Exception {
+    void usaLasLlavesRsaConfiguradasAunqueSePeguenConSaltosDeLinea() throws Exception {
         KeyPair keyPair = rsaKeyPair();
         String publicB64 = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
         String privateB64 = Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
@@ -127,12 +127,12 @@ class AesEncryptionAdapterTest {
     }
 
     @Test
-    void shouldFailFastOnUnusableRsaPrivateKey() {
+    void fallaDeInmediatoConUnaLlavePrivadaRsaInservible() {
         assertThrows(IllegalStateException.class, () -> newAdapter(AES_KEY, "bm8tZXMtdW5hLWxsYXZl", "bm8tZXMtdW5hLWxsYXZl"));
     }
 
     @Test
-    void shouldRejectRsaPayloadEncryptedWithAnotherKey() throws Exception {
+    void rechazaDatosRsaCifradosConOtraLlave() throws Exception {
         String foreign = rsaEncrypt(rsaKeyPair().getPublic(), "4821");
 
         assertThrows(IllegalArgumentException.class, () -> adapter.decryptRsa(foreign));

@@ -55,7 +55,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     private final UUID portfolioId = UUID.randomUUID();
 
     @Test
-    void shouldPayCapitalPlusYieldAtMaturityAndCloseThePosition() {
+    void pagaCapitalMasRendimientoAlVencerYCierraLaPosicion() {
         ProcessMaturingInvestmentsUseCase maturity = new ProcessMaturingInvestmentsUseCase(investmentPort, returnPort, creditPort);
         MicroInvestment due = position("1000000", "0.0730", 100, InvestmentStatus.ACTIVE);
         when(investmentPort.findMaturingOnOrBefore(any(), eq(InvestmentStatus.ACTIVE))).thenReturn(List.of(due));
@@ -72,7 +72,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     }
 
     @Test
-    void shouldKeepPositionOpenWhenTheMoneyCouldNotBeCreditedAndContinueWithTheRest() {
+    void dejaAbiertaLaPosicionSiNoSePudoAcreditarYSigueConLasDemas() {
         ProcessMaturingInvestmentsUseCase maturity = new ProcessMaturingInvestmentsUseCase(investmentPort, returnPort, creditPort);
         MicroInvestment failsCredit = position("1000000", "0.0730", 100, InvestmentStatus.ACTIVE);
         MicroInvestment blowsUp = position("500000", "0.0730", 100, InvestmentStatus.ACTIVE);
@@ -91,7 +91,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     }
 
     @Test
-    void shouldAccrueDailyYieldToThePositionAndToTheWithdrawableEarnings() {
+    void causaElRendimientoDiarioEnLaPosicionYEnLasGananciasRetirables() {
         CalculateDailyRoyaltiesUseCase royalties = new CalculateDailyRoyaltiesUseCase(investmentPort, accountPort);
         MicroInvestment active = position("3650000", "0.10", 90, InvestmentStatus.ACTIVE).withRendimientoGanado(new BigDecimal("2000"));
         when(investmentPort.findByStatus(InvestmentStatus.ACTIVE)).thenReturn(List.of(active));
@@ -110,7 +110,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     }
 
     @Test
-    void shouldReturnOnlyTheCapitalOfActivePositionsWhenCancelling() {
+    void devuelveSoloElCapitalDeLasPosicionesActivasAlCancelar() {
         CancelMicroInvestmentUseCase cancel = new CancelMicroInvestmentUseCase(portfolioPort, investmentPort, creditPort);
         MicroInvestment active = position("400000", "0.08", 90, InvestmentStatus.ACTIVE);
         MicroInvestment completed = position("100000", "0.08", 90, InvestmentStatus.COMPLETED);
@@ -129,7 +129,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     }
 
     @Test
-    void shouldAbortCancellationIfAnyCapitalCannotBeReturned() {
+    void abortaLaCancelacionSiNoSePuedeDevolverAlgunCapital() {
         CancelMicroInvestmentUseCase cancel = new CancelMicroInvestmentUseCase(portfolioPort, investmentPort, creditPort);
         when(portfolioPort.findById(portfolioId)).thenReturn(Optional.of(portfolio(userId, InvestmentStatus.ACTIVE)));
         when(investmentPort.findByPortfolioId(portfolioId)).thenReturn(List.of(position("400000", "0.08", 90, InvestmentStatus.ACTIVE)));
@@ -141,7 +141,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     }
 
     @Test
-    void shouldOnlyLetTheOwnerCancelAnActivePortfolio() {
+    void soloElDuenoPuedeCancelarUnPortafolioActivo() {
         CancelMicroInvestmentUseCase cancel = new CancelMicroInvestmentUseCase(portfolioPort, investmentPort, creditPort);
         UUID otherPortfolio = UUID.randomUUID();
         when(portfolioPort.findById(portfolioId)).thenReturn(Optional.of(portfolio(UUID.randomUUID(), InvestmentStatus.ACTIVE)));
@@ -153,7 +153,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     }
 
     @Test
-    void shouldShowPortfolioWithProjectedYieldOnlyToItsOwner() {
+    void muestraElPortafolioConRendimientoProyectadoSoloASuDueno() {
         GetInvestmentPortfolioUseCase query = new GetInvestmentPortfolioUseCase(portfolioPort, investmentPort, instrumentPort);
         MicroInvestment withInstrument = position("1000000", "0.0730", 100, InvestmentStatus.ACTIVE);
         MicroInvestment orphan = position("1000000", "0.0730", 100, InvestmentStatus.ACTIVE).toBuilder().instrumentId(UUID.randomUUID()).build();
@@ -173,7 +173,7 @@ class MicroInvestmentLifecycleUseCasesTest {
     }
 
     @Test
-    void shouldListAllPortfoliosOfTheUser() {
+    void listaTodosLosPortafoliosDelUsuario() {
         GetInvestmentPortfolioUseCase query = new GetInvestmentPortfolioUseCase(portfolioPort, investmentPort, instrumentPort);
         when(portfolioPort.findByUserId(userId)).thenReturn(List.of(portfolio(userId, InvestmentStatus.ACTIVE), portfolio(userId, InvestmentStatus.COMPLETED)));
         when(investmentPort.findByPortfolioId(any())).thenReturn(List.of());

@@ -14,14 +14,14 @@ class WompiSignaturesTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void integrityIsSha256OfReferenceAmountCurrencyAndSecret() {
+    void laIntegridadEsSha256DeReferenciaMontoMonedaYSecreto() {
         // printf '%s' "MET-ref-1735000000000""5000000""COP""test_integrity_abc123" | sha256sum
         assertEquals("dc63dc1d2a8553642cdca5fbf663d36abfe42258d52ec534366201a7e6703e17",
                 WompiSignatures.integrity("MET-ref-1735000000000", 5_000_000L, "COP", "test_integrity_abc123"));
     }
 
     @Test
-    void eventChecksumConcatenatesSignedPropertiesTimestampAndSecret() throws Exception {
+    void elChecksumDelEventoUneLasPropiedadesFirmadasLaMarcaDeTiempoYElSecreto() throws Exception {
         JsonNode event = objectMapper.readTree("""
                 {
                   "event": "transaction.updated",
@@ -40,7 +40,7 @@ class WompiSignaturesTest {
     }
 
     @Test
-    void eventChecksumIsNullWhenASignedPropertyIsMissing() throws Exception {
+    void elChecksumDelEventoEsNuloSiFaltaUnaPropiedadFirmada() throws Exception {
         JsonNode event = objectMapper.readTree("""
                 {
                   "data": { "transaction": { "id": "tx-42" } },
@@ -53,7 +53,7 @@ class WompiSignaturesTest {
     }
 
     @Test
-    void eventChecksumIsNullWithoutTimestamp() throws Exception {
+    void elChecksumDelEventoEsNuloSinMarcaDeTiempo() throws Exception {
         JsonNode event = objectMapper.readTree("""
                 { "data": { "transaction": { "id": "tx-42" } }, "signature": { "properties": ["transaction.id"] } }
                 """);
@@ -62,7 +62,7 @@ class WompiSignaturesTest {
     }
 
     @Test
-    void checksumComparisonIgnoresCase() {
+    void laComparacionDelChecksumIgnoraMayusculas() {
         assertTrue(WompiSignatures.checksumMatches("7d0a0c6f", "7D0A0C6F"));
         assertFalse(WompiSignatures.checksumMatches("7d0a0c6f", "7d0a0c6e"));
         assertFalse(WompiSignatures.checksumMatches("7d0a0c6f", null));

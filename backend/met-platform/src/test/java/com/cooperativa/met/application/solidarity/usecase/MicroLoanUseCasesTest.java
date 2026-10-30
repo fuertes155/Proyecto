@@ -91,7 +91,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldCreatePendingLoanAtTheGroupRate() {
+        void creaElCreditoPendienteConLaTasaDelGrupo() {
             givenGroup();
             givenMember(borrowerId, MemberRole.MEMBER);
             when(loanPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -105,7 +105,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldCapTheLoanAtThePercentageOfThePoolTheGroupAllows() {
+        void limitaElCreditoAlPorcentajeDelFondoQuePermiteElGrupo() {
             givenGroup();
             givenMember(borrowerId, MemberRole.MEMBER);
 
@@ -117,7 +117,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldAllowOnlyOneActiveLoanPerMember() {
+        void permiteSoloUnCreditoActivoPorMiembro() {
             givenGroup();
             givenMember(borrowerId, MemberRole.MEMBER);
             when(loanPort.hasActiveLoan(groupId, borrowerId)).thenReturn(true);
@@ -129,7 +129,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldRefuseOutsiders() {
+        void rechazaAQuienNoEsDelGrupo() {
             givenGroup();
             when(memberPort.findByGroupIdAndUserId(groupId, borrowerId)).thenReturn(Optional.empty());
 
@@ -153,7 +153,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldDisburseFromThePoolAndCreateTheInstallmentPlan() {
+        void desembolsaDelFondoYCreaElPlanDeCuotas() {
             givenMember(adminId, MemberRole.ADMIN);
             givenLoan(MicroLoanStatus.PENDING, new BigDecimal("300000.00"));
             givenGroup();
@@ -176,7 +176,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldRecordTheReasonWhenRejecting() {
+        void registraElMotivoAlRechazar() {
             givenMember(adminId, MemberRole.ADMIN);
             givenLoan(MicroLoanStatus.PENDING, new BigDecimal("300000.00"));
             when(loanPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -191,7 +191,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldNotDisburseMoreThanThePoolHas() {
+        void noDesembolsaMasDeLoQueTieneElFondo() {
             givenMember(adminId, MemberRole.ADMIN);
             givenLoan(MicroLoanStatus.PENDING, new BigDecimal("1500000.00"));
             givenGroup();
@@ -204,7 +204,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldOnlyLetGroupAdminsReview() {
+        void soloLosAdministradoresDelGrupoRevisan() {
             givenMember(borrowerId, MemberRole.MEMBER);
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -215,7 +215,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldNotReviewTheSameLoanTwice() {
+        void noRevisaDosVecesElMismoCredito() {
             givenMember(adminId, MemberRole.ADMIN);
             givenLoan(MicroLoanStatus.DISBURSED, new BigDecimal("300000.00"));
 
@@ -226,7 +226,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldNotLetAdminOfOneGroupReviewLoansOfAnother() {
+        void noDejaQueElAdministradorDeUnGrupoRevisaCreditosDeOtro() {
             givenMember(adminId, MemberRole.ADMIN);
             when(loanPort.findById(loanId)).thenReturn(Optional.of(loan(UUID.randomUUID(), MicroLoanStatus.PENDING, BigDecimal.TEN)));
 
@@ -250,7 +250,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldChargeTheBorrowerAndReturnTheMoneyToThePool() {
+        void cobraAlDeudorYDevuelveElDineroAlFondo() {
             givenRepayableInstallment(InstallmentStatus.PENDING);
             when(debitSourcePort.debit(borrowerId, new BigDecimal("52000.00"), "SOLID-REPAY-" + installmentId)).thenReturn(true);
             when(installmentPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -267,7 +267,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldCloseTheLoanWithTheLastInstallment() {
+        void cierraElCreditoConLaUltimaCuota() {
             givenRepayableInstallment(InstallmentStatus.PENDING);
             when(debitSourcePort.debit(eq(borrowerId), any(), any())).thenReturn(true);
             when(installmentPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -282,7 +282,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldNotMarkPaidWhenTheBorrowerHasNoFunds() {
+        void noMarcaPagadoSiElDeudorNoTieneFondos() {
             givenRepayableInstallment(InstallmentStatus.PENDING);
             when(debitSourcePort.debit(eq(borrowerId), any(), any())).thenReturn(false);
 
@@ -295,7 +295,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldNotChargeTwiceForTheSameInstallment() {
+        void noCobraDosVecesLaMismaCuota() {
             givenRepayableInstallment(InstallmentStatus.PAID);
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -306,7 +306,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldOnlyLetTheBorrowerPay() {
+        void soloDejaPagarAlDeudor() {
             UUID otherMember = UUID.randomUUID();
             givenMember(otherMember, MemberRole.MEMBER);
             when(loanPort.findById(loanId)).thenReturn(Optional.of(loan(groupId, MicroLoanStatus.DISBURSED, new BigDecimal("300000.00"))));
@@ -319,7 +319,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldRejectInstallmentOfAnotherLoan() {
+        void rechazaLaCuotaDeOtroCredito() {
             givenMember(borrowerId, MemberRole.MEMBER);
             when(loanPort.findById(loanId)).thenReturn(Optional.of(loan(groupId, MicroLoanStatus.DISBURSED, new BigDecimal("300000.00"))));
             when(installmentPort.findById(installmentId)).thenReturn(Optional.of(installment(UUID.randomUUID(), InstallmentStatus.PENDING)));
@@ -331,7 +331,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldRejectPaymentsBeforeDisbursement() {
+        void rechazaPagosAntesDelDesembolso() {
             givenMember(borrowerId, MemberRole.MEMBER);
             when(loanPort.findById(loanId)).thenReturn(Optional.of(loan(groupId, MicroLoanStatus.PENDING, new BigDecimal("300000.00"))));
 
@@ -365,7 +365,7 @@ class MicroLoanUseCasesTest {
     class ListingInstallments {
 
         @Test
-        void shouldHideLoansOfOtherGroups() {
+        void ocultaLosCreditosDeOtrosGrupos() {
             ListLoanInstallmentsUseCase listUseCase = new ListLoanInstallmentsUseCase(authorizationService, loanPort, installmentPort, mapper);
             givenMember(borrowerId, MemberRole.MEMBER);
             when(loanPort.findById(loanId)).thenReturn(Optional.of(loan(UUID.randomUUID(), MicroLoanStatus.DISBURSED, BigDecimal.TEN)));
@@ -376,7 +376,7 @@ class MicroLoanUseCasesTest {
         }
 
         @Test
-        void shouldListTheInstallmentsOfTheLoan() {
+        void listaLasCuotasDelCredito() {
             ListLoanInstallmentsUseCase listUseCase = new ListLoanInstallmentsUseCase(authorizationService, loanPort, installmentPort, mapper);
             givenMember(borrowerId, MemberRole.MEMBER);
             when(loanPort.findById(loanId)).thenReturn(Optional.of(loan(groupId, MicroLoanStatus.DISBURSED, BigDecimal.TEN)));

@@ -46,7 +46,7 @@ class ManageMaintenanceUseCaseTest {
     private final UUID windowId = UUID.randomUUID();
 
     @Test
-    void shouldScheduleWindowInactiveUntilAnAdminActivatesIt() {
+    void programaLaVentanaInactivaHastaQueUnAdministradorLaActive() {
         Instant inicio = Instant.now().plus(1, ChronoUnit.DAYS);
         when(maintenanceRepository.save(any())).thenAnswer(inv -> ((MaintenanceWindow) inv.getArgument(0)).toBuilder().id(windowId).build());
 
@@ -61,7 +61,7 @@ class ManageMaintenanceUseCaseTest {
     }
 
     @Test
-    void shouldActivateAndDeactivateWithAudit() {
+    void activaYDesactivaConAuditoria() {
         when(maintenanceRepository.findById(windowId)).thenReturn(Optional.of(window(false)));
         when(maintenanceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -75,7 +75,7 @@ class ManageMaintenanceUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownWindow() {
+    void fallaConUnaVentanaDesconocida() {
         when(maintenanceRepository.findById(windowId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> manageMaintenanceUseCase.activate(adminId, windowId, IP));

@@ -46,7 +46,7 @@ class ManageRiskRulesUseCaseTest {
     private final UUID ruleId = UUID.randomUUID();
 
     @Test
-    void shouldCreateRuleAcceptingActionInAnyCase() {
+    void creaLaReglaAceptandoLaAccionEnMayusculasOMinusculas() {
         when(riskRuleRepository.save(any())).thenAnswer(inv -> ((RiskRule) inv.getArgument(0)).toBuilder().id(ruleId).build());
 
         RiskRule created = manageRiskRulesUseCase.create(adminId,
@@ -61,7 +61,7 @@ class ManageRiskRulesUseCaseTest {
     }
 
     @Test
-    void shouldCreateTheRuleActiveWhenTheRequestDoesNotSay() {
+    void creaLaReglaActivaSiLaPeticionNoLoIndica() {
         // Antes: request.activo() nulo se desempaquetaba en un boolean y reventaba con NPE (HTTP 500).
         when(riskRuleRepository.save(any())).thenAnswer(inv -> ((RiskRule) inv.getArgument(0)).toBuilder().id(ruleId).build());
 
@@ -72,7 +72,7 @@ class ManageRiskRulesUseCaseTest {
     }
 
     @Test
-    void shouldRejectUnknownActionWithoutSavingAnything() {
+    void rechazaUnaAccionDesconocidaSinGuardarNada() {
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> manageRiskRulesUseCase.create(adminId,
                 new RiskRuleRequest("Montos altos", null, CONDICION, "APROBAR", true), IP));
 
@@ -82,7 +82,7 @@ class ManageRiskRulesUseCaseTest {
     }
 
     @Test
-    void shouldAuditWhoDisabledARule() {
+    void auditaQuienDesactivoUnaRegla() {
         when(riskRuleRepository.findById(ruleId)).thenReturn(Optional.of(rule(true)));
         when(riskRuleRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -97,7 +97,7 @@ class ManageRiskRulesUseCaseTest {
     }
 
     @Test
-    void shouldAuditDeletedRule() {
+    void auditaLaReglaEliminada() {
         when(riskRuleRepository.findById(ruleId)).thenReturn(Optional.of(rule(true)));
 
         manageRiskRulesUseCase.delete(adminId, ruleId, IP);
@@ -109,7 +109,7 @@ class ManageRiskRulesUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownRule() {
+    void fallaConUnaReglaDesconocida() {
         when(riskRuleRepository.findById(ruleId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> manageRiskRulesUseCase.toggleActivo(adminId, ruleId, true, IP));

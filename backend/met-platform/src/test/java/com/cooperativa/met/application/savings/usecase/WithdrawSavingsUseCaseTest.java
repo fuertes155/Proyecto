@@ -49,7 +49,7 @@ class WithdrawSavingsUseCaseTest {
     }
 
     @Test
-    void execute_partialWithdraw_succeedsWithin40Percent() {
+    void retiroParcialFuncionaDentroDelCuarentaPorCiento() {
         // Arrange: 40% de 1,000,000 = 400,000
         WithdrawSavingsRequest request = buildRequest(new BigDecimal("300000.00"), WithdrawalType.PARTIAL);
         when(accountPort.findByIdAndUserId(accountId, userId)).thenReturn(Optional.of(activeAccount));
@@ -65,7 +65,7 @@ class WithdrawSavingsUseCaseTest {
     }
 
     @Test
-    void execute_fullWithdraw_cancelAccountAndDrainsBalance() {
+    void retiroTotalCancelaLaCuentaYVaciaElSaldo() {
         // Arrange
         WithdrawSavingsRequest request = buildRequest(new BigDecimal("1000000.00"), WithdrawalType.FULL);
         when(accountPort.findByIdAndUserId(accountId, userId)).thenReturn(Optional.of(activeAccount));
@@ -81,7 +81,7 @@ class WithdrawSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsAccountNotFound_whenAccountDoesNotBelongToUser() {
+    void fallaSiLaCuentaNoEsDelUsuario() {
         when(accountPort.findByIdAndUserId(accountId, userId)).thenReturn(Optional.empty());
         WithdrawSavingsRequest request = buildRequest(new BigDecimal("100.00"), WithdrawalType.PARTIAL);
 
@@ -93,7 +93,7 @@ class WithdrawSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsAccountCancelled_whenAccountIsCancelled() {
+    void fallaSiLaCuentaEstaCancelada() {
         ScheduledSavingsAccount cancelled = activeAccount.withStatus(ScheduledSavingsStatus.CANCELLED);
         when(accountPort.findByIdAndUserId(accountId, userId)).thenReturn(Optional.of(cancelled));
         WithdrawSavingsRequest request = buildRequest(new BigDecimal("100.00"), WithdrawalType.PARTIAL);
@@ -106,7 +106,7 @@ class WithdrawSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsInvalidAmount_whenAmountIsZero() {
+    void fallaConMontoCero() {
         when(accountPort.findByIdAndUserId(accountId, userId)).thenReturn(Optional.of(activeAccount));
         WithdrawSavingsRequest request = buildRequest(BigDecimal.ZERO, WithdrawalType.PARTIAL);
 
@@ -117,7 +117,7 @@ class WithdrawSavingsUseCaseTest {
     }
 
     @Test
-    void execute_throwsLimitExceeded_whenPartialWithdrawExceeds40Percent() {
+    void fallaSiElRetiroParcialSuperaElCuarentaPorCiento() {
         // 40% de 1,000,000 = 400,000. Solicitar 500,000 debe fallar.
         when(accountPort.findByIdAndUserId(accountId, userId)).thenReturn(Optional.of(activeAccount));
         WithdrawSavingsRequest request = buildRequest(new BigDecimal("500000.00"), WithdrawalType.PARTIAL);

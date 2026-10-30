@@ -12,6 +12,7 @@ import com.cooperativa.met.domain.bank.port.PseTransactionRequest;
 import com.cooperativa.met.domain.bank.port.PseTransactionResult;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
+import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,10 @@ public class CreateNativePseDepositUseCase {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        // Ver GeneratePseLinkUseCase: el webhook solo acredita a socios con identidad aprobada.
+        if (user.getKycStatus() != KycStatus.APPROVED) {
+            throw new BusinessRuleException("KYC_REQUIRED", "Debe completar la validación de identidad biométrica para recargar");
+        }
 
         Bank bank = bankRepository.findByCode(request.getBankCode())
                 .orElseThrow(() -> new BusinessRuleException("BANK_NOT_FOUND", "El banco seleccionado no existe"));

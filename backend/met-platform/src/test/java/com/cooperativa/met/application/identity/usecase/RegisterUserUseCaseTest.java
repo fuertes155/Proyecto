@@ -49,7 +49,7 @@ class RegisterUserUseCaseTest {
     }
 
     @Test
-    void shouldRegisterWithOnlyDocumentFullNameAndPin() {
+    void registraSoloConDocumentoNombreCompletoYPin() {
         RegisterUserRequest request = new RegisterUserRequest(
                 DocumentType.CC, DOCUMENT, null, null, null, null, "Juan Carlos Pabón Gómez", "encrypted-pin", true);
 
@@ -65,7 +65,7 @@ class RegisterUserUseCaseTest {
     }
 
     @Test
-    void shouldKeepEmailVerificationWhenEmailIsProvided() {
+    void mantieneLaVerificacionDeCorreoSiSeDaElCorreo() {
         RegisterUserRequest request = new RegisterUserRequest(
                 DocumentType.CC, DOCUMENT, "juan@example.com", "3001234567", "Juan", "García", null, "encrypted-pin", true);
 
@@ -78,7 +78,7 @@ class RegisterUserUseCaseTest {
     }
 
     @Test
-    void shouldRejectFullNameWithoutSurname() {
+    void rechazaUnNombreSinApellido() {
         RegisterUserRequest request = new RegisterUserRequest(
                 DocumentType.CC, DOCUMENT, null, null, null, null, "Juan", "encrypted-pin", true);
 
@@ -90,7 +90,7 @@ class RegisterUserUseCaseTest {
     }
 
     @Test
-    void shouldRejectDocumentAlreadyRegistered() {
+    void rechazaUnDocumentoYaRegistrado() {
         when(userRepository.existsByDocument(DocumentType.CC, DOCUMENT)).thenReturn(true);
         RegisterUserRequest request = new RegisterUserRequest(
                 DocumentType.CC, DOCUMENT, null, null, null, null, "Juan Pabón", "encrypted-pin", true);

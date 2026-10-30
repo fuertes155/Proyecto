@@ -6,6 +6,10 @@ import com.cooperativa.met.application.account.service.PaymentReturnUrlResolver;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.common.exception.ResourceNotFoundException;
+import com.cooperativa.met.domain.identity.model.KycStatus;
+import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.infrastructure.adapter.wompi.WompiSignatures;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,7 @@ public class GeneratePseLinkUseCase {
     private static final String CURRENCY = "COP";
 
     private final CoreAccountRepositoryPort accountRepository;
+    private final UserRepositoryPort userRepository;
     private final PaymentReturnUrlResolver returnUrlResolver;
 
     @Value("${met.wompi.public-key}")
@@ -69,6 +74,14 @@ public class GeneratePseLinkUseCase {
             throw new BusinessRuleException("DEP_ERR_01", "El monto a recargar debe ser mayor a cero");
         }
 
+        // Mismo requisito que al acreditar (DepositUseCase): sin él, el socio podía pagar en Wompi un
+        // depósito que el webhook después no podía acreditarle, y el dinero quedaba cobrado sin llegar.
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        if (user.getKycStatus() != KycStatus.APPROVED) {
+            throw new BusinessRuleException("KYC_REQUIRED", "Debe completar la validación de identidad biométrica para recargar");
+        }
+
         CoreAccount account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessRuleException("DEP_ERR_02", "No tienes una cuenta activa para recargar"));
 
@@ -91,7 +104,7 @@ public class GeneratePseLinkUseCase {
                     + "?transactionId=" + reference
                     + "&amount=" + request.getAmount().toPlainString()
                     + "&userId=" + userId;
-            log.info("[DEV] Generated MOCK payment link for user {} with reference {}", userId, reference);
+            log.info("[DEV] Enlace de pago SIMULADO generado para el usuario {} con la referencia {}", userId, reference);
             return GeneratePseLinkResponse.builder()
                     .paymentUrl(mockUrl)
                     .transactionId(reference)
@@ -108,7 +121,7 @@ public class GeneratePseLinkUseCase {
                 + "&signature:integrity=" + integritySignature
                 + "&redirect-url=" + encode(returnUrlResolver.resolve(userId, request.getReturnUrl()));
 
-        log.info("Generated Wompi checkout link for user {} with reference {}", userId, reference);
+        log.info("Enlace de pago de Wompi generado para el usuario {} con la referencia {}", userId, reference);
 
         return GeneratePseLinkResponse.builder()
                 .paymentUrl(paymentUrl)

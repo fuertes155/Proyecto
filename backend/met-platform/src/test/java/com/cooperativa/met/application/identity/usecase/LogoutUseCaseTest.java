@@ -36,7 +36,7 @@ class LogoutUseCaseTest {
     }
 
     @Test
-    void shouldBlacklistAccessTokenForItsWholeLifetimeAndRevokeRefreshTokens() {
+    void anulaElTokenDeAccesoPorTodaSuVigenciaYRevocaLosDeRenovacion() {
         logoutUseCase.execute(userId, "access-token");
 
         verify(tokenBlacklist).revoke("access-token", Duration.ofMinutes(30));
@@ -44,7 +44,7 @@ class LogoutUseCaseTest {
     }
 
     @Test
-    void shouldStillBlacklistAccessTokenWhenRevokingRefreshTokensFails() {
+    void anulaElTokenDeAccesoAunqueFalleRevocarLosDeRenovacion() {
         doThrow(new IllegalStateException("BD caída")).when(refreshTokenRepository).revokeAllByUserId(userId);
 
         assertDoesNotThrow(() -> logoutUseCase.execute(userId, "access-token"));

@@ -3,7 +3,7 @@
 #
 # Se combina con el perfil base que quieras conservar:
 #   Local (Docker):  SPRING_PROFILES_ACTIVE=dev,sandbox
-#   Render:          SPRING_PROFILES_ACTIVE=prod,sandbox
+#   Render:          SPRING_PROFILES_ACTIVE=prod,demo,sandbox  (demo: monto del micro-depósito en logs)
 # (el orden importa: "sandbox" va al final para que sus valores ganen).
 #
 # Requiere llaves de sandbox (dashboard.wompi.co → Desarrolladores):

@@ -45,9 +45,9 @@ public class GoPushNotificationAdapter implements PushNotificationPort {
         
         try {
             restTemplate.postForEntity(endpoint, requestEntity, String.class);
-            log.info("Push notification request sent to Go service for userId: {}", userId);
+            log.info("Solicitud de notificación push enviada al servicio en Go para userId: {}", userId);
         } catch (Exception e) {
-            log.error("Failed to send push notification via Go service to userId: {}", userId, e);
+            log.error("No se pudo enviar la notificación push por el servicio en Go a userId: {}", userId, e);
         }
     }
 }

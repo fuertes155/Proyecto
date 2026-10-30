@@ -43,7 +43,7 @@ class ResetUserCredentialsUseCaseTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldWipePinAndBiometricsAndCloseSessions() {
+    void borraPinYBiometriaYCierraLasSesiones() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder()
                 .id(userId)
                 .documentNumber("1086578123")
@@ -64,7 +64,7 @@ class ResetUserCredentialsUseCaseTest {
     }
 
     @Test
-    void shouldNeverWriteTheRealHashesToTheAuditLog() {
+    void nuncaEscribeLosHashesRealesEnLaAuditoria() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder()
                 .id(userId).pinHash("$argon2id$real-pin-hash").biometricHash("real-biometric-hash").build()));
 
@@ -79,7 +79,7 @@ class ResetUserCredentialsUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownUser() {
+    void fallaConUnUsuarioDesconocido() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->

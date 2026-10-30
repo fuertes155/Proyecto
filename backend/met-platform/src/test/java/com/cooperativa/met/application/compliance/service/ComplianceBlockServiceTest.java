@@ -32,7 +32,7 @@ class ComplianceBlockServiceTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldBlockUserAndRejectTheirKyc() {
+    void bloqueaAlUsuarioYRechazaSuKyc() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder()
                 .id(userId).status(UserStatus.ACTIVE).kycStatus(KycStatus.PENDING).build()));
 
@@ -45,7 +45,7 @@ class ComplianceBlockServiceTest {
     }
 
     @Test
-    void shouldDoNothingForUnknownUser() {
+    void noHaceNadaConUnUsuarioDesconocido() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         complianceBlockService.blockUser(userId);

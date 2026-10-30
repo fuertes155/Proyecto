@@ -37,7 +37,7 @@ class PinAttemptServiceTest {
     // ── checkAndRecordFailure ─────────────────────────────────────────────────
 
     @Test
-    void checkAndRecordFailure_throwsInvalidPin_onFirstFourAttempts() {
+    void elPrimerIntentoFallidoAvisaPinInvalidoUnoDeCinco() {
         // La cuenta NO está bloqueada, primer intento (count=1)
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(false);
         when(valueOps.increment("pin:attempts:" + userId)).thenReturn(1L);
@@ -50,7 +50,7 @@ class PinAttemptServiceTest {
     }
 
     @Test
-    void checkAndRecordFailure_throwsInvalidPin_onFourthAttempt() {
+    void elCuartoIntentoFallidoAvisaPinInvalidoSinBloquear() {
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(false);
         when(valueOps.increment("pin:attempts:" + userId)).thenReturn(4L);
 
@@ -64,7 +64,7 @@ class PinAttemptServiceTest {
     }
 
     @Test
-    void checkAndRecordFailure_throwsAccountLocked_onFifthAttempt() {
+    void elQuintoIntentoFallidoBloqueaLaCuenta() {
         // 5° intento: debe bloquear la cuenta
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(false);
         when(valueOps.increment("pin:attempts:" + userId)).thenReturn(5L);
@@ -80,7 +80,7 @@ class PinAttemptServiceTest {
     }
 
     @Test
-    void checkAndRecordFailure_throwsAccountLocked_whenAlreadyBlocked() {
+    void registrarFalloAvisaCuentaBloqueadaSiYaEstabaBloqueada() {
         // La cuenta ya está bloqueada — debe fallar inmediatamente sin incrementar
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(true);
 
@@ -93,7 +93,7 @@ class PinAttemptServiceTest {
     }
 
     @Test
-    void checkAndRecordFailure_setsExpiry_onFirstAttempt() {
+    void elPrimerIntentoFallidoPoneElVencimiento() {
         // El primer intento debe setear el TTL de la ventana (1 hora)
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(false);
         when(valueOps.increment("pin:attempts:" + userId)).thenReturn(1L);
@@ -105,7 +105,7 @@ class PinAttemptServiceTest {
     }
 
     @Test
-    void checkAndRecordFailure_doesNotSetExpiry_onSubsequentAttempts() {
+    void losSiguientesIntentosNoCambianElVencimiento() {
         // En el segundo intento (count != 1), no se debe volver a setear el TTL
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(false);
         when(valueOps.increment("pin:attempts:" + userId)).thenReturn(2L);
@@ -118,14 +118,14 @@ class PinAttemptServiceTest {
     // ── checkBlocked ──────────────────────────────────────────────────────────
 
     @Test
-    void checkBlocked_doesNotThrow_whenNotBlocked() {
+    void revisarBloqueoNoFallaSiNoEstaBloqueado() {
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(false);
 
         assertDoesNotThrow(() -> service.checkBlocked(userId));
     }
 
     @Test
-    void checkBlocked_throwsAccountLocked_whenBlocked() {
+    void revisarBloqueoFallaSiEstaBloqueado() {
         when(redisTemplate.hasKey("pin:blocked:" + userId)).thenReturn(true);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -137,7 +137,7 @@ class PinAttemptServiceTest {
     // ── resetAttempts ─────────────────────────────────────────────────────────
 
     @Test
-    void resetAttempts_deletesAttemptKey() {
+    void reiniciarIntentosBorraElContador() {
         service.resetAttempts(userId);
 
         verify(redisTemplate).delete("pin:attempts:" + userId);

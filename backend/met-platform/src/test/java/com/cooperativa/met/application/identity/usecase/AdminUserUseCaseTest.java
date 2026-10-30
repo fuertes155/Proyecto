@@ -32,7 +32,7 @@ class AdminUserUseCaseTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldChangeOnlyTheKycStatus() {
+    void cambiaSoloElEstadoKyc() {
         User user = User.builder().id(userId).documentNumber("1086578123").kycStatus(KycStatus.PENDING).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -44,7 +44,7 @@ class AdminUserUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownUser() {
+    void fallaConUnUsuarioDesconocido() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,

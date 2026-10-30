@@ -68,7 +68,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldAddContributionToThePoolAndToTheMembersTotal() {
+    void sumaElAporteAlFondoYAlTotalDelMiembro() {
         ContributeToPoolUseCase contribute = new ContributeToPoolUseCase(authorizationService, groupPort, memberPort,
                 transactionPort, debitSourcePort, poolCachePort, mapper);
         when(groupPort.findById(groupId)).thenReturn(Optional.of(group(GroupStatus.ACTIVE, 20)));
@@ -92,7 +92,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldRejectContributionBelowTheGroupMinimum() {
+    void rechazaUnAportePorDebajoDelMinimoDelGrupo() {
         ContributeToPoolUseCase contribute = new ContributeToPoolUseCase(authorizationService, groupPort, memberPort,
                 transactionPort, debitSourcePort, poolCachePort, mapper);
         when(groupPort.findById(groupId)).thenReturn(Optional.of(group(GroupStatus.ACTIVE, 20)));
@@ -106,7 +106,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldNotTouchThePoolWhenTheMemberHasNoFunds() {
+    void noTocaElFondoSiElMiembroNoTieneSaldo() {
         ContributeToPoolUseCase contribute = new ContributeToPoolUseCase(authorizationService, groupPort, memberPort,
                 transactionPort, debitSourcePort, poolCachePort, mapper);
         when(groupPort.findById(groupId)).thenReturn(Optional.of(group(GroupStatus.ACTIVE, 20)));
@@ -122,7 +122,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldJoinWithTheInviteCodeInAnyCase() {
+    void seUneConElCodigoDeInvitacionEnMayusculasOMinusculas() {
         JoinSolidarityGroupUseCase join = new JoinSolidarityGroupUseCase(groupPort, memberPort, mapper);
         when(groupPort.findByInviteCode("ABCD1234")).thenReturn(Optional.of(group(GroupStatus.ACTIVE, 20)));
         when(memberPort.findByGroupIdAndUserId(groupId, userId)).thenReturn(Optional.empty());
@@ -139,7 +139,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldNotJoinAFullGroup() {
+    void noSeUneAUnGrupoLleno() {
         JoinSolidarityGroupUseCase join = new JoinSolidarityGroupUseCase(groupPort, memberPort, mapper);
         when(groupPort.findByInviteCode("ABCD1234")).thenReturn(Optional.of(group(GroupStatus.ACTIVE, 5)));
         when(memberPort.findByGroupIdAndUserId(groupId, userId)).thenReturn(Optional.empty());
@@ -153,7 +153,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldNotJoinTwiceOrAClosedGroupOrWithAWrongCode() {
+    void noSeUneDosVecesNiAUnGrupoCerradoNiConCodigoErrado() {
         JoinSolidarityGroupUseCase join = new JoinSolidarityGroupUseCase(groupPort, memberPort, mapper);
         when(groupPort.findByInviteCode("ABCD1234")).thenReturn(Optional.of(group(GroupStatus.ACTIVE, 20)));
         when(groupPort.findByInviteCode("CLOSED00")).thenReturn(Optional.of(group(GroupStatus.CLOSED, 20)));
@@ -170,7 +170,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldShowGroupDetailsOnlyToMembers() {
+    void muestraElDetalleDelGrupoSoloASusMiembros() {
         ListGroupMembersUseCase members = new ListGroupMembersUseCase(authorizationService, memberPort, mapper);
         ListGroupLoansUseCase loans = new ListGroupLoansUseCase(authorizationService, loanPort, mapper);
         ListPoolTransactionsUseCase movements = new ListPoolTransactionsUseCase(authorizationService, transactionPort, mapper);
@@ -184,7 +184,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldListMembersLoansAndMovementsForMembers() {
+    void listaMiembrosCreditosYMovimientosParaLosMiembros() {
         givenMember(MemberRole.ADMIN, "120000.00");
         when(memberPort.findByGroupId(groupId)).thenReturn(List.of(member(MemberRole.ADMIN, "120000.00")));
         when(loanPort.findByGroupId(groupId)).thenReturn(List.of(MicroLoan.builder()
@@ -204,7 +204,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldListMyGroupsWithMyRoleInEach() {
+    void listaMisGruposConMiRolEnCadaUno() {
         ListMySolidarityGroupsUseCase myGroups = new ListMySolidarityGroupsUseCase(groupPort, memberPort, mapper);
         when(groupPort.findByUserId(userId)).thenReturn(List.of(group(GroupStatus.ACTIVE, 20)));
         givenMember(MemberRole.ADMIN, "0");
@@ -218,7 +218,7 @@ class SolidarityGroupUseCasesTest {
     }
 
     @Test
-    void shouldFailForUnknownGroup() {
+    void fallaConUnGrupoDesconocido() {
         when(groupPort.findById(groupId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> authorizationService.requireGroup(groupId));

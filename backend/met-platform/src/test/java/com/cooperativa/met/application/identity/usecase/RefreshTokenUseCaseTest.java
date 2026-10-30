@@ -63,7 +63,7 @@ class RefreshTokenUseCaseTest {
     }
 
     @Test
-    void shouldRotateRefreshTokenAndRevokeTheOldOne() {
+    void rotaElTokenDeRenovacionYRevocaElAnterior() {
         UUID newJti = UUID.randomUUID();
         when(refreshTokenRepository.findByJti(jti)).thenReturn(Optional.of(persisted(false, Instant.now().plusSeconds(3600))));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user(UserStatus.ACTIVE)));
@@ -86,7 +86,7 @@ class RefreshTokenUseCaseTest {
     }
 
     @Test
-    void shouldCloseEverySessionWhenAnAlreadyUsedTokenIsPresentedAgain() {
+    void cierraTodasLasSesionesSiSePresentaDeNuevoUnTokenYaUsado() {
         // Un refresh token ya rotado solo puede volver a aparecer si alguien lo copió.
         when(refreshTokenRepository.findByJti(jti)).thenReturn(Optional.of(persisted(true, Instant.now().plusSeconds(3600))));
 
@@ -99,7 +99,7 @@ class RefreshTokenUseCaseTest {
 
     @ParameterizedTest
     @EnumSource(value = UserStatus.class, names = {"BLOCKED", "SUSPENDED", "PENDING_VERIFICATION"})
-    void shouldNotRenewSessionOfAnAccountThatIsNoLongerActive(UserStatus status) {
+    void noRenuevaLaSesionDeUnaCuentaQueYaNoEstaActiva(UserStatus status) {
         when(refreshTokenRepository.findByJti(jti)).thenReturn(Optional.of(persisted(false, Instant.now().plusSeconds(3600))));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user(status)));
 
@@ -112,7 +112,7 @@ class RefreshTokenUseCaseTest {
     }
 
     @Test
-    void shouldRejectExpiredTokenWithoutIssuingNewOnes() {
+    void rechazaUnTokenVencidoSinEmitirNuevos() {
         when(refreshTokenRepository.findByJti(jti)).thenReturn(Optional.of(persisted(false, Instant.now().minusSeconds(1))));
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> refreshTokenUseCase.execute("old-refresh"));
@@ -123,7 +123,7 @@ class RefreshTokenUseCaseTest {
     }
 
     @Test
-    void shouldRejectTokenThatWasNeverRegistered() {
+    void rechazaUnTokenQueNuncaSeRegistro() {
         when(refreshTokenRepository.findByJti(jti)).thenReturn(Optional.empty());
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> refreshTokenUseCase.execute("old-refresh"));
@@ -133,7 +133,7 @@ class RefreshTokenUseCaseTest {
     }
 
     @Test
-    void shouldRejectTokenWithoutJti() {
+    void rechazaUnTokenSinJti() {
         when(tokenPort.validateRefreshTokenClaims("no-jti")).thenReturn(new TokenPort.RefreshTokenClaims(userId, null));
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> refreshTokenUseCase.execute("no-jti"));
@@ -143,7 +143,7 @@ class RefreshTokenUseCaseTest {
     }
 
     @Test
-    void shouldRejectTokenOfDeletedUser() {
+    void rechazaElTokenDeUnUsuarioBorrado() {
         when(refreshTokenRepository.findByJti(jti)).thenReturn(Optional.of(persisted(false, Instant.now().plusSeconds(3600))));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 

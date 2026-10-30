@@ -50,7 +50,7 @@ class AdminPersistenceIntegrationTest {
     private final String suffix = UUID.randomUUID().toString().substring(0, 8);
 
     @Test
-    void shouldStoreAndFindAdmins() {
+    void guardaYEncuentraAdministradores() {
         Admin saved = adminRepository.save(Admin.builder()
                 .id(UUID.randomUUID())
                 .username("oficial-" + suffix)
@@ -71,7 +71,7 @@ class AdminPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldPageAuditLogNewestFirstAndPurgeOldEntries() {
+    void paginaLaAuditoriaDeLoMasRecienteALoMasAntiguoYPurgaLoViejo() {
         UUID adminId = UUID.randomUUID();
         Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         auditLog.log(entry(adminId, "VIEJA", now.minus(Duration.ofDays(400))));
@@ -91,7 +91,7 @@ class AdminPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldVersionFeesClosingTheCurrentOne() {
+    void versionaLasTarifasCerrandoLaVigente() {
         String tipo = "TEST_FEE_" + suffix;
         FeeSchedule first = feeRepository.save(fee(tipo, "2500"));
         assertTrue(feeRepository.findVigentes().stream().anyMatch(f -> f.getId().equals(first.getId())));
@@ -110,7 +110,7 @@ class AdminPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldKeepMaintenanceEndpointsWhenStoringWindows() {
+    void conservaLasRutasEnMantenimientoAlGuardarVentanas() {
         Instant inicio = Instant.now().plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.SECONDS);
         MaintenanceWindow saved = maintenanceRepository.save(MaintenanceWindow.builder()
                 .descripcion("Migración " + suffix)
@@ -134,7 +134,7 @@ class AdminPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldUpdateOperationLimitsByType() {
+    void actualizaLosLimitesDeOperacionPorTipo() {
         String tipo = "TEST_OP_" + suffix;
         OperationLimit saved = limitRepository.save(OperationLimit.builder()
                 .id(UUID.randomUUID()).tipoOperacion(tipo).montoDiarioMax(5_000_000).montoPorTransaccionMax(2_000_000)
@@ -149,7 +149,7 @@ class AdminPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldListOnlyActiveRiskRulesAsActive() {
+    void listaComoActivasSoloLasReglasDeRiesgoActivas() {
         RiskRule on = riskRuleRepository.save(rule("Montos altos " + suffix, true));
         RiskRule off = riskRuleRepository.save(rule("Regla vieja " + suffix, false));
 
@@ -164,7 +164,7 @@ class AdminPersistenceIntegrationTest {
     }
 
     @Test
-    void shouldStorePlatformRevenue() {
+    void guardaLosIngresosDeLaPlataforma() {
         PlatformRevenue saved = platformRevenuePort.save(PlatformRevenue.builder()
                 .id(UUID.randomUUID()).userId(UUID.randomUUID()).amount(new BigDecimal("1500.00"))
                 .description("Comisión").source("SCHEDULED_SAVINGS_DEPOSIT").createdAt(Instant.now()).build());

@@ -18,7 +18,7 @@ public class RequestTransferOtpUseCase {
 
     public void execute(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
                 
         otpService.generateAndSendOtp(user.getDocumentNumber(), user.requireEmail());
     }

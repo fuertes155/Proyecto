@@ -53,7 +53,7 @@ class ProcessPayoutWebhookUseCaseTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldCompleteTheWithdrawalWhenTheRailConfirmsIt() {
+    void completaElRetiroCuandoLaPasarelaLoConfirma() {
         givenPendingPayout(null, TransactionStatus.PENDING);
         givenSourceAccount();
 
@@ -66,7 +66,7 @@ class ProcessPayoutWebhookUseCaseTest {
     }
 
     @Test
-    void shouldReturnTheMoneyWhenTheRailRejectsAfterAccepting() {
+    void devuelveElDineroSiLaPasarelaRechazaDespuesDeAceptar() {
         givenPendingPayout(null, TransactionStatus.PENDING);
         givenSourceAccount();
 
@@ -80,7 +80,7 @@ class ProcessPayoutWebhookUseCaseTest {
     }
 
     @Test
-    void shouldIgnoreDuplicateEventForAnAlreadySettledPayout() {
+    void ignoraUnEventoDuplicadoDeUnRetiroYaLiquidado() {
         givenPendingPayout(Instant.now(), TransactionStatus.PENDING);
 
         webhookUseCase.execute("PAYOUT-" + payoutId, false, "X", "Y");
@@ -89,7 +89,7 @@ class ProcessPayoutWebhookUseCaseTest {
     }
 
     @Test
-    void shouldIgnoreEventWhenTransactionIsNoLongerPending() {
+    void ignoraElEventoSiLaTransaccionYaNoEstaPendiente() {
         givenPendingPayout(null, TransactionStatus.COMPLETED);
 
         webhookUseCase.execute("PAYOUT-" + payoutId, false, "X", "Y");
@@ -98,7 +98,7 @@ class ProcessPayoutWebhookUseCaseTest {
     }
 
     @Test
-    void shouldIgnoreUnknownPayout() {
+    void ignoraUnRetiroDesconocido() {
         when(externalPayoutRepository.findById(payoutId)).thenReturn(Optional.empty());
 
         webhookUseCase.execute("PAYOUT-" + payoutId, true, null, null);
@@ -109,7 +109,7 @@ class ProcessPayoutWebhookUseCaseTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"VERIFY-123", "PAYOUT-no-es-uuid", ""})
-    void shouldIgnoreReferencesThatAreNotPayouts(String reference) {
+    void ignoraReferenciasQueNoSonRetiros(String reference) {
         webhookUseCase.execute(reference, true, null, null);
 
         verifyNoInteractions(externalPayoutRepository, transactionRepository, accountReversalService);

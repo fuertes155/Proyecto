@@ -44,7 +44,7 @@ class TurnstileAndTokenBlacklistTest {
     @Mock private ValueOperations<String, String> valueOps;
 
     @Test
-    void shouldAcceptOnlyTokensThatCloudflareConfirms() {
+    void aceptaSoloTokensQueCloudflareConfirma() {
         TurnstileValidationService turnstile = turnstile(true);
         MockRestServiceServer server = server(turnstile);
         server.expect(requestTo(VERIFY_URL))
@@ -58,7 +58,7 @@ class TurnstileAndTokenBlacklistTest {
     }
 
     @Test
-    void shouldFailClosedWhenCloudflareIsDownOrTheTokenIsMissing() {
+    void noDejaPasarSiCloudflareEstaCaidoOFaltaElToken() {
         TurnstileValidationService turnstile = turnstile(true);
         server(turnstile).expect(requestTo(VERIFY_URL)).andRespond(withServerError());
 
@@ -67,12 +67,12 @@ class TurnstileAndTokenBlacklistTest {
     }
 
     @Test
-    void shouldSkipTheCaptchaWhenItIsDisabled() {
+    void omiteElCaptchaSiEstaDesactivado() {
         assertTrue(turnstile(false).validateCaptcha(null, null));
     }
 
     @Test
-    void shouldBlacklistTokensOnlyForTheirRemainingLifetime() {
+    void anulaLosTokensSoloPorElTiempoQueLesQueda() {
         TokenBlacklistService blacklist = new TokenBlacklistService(stringRedisTemplate);
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
         when(stringRedisTemplate.hasKey("jwt:blacklist:jwt-1")).thenReturn(true);
@@ -86,7 +86,7 @@ class TurnstileAndTokenBlacklistTest {
     }
 
     @Test
-    void shouldKeepWorkingWhenRedisIsDown() {
+    void sigueFuncionandoSiRedisEstaCaido() {
         TokenBlacklistService blacklist = new TokenBlacklistService(stringRedisTemplate);
         when(stringRedisTemplate.opsForValue()).thenThrow(new RedisConnectionFailureException("down"));
         when(stringRedisTemplate.hasKey(any())).thenThrow(new RedisConnectionFailureException("down"));
@@ -97,7 +97,7 @@ class TurnstileAndTokenBlacklistTest {
     }
 
     @Test
-    void shouldCacheBalancesForFiveMinutes() {
+    void guardaLosSaldosEnCacheCincoMinutos() {
         UUID id = UUID.randomUUID();
         when(redisTemplate.opsForValue()).thenReturn(valueOps);
         when(valueOps.get("savings:balance:" + id)).thenReturn("1250000.50");

@@ -42,11 +42,11 @@ public class LoginUseCase {
 
     @Transactional
     public AuthResponse execute(LoginRequest request, String ip) {
-        log.debug("Login attempt for documentType={}", request.documentType());
+        log.debug("Intento de ingreso con documentType={}", request.documentType());
 
         User user = userRepository.findByDocument(request.documentType(), request.documentNumber())
                 .orElseThrow(() -> {
-                    log.warn("Login failed - user not found for documentType={}", request.documentType());
+                    log.warn("Ingreso fallido: no existe un usuario con documentType={}", request.documentType());
                     return new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
                 });
 
@@ -57,7 +57,7 @@ public class LoginUseCase {
             throw new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta está bloqueada temporalmente");
         }
         if (user.getStatus() != UserStatus.ACTIVE) {
-            log.warn("Login failed - user not active, status={}, userId={}", user.getStatus(), user.getId());
+            log.warn("Ingreso fallido: el usuario no está activo, status={}, userId={}", user.getStatus(), user.getId());
             throw new BusinessRuleException("USER_NOT_ACTIVE", "La cuenta no está activa");
         }
 
@@ -69,7 +69,7 @@ public class LoginUseCase {
         pinAttemptService.checkBlocked(user.getId());
 
         boolean authenticated = authenticate(request, user);
-        log.debug("Authentication result={} for userId={}", authenticated, user.getId());
+        log.debug("Resultado de la autenticación={} para userId={}", authenticated, user.getId());
 
         if (!authenticated) {
             pinAttemptService.checkAndRecordFailure(user.getId()); // lanza INVALID_PIN o ACCOUNT_LOCKED
@@ -155,7 +155,7 @@ public class LoginUseCase {
                 String plainPin = encryptionPort.decryptRsa(request.pin());
                 return encryptionPort.verifyPin(plainPin, user.getPinHash());
             } catch (Exception e) {
-                log.warn("E2EE Decryption failed during login for userId={}", user.getId());
+                log.warn("No se pudo descifrar el PIN (E2EE) al ingresar, userId={}", user.getId());
                 return false;
             }
         }

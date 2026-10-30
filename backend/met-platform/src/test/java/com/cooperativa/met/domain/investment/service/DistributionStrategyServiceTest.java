@@ -24,7 +24,7 @@ class DistributionStrategyServiceTest {
 
     @ParameterizedTest
     @EnumSource(InvestmentStrategy.class)
-    void shouldNeverLoseOrInventAPeso(InvestmentStrategy strategy) {
+    void nuncaPierdeNiInventaUnPeso(InvestmentStrategy strategy) {
         BigDecimal total = new BigDecimal("1000000.01");
 
         Map<InvestmentInstrument, BigDecimal> split = DistributionStrategyService.distribuir(total, List.of(cdt90, cdt180, cdt360), strategy);
@@ -34,7 +34,7 @@ class DistributionStrategyServiceTest {
     }
 
     @Test
-    void shouldSplitEquallyGivingTheRoundingRemainderToTheFirst() {
+    void reparteIgualYDaElResiduoDelRedondeoAlPrimero() {
         Map<InvestmentInstrument, BigDecimal> split = DistributionStrategyService.distribuir(
                 new BigDecimal("100000.00"), List.of(cdt90, cdt180, cdt360), InvestmentStrategy.EQUAL);
 
@@ -44,7 +44,7 @@ class DistributionStrategyServiceTest {
     }
 
     @Test
-    void shouldPutMoreMoneyInHigherRatesWhenWeighted() {
+    void poneMasDineroEnLasTasasMasAltasSiEsPonderada() {
         Map<InvestmentInstrument, BigDecimal> split = DistributionStrategyService.distribuir(
                 new BigDecimal("300000.00"), List.of(cdt90, cdt180, cdt360), InvestmentStrategy.WEIGHTED);
 
@@ -55,7 +55,7 @@ class DistributionStrategyServiceTest {
     }
 
     @Test
-    void shouldPutMoreMoneyInConservativeInstrumentsWhenRiskBased() {
+    void poneMasDineroEnInstrumentosConservadoresSiEsPorRiesgo() {
         Map<InvestmentInstrument, BigDecimal> split = DistributionStrategyService.distribuir(
                 new BigDecimal("300000.00"), List.of(cdt360, cdt180, cdt90), InvestmentStrategy.RISK_BASED);
 
@@ -64,7 +64,7 @@ class DistributionStrategyServiceTest {
     }
 
     @Test
-    void shouldSkipInactiveInstrumentsAndThoseAboveTheAmount() {
+    void omiteInstrumentosInactivosYLosQueSuperanElMonto() {
         InvestmentInstrument inactive = instrument("Pausado", "0.15", "1000", false);
         InvestmentInstrument tooBig = instrument("Premium", "0.20", "5000000", true);
 
@@ -76,7 +76,7 @@ class DistributionStrategyServiceTest {
     }
 
     @Test
-    void shouldFailWhenNoInstrumentFits() {
+    void fallaSiNingunInstrumentoSirve() {
         assertThrows(IllegalArgumentException.class, () -> DistributionStrategyService.distribuir(
                 new BigDecimal("10000.00"), List.of(cdt90, cdt180), InvestmentStrategy.WEIGHTED));
     }

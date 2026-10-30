@@ -33,7 +33,7 @@ class MarkNotificationReadUseCaseTest {
     private final UUID notificationId = UUID.randomUUID();
 
     @Test
-    void shouldMarkOwnNotificationAsRead() {
+    void marcaComoLeidaUnaNotificacionPropia() {
         when(repository.findById(notificationId)).thenReturn(Optional.of(unread()));
 
         markNotificationReadUseCase.execute(notificationId, ownerId);
@@ -44,7 +44,7 @@ class MarkNotificationReadUseCaseTest {
     }
 
     @Test
-    void shouldNotLetUserTouchSomeoneElsesNotification() {
+    void noDejaTocarLaNotificacionDeOtro() {
         when(repository.findById(notificationId)).thenReturn(Optional.of(unread()));
 
         assertThrows(IllegalArgumentException.class,
@@ -54,7 +54,7 @@ class MarkNotificationReadUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownNotification() {
+    void fallaConUnaNotificacionDesconocida() {
         when(repository.findById(notificationId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> markNotificationReadUseCase.execute(notificationId, ownerId));

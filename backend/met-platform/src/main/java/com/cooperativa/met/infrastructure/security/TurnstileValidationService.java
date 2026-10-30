@@ -69,7 +69,7 @@ public class TurnstileValidationService {
                 if (Boolean.TRUE.equals(success)) {
                     return true;
                 } else {
-                    log.warn("Fallo validacion Turnstile: {}", responseBody);
+                    log.warn("Falló la validación de Turnstile: {}", responseBody);
                     return false;
                 }
             }

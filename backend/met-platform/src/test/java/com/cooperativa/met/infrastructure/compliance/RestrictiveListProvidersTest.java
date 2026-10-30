@@ -28,7 +28,7 @@ class RestrictiveListProvidersTest {
     private final MetComplianceProperties properties = new MetComplianceProperties();
 
     @Test
-    void shouldParseTheOfacCsvIncludingNamesWithCommas() {
+    void leeElCsvDeOfacInclusoConNombresConComas() {
         OfacSdnListProvider provider = new OfacSdnListProvider(properties);
         server(provider)
                 .expect(requestTo(properties.getSarlaft().getOfacListUrl()))
@@ -52,7 +52,7 @@ class RestrictiveListProvidersTest {
     }
 
     @Test
-    void shouldFailInsteadOfWipingTheListWhenOfacSendsNothingUsable() {
+    void fallaEnVezDeBorrarLaListaSiOfacNoEnviaNadaUtil() {
         OfacSdnListProvider empty = new OfacSdnListProvider(properties);
         server(empty).expect(requestTo(properties.getSarlaft().getOfacListUrl())).andRespond(withSuccess(" ", MediaType.TEXT_PLAIN));
         OfacSdnListProvider garbage = new OfacSdnListProvider(properties);
@@ -63,7 +63,7 @@ class RestrictiveListProvidersTest {
     }
 
     @Test
-    void shouldParseIndividualsAndEntitiesFromTheUnList() {
+    void leePersonasYEntidadesDeLaListaDeLaOnu() {
         UnConsolidatedListProvider provider = new UnConsolidatedListProvider(properties);
         server(provider).expect(requestTo(properties.getSarlaft().getUnListUrl())).andRespond(withSuccess(xml("""
                 <CONSOLIDATED_LIST>
@@ -87,7 +87,7 @@ class RestrictiveListProvidersTest {
     }
 
     @Test
-    void shouldRefuseXmlWithExternalEntitiesInsteadOfReadingLocalFiles() {
+    void rechazaXmlConEntidadesExternasEnVezDeLeerArchivosLocales() {
         // Ataque XXE: si el parser resolviera la entidad, el "nombre" sería el contenido de un archivo del servidor.
         UnConsolidatedListProvider provider = new UnConsolidatedListProvider(properties);
         server(provider).expect(requestTo(properties.getSarlaft().getUnListUrl())).andRespond(withSuccess(xml("""
@@ -102,7 +102,7 @@ class RestrictiveListProvidersTest {
     }
 
     @Test
-    void shouldFailWhenTheUnSchemaChangesAndNothingCanBeRead() {
+    void fallaSiCambiaElFormatoDeLaOnuYNoSePuedeLeerNada() {
         UnConsolidatedListProvider provider = new UnConsolidatedListProvider(properties);
         server(provider).expect(requestTo(properties.getSarlaft().getUnListUrl()))
                 .andRespond(withSuccess(xml("<NEW_FORMAT><PERSON name=\"x\"/></NEW_FORMAT>"), MediaType.APPLICATION_XML));
@@ -111,7 +111,7 @@ class RestrictiveListProvidersTest {
     }
 
     @Test
-    void shouldNormalizeNamesSoAccentsAndPunctuationDoNotHideAMatch() {
+    void normalizaLosNombresParaQueTildesYPuntuacionNoOcultenUnaCoincidencia() {
         assertEquals("MARIA JOSE PEREZ NUNEZ", NameNormalizer.normalize("  María José Pérez-Núñez. "));
         assertEquals("", NameNormalizer.normalize(null));
         assertEquals("", NameNormalizer.normalize("--- ..."));

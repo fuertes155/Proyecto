@@ -31,7 +31,7 @@ public class MockPaymentGatewayController {
     @PostMapping("/webhooks/mock-payment")
     public ResponseEntity<Void> handleMockPaymentWebhook(@RequestBody String rawPayload) {
         try {
-            log.info("[DEV] Received mock payment webhook. Auto-signing payload.");
+            log.info("[DEV] Aviso de pago simulado recibido; se firma automáticamente.");
             PaymentWebhookPayload payload = objectMapper.readValue(rawPayload, PaymentWebhookPayload.class);
             
             if (!"transaction.updated".equals(payload.getEvent()) || payload.getData() == null) {
@@ -45,7 +45,7 @@ public class MockPaymentGatewayController {
 
             String txId = data.getTransactionId();
             if (processedWebhookRepository.existsById(txId)) {
-                log.info("Mock transaction {} already processed. Ignoring.", txId);
+                log.info("La transacción simulada {} ya fue procesada. Se ignora.", txId);
                 return ResponseEntity.ok().build();
             }
 
@@ -54,7 +54,7 @@ public class MockPaymentGatewayController {
 
             return ResponseEntity.ok().build();
         } catch (JsonProcessingException | RuntimeException e) {
-            log.error("[DEV] Error processing mock payment webhook: {}", e.getMessage(), e);
+            log.error("[DEV] Error procesando el aviso de pago simulado: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

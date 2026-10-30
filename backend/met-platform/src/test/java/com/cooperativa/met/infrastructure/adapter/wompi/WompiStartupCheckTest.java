@@ -31,13 +31,13 @@ class WompiStartupCheckTest {
     }
 
     @Test
-    void sandboxKeysPass() {
+    void lasLlavesDeSandboxPasan() {
         assertEquals(List.of(),
                 check("pub_test_a", "prv_test_b", "test_integrity_c", "test_events_d", false).credentialProblems(true));
     }
 
     @Test
-    void productionKeyAgainstSandboxAndPlaceholdersAreReported() {
+    void avisaDeLlaveDeProduccionContraSandboxYDeValoresDeEjemplo() {
         List<String> problems = check("pub_prod_a", "prv_test_REPLACE_ME", "test_integrity_c", "wh_test_placeholder", false)
                 .credentialProblems(true);
 
@@ -48,7 +48,7 @@ class WompiStartupCheckTest {
     }
 
     @Test
-    void syncsPseBanksOnlyWhenEnabledAndNeverBlocksStartup() {
+    void sincronizaBancosPseSoloSiEstaActivadoYNuncaBloqueaElArranque() {
         check("pub_test_a", "prv_test_b", "test_integrity_c", "test_events_d", false)
                 .run(new DefaultApplicationArguments());
         verifyNoInteractions(syncBankCatalogUseCase);

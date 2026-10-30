@@ -6,6 +6,10 @@ import com.cooperativa.met.application.account.service.PaymentReturnUrlResolver;
 import com.cooperativa.met.domain.account.model.AccountStatus;
 import com.cooperativa.met.domain.account.model.CoreAccount;
 import com.cooperativa.met.domain.account.port.CoreAccountRepositoryPort;
+import com.cooperativa.met.domain.common.exception.BusinessRuleException;
+import com.cooperativa.met.domain.identity.model.KycStatus;
+import com.cooperativa.met.domain.identity.model.User;
+import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.infrastructure.adapter.wompi.WompiSignatures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +27,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,16 +42,21 @@ class GeneratePseLinkUseCaseTest {
     @Mock
     private CoreAccountRepositoryPort accountRepository;
 
+    @Mock
+    private UserRepositoryPort userRepository;
+
     private GeneratePseLinkUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        when(accountRepository.findByUserId(USER_ID)).thenReturn(Optional.of(
+        lenient().when(accountRepository.findByUserId(USER_ID)).thenReturn(Optional.of(
                 CoreAccount.builder().userId(USER_ID).status(AccountStatus.ACTIVE).build()));
+        lenient().when(userRepository.findById(USER_ID)).thenReturn(Optional.of(
+                User.builder().id(USER_ID).kycStatus(KycStatus.APPROVED).build()));
     }
 
     private void configure(String gateway, String mockBaseUrl, String redirectUrl) {
-        useCase = new GeneratePseLinkUseCase(accountRepository, new PaymentReturnUrlResolver(redirectUrl));
+        useCase = new GeneratePseLinkUseCase(accountRepository, userRepository, new PaymentReturnUrlResolver(redirectUrl));
         ReflectionTestUtils.setField(useCase, "wompiPublicKey", "pub_test_abc");
         ReflectionTestUtils.setField(useCase, "wompiIntegritySecret", "test_integrity_abc123");
         ReflectionTestUtils.setField(useCase, "wompiCheckoutUrl", "https://checkout.wompi.co/p/");
@@ -53,7 +65,20 @@ class GeneratePseLinkUseCaseTest {
     }
 
     @Test
-    void buildsSignedCheckoutLinkWithEncodedReturnPage() {
+    void rechazaElEnlaceMientrasLaIdentidadNoEsteAprobada() {
+        // El webhook solo acredita a socios con identidad aprobada: sin esto, el pago quedaba cobrado
+        // en Wompi y nunca llegaba a la cuenta.
+        configure("wompi", "", RETURN_PAGE);
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(
+                User.builder().id(USER_ID).kycStatus(KycStatus.PENDING).build()));
+
+        assertEquals("KYC_REQUIRED", assertThrows(BusinessRuleException.class,
+                () -> useCase.execute(USER_ID, request("50000", "metapp://deposit/success"))).getCode());
+        verifyNoInteractions(accountRepository);
+    }
+
+    @Test
+    void armaElEnlaceFirmadoConLaPaginaDeRegresoCodificada() {
         configure("wompi", "", RETURN_PAGE);
 
         GeneratePseLinkResponse response = useCase.execute(USER_ID, request("50000", "metapp://deposit/success"));
@@ -71,7 +96,7 @@ class GeneratePseLinkUseCaseTest {
     }
 
     @Test
-    void withoutConfiguredReturnPageKeepsTheDeepLinkEncoded() {
+    void sinPaginaDeRegresoConfiguradaConservaElEnlaceProfundoCodificado() {
         configure("wompi", "", "");
 
         GeneratePseLinkResponse response = useCase.execute(USER_ID, request("50000", "metapp://deposit/success"));
@@ -80,7 +105,7 @@ class GeneratePseLinkUseCaseTest {
     }
 
     @Test
-    void wompiModeIgnoresTheMockGatewayUrl() {
+    void enModoWompiIgnoraLaUrlDeLaPasarelaSimulada() {
         // Render define MET_PAYMENTS_MOCK_GATEWAY_BASE_URL; con gateway=wompi no debe usarse.
         configure("wompi", "https://met-backend.onrender.com", RETURN_PAGE);
 
@@ -90,7 +115,7 @@ class GeneratePseLinkUseCaseTest {
     }
 
     @Test
-    void mockModeLinksToTheSimulatedGateway() {
+    void enModoSimuladoEnlazaALaPasarelaSimulada() {
         configure("mock", "https://met-backend.onrender.com/", "");
 
         GeneratePseLinkResponse response = useCase.execute(USER_ID, request("50000", null));

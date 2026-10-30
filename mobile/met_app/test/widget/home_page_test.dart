@@ -82,7 +82,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('HomePage shows the real balance, account and quick actions', (WidgetTester tester) async {
+  testWidgets('HomePage muestra el saldo real, la cuenta y las acciones rápidas', (WidgetTester tester) async {
     await pumpHome(tester, user: buildUser(), summary: buildSummary());
 
     expect(find.text('Juan'), findsOneWidget);
@@ -100,7 +100,7 @@ void main() {
     expect(find.textContaining('CVV'), findsNothing);
   });
 
-  testWidgets('HomePage hides every amount when the balance is hidden', (WidgetTester tester) async {
+  testWidgets('HomePage oculta todos los montos cuando el saldo está oculto', (WidgetTester tester) async {
     final semantics = tester.ensureSemantics();
     await pumpHome(tester, user: buildUser(), summary: buildSummary());
 
@@ -113,7 +113,7 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('HomePage lists recent transactions with sign and amount', (WidgetTester tester) async {
+  testWidgets('HomePage lista los movimientos recientes con signo y monto', (WidgetTester tester) async {
     final now = DateTime.now();
     await pumpHome(
       tester,
@@ -131,7 +131,7 @@ void main() {
     expect(find.text('Aún no tienes movimientos'), findsNothing);
   });
 
-  testWidgets('HomePage asks for the email when the account has none', (WidgetTester tester) async {
+  testWidgets('HomePage pide el correo cuando la cuenta no tiene', (WidgetTester tester) async {
     await pumpHome(tester, user: buildUser(email: '', kycStatus: 'IN_REVIEW'), summary: buildSummary());
 
     expect(find.text('Agrega tu correo'), findsOneWidget);
@@ -139,7 +139,7 @@ void main() {
     expect(find.text('Aún no tienes movimientos'), findsOneWidget);
   });
 
-  testWidgets('HomePage shows no notices for a verified account with email', (WidgetTester tester) async {
+  testWidgets('HomePage no muestra avisos a una cuenta verificada con correo', (WidgetTester tester) async {
     await pumpHome(tester, user: buildUser(), summary: buildSummary());
 
     expect(find.text('Agrega tu correo'), findsNothing);

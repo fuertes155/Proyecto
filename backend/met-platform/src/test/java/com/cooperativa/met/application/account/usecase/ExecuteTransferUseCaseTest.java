@@ -128,7 +128,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_successfulTransfer() {
+    void transfiereCorrectamente() {
         // Arrange
         when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -156,7 +156,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_failsWhenPinIsInvalid() {
+    void fallaConPinIncorrecto() {
         when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
@@ -171,7 +171,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_failsWhenOtpIsInvalid() {
+    void fallaConCodigoOtpIncorrecto() {
         when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
@@ -188,7 +188,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_failsWhenSourceAccountInactive() {
+    void fallaSiLaCuentaDeOrigenEstaInactiva() {
         sourceAccount = CoreAccount.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
@@ -208,7 +208,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_failsWhenTransferringToSameAccount() {
+    void fallaAlTransferirALaMismaCuenta() {
         // Arrange: El destino es la misma cuenta origen
         when(idempotencyService.tryAcquire(any())).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -226,7 +226,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_completesTheRetryWithTheOtpUnderTheSameIdempotencyKey() {
+    void completaElReintentoConOtpBajoLaMismaLlaveDeIdempotencia() {
         // La app envía primero sin código, recibe OTP_REQUIRED, pide el código y reenvía con la
         // misma clave de idempotencia: el primer intento fallido no debe dejar la clave tomada.
         ExecuteTransferUseCase useCase = useCaseWith(InMemoryIdempotency.service());
@@ -251,7 +251,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_letsTheMemberRetryAfterAWrongOtp() {
+    void dejaReintentarAlSocioTrasUnOtpIncorrecto() {
         ExecuteTransferUseCase useCase = useCaseWith(InMemoryIdempotency.service());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(encryptionPort.decryptRsa("1234")).thenReturn("1234_decrypted");
@@ -267,7 +267,7 @@ class ExecuteTransferUseCaseTest {
     }
 
     @Test
-    void execute_failsWhenAmountIsNegativeOrZero() {
+    void fallaConMontoNegativoOCero() {
         // Arrange: Transferir cantidad negativa
         TransferRequest negativeRequest = new TransferRequest(
             destAccountId, 
@@ -290,7 +290,7 @@ class ExecuteTransferUseCaseTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
             () -> executeTransferUseCase.execute(userId, negativeRequest, "127.0.0.1"));
             
-        assertEquals("Amount must be greater than zero", exception.getMessage());
+        assertEquals("El monto debe ser mayor a cero", exception.getMessage());
         verify(accountRepository, never()).save(any());
     }
 }

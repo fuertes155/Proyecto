@@ -37,7 +37,7 @@ class ResendEmailOtpUseCaseTest {
     private ResendEmailOtpUseCase resendEmailOtpUseCase;
 
     @Test
-    void shouldSendNewCodeToTheEmailOnFile() {
+    void enviaUnCodigoNuevoAlCorreoRegistrado() {
         givenUser(UserStatus.PENDING_VERIFICATION);
 
         resendEmailOtpUseCase.execute(REQUEST);
@@ -46,7 +46,7 @@ class ResendEmailOtpUseCaseTest {
     }
 
     @Test
-    void shouldRefuseWhenAccountIsAlreadyVerified() {
+    void rechazaSiLaCuentaYaEstaVerificada() {
         givenUser(UserStatus.ACTIVE);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> resendEmailOtpUseCase.execute(REQUEST));
@@ -56,7 +56,7 @@ class ResendEmailOtpUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownDocument() {
+    void fallaConUnDocumentoDesconocido() {
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.empty());
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> resendEmailOtpUseCase.execute(REQUEST));

@@ -33,7 +33,7 @@ class GetNotificationsUseCaseTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldReturnUserNotificationsNewestFirst() {
+    void devuelveLasNotificacionesDelUsuarioDeLaMasRecienteALaMasAntigua() {
         LocalDateTime now = LocalDateTime.now();
         when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of(
                 notification("Retiro aprobado", false, now),
@@ -48,7 +48,7 @@ class GetNotificationsUseCaseTest {
     }
 
     @Test
-    void shouldReturnUnreadCount() {
+    void devuelveCuantasNoSeHanLeido() {
         when(repository.countUnreadByUserId(userId)).thenReturn(4);
 
         assertEquals(4, getUnreadNotificationsCountUseCase.execute(userId));

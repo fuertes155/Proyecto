@@ -51,7 +51,7 @@ class ReportCurrentLoansToCreditBureauUseCaseTest {
     }
 
     @Test
-    void reportsAlDia_forLoanWithNoLateInstallments() {
+    void reportaAlDiaUnCreditoSinCuotasAtrasadas() {
         UUID loanId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
@@ -92,7 +92,7 @@ class ReportCurrentLoansToCreditBureauUseCaseTest {
     }
 
     @Test
-    void skipsLoan_whenItHasALateInstallment() {
+    void omiteElCreditoSiTieneUnaCuotaAtrasada() {
         UUID loanId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 

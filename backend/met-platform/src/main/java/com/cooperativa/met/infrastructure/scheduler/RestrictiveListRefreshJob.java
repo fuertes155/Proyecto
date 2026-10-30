@@ -26,7 +26,7 @@ public class RestrictiveListRefreshJob {
     public void refreshAndRescreen() {
         log.info("Iniciando refresco diario de listas restrictivas SARLAFT...");
         refreshUseCase.execute().forEach((listType, result) ->
-                log.info("Lista {}: success={} entradas={} error={}",
+                log.info("Lista {}: exitosa={} entradas={} error={}",
                         listType, result.success(), result.entriesLoaded(), result.errorMessage()));
 
         int matches = rescreenUseCase.execute();

@@ -64,7 +64,7 @@ class PersonalLoanControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldReturnEligibility() throws Exception {
+    void devuelveLaElegibilidad() throws Exception {
         LoanEligibilityResponse response = new LoanEligibilityResponse(
                 true, "RIESGO_MEDIO", 750, new BigDecimal("10000000"), 24, new BigDecimal("0.22"), null);
 
@@ -87,7 +87,7 @@ class PersonalLoanControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldSimulateLoan() throws Exception {
+    void simulaUnCredito() throws Exception {
         LoanSimulationResponse response = new LoanSimulationResponse(
                 new BigDecimal("1000000"),
                 12,
@@ -116,7 +116,7 @@ class PersonalLoanControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldSubmitApplication() throws Exception {
+    void radicaLaSolicitud() throws Exception {
         LoanApplicationResponse response = new LoanApplicationResponse(
                 UUID.randomUUID(),
                 new BigDecimal("1000000"),
@@ -151,7 +151,7 @@ class PersonalLoanControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldListApplications() throws Exception {
+    void listaLasSolicitudes() throws Exception {
         LoanApplicationResponse response = new LoanApplicationResponse(
                 UUID.randomUUID(),
                 new BigDecimal("1000000"),

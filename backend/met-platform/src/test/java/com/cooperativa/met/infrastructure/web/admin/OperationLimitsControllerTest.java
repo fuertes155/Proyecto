@@ -41,7 +41,7 @@ class OperationLimitsControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldGetAllLimits() throws Exception {
+    void consultaTodosLosLimites() throws Exception {
         OperationLimit limit = OperationLimit.builder()
                 .id(UUID.randomUUID())
                 .tipoOperacion("TRANSFER")
@@ -70,7 +70,7 @@ class OperationLimitsControllerTest {
     }
 
     @Test
-    void shouldUpdateLimit() throws Exception {
+    void actualizaUnLimite() throws Exception {
         OperationLimit limit = OperationLimit.builder()
                 .id(UUID.randomUUID())
                 .tipoOperacion("TRANSFER")

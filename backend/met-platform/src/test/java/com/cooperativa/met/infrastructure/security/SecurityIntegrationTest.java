@@ -22,7 +22,7 @@ class SecurityIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    void shouldReturnUnauthorizedWhenAccessingProtectedRouteWithoutToken() throws Exception {
+    void respondeNoAutorizadoEnRutaProtegidaSinToken() throws Exception {
         // Escenario 1: Acceder a una ruta privada sin token debe devolver 401
         mockMvc.perform(get("/v1/accounts/me")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -30,7 +30,7 @@ class SecurityIntegrationTest {
     }
 
     @Test
-    void shouldReturnUnauthorizedWhenAccessingProtectedRouteWithInvalidToken() throws Exception {
+    void respondeNoAutorizadoEnRutaProtegidaConTokenInvalido() throws Exception {
         // Escenario 2: Acceder a una ruta privada con un token falso debe devolver 401
         mockMvc.perform(get("/v1/accounts/me")
                 .header("Authorization", "Bearer fake-invalid-token")
@@ -39,7 +39,7 @@ class SecurityIntegrationTest {
     }
 
     @Test
-    void shouldAllowAccessToPublicRoutesWithoutToken() throws Exception {
+    void permiteEntrarARutasPublicasSinToken() throws Exception {
         // Escenario 3: Acceder a una ruta pública como el login no debe devolver 401
         // Devolverá 400 Bad Request porque no estamos enviando el body correcto, pero NO 401.
         mockMvc.perform(post("/v1/auth/login")
@@ -51,7 +51,7 @@ class SecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    void shouldReturnForbiddenWhenUserAccessesAdminRoute() throws Exception {
+    void respondeProhibidoSiUnSocioEntraAUnaRutaDeAdministrador() throws Exception {
         // Escenario 4: Un usuario normal (rol USER) intentando acceder a una ruta ADMIN debe recibir 403
         mockMvc.perform(get("/v1/admin/loans")
                 .contentType(MediaType.APPLICATION_JSON))

@@ -76,7 +76,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldPageAlertsByStatusWithTheirTotal() throws Exception {
+    void paginaLasAlertasPorEstadoConSuTotal() throws Exception {
         when(listAlertsUseCase.execute(AlertStatus.UNDER_REVIEW, 1, 5)).thenReturn(List.of(alert()));
         when(listAlertsUseCase.countByStatus(AlertStatus.UNDER_REVIEW)).thenReturn(6L);
 
@@ -87,7 +87,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldRejectUnknownAlertStatus() throws Exception {
+    void rechazaUnEstadoDeAlertaDesconocido() throws Exception {
         mvc.perform(get("/v1/admin/compliance/alerts").param("status", "CERRADA"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("INVALID_STATUS"));
@@ -96,7 +96,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldReviewAlertAsTheAuthenticatedOfficerFromTheirIp() throws Exception {
+    void revisaLaAlertaComoElOficialAutenticadoDesdeSuIp() throws Exception {
         UUID alertId = UUID.randomUUID();
         when(reviewAlertUseCase.execute(adminId, alertId, AlertStatus.REPORTED, "A la UIAF", "10.1.2.3")).thenReturn(alert());
 
@@ -109,7 +109,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldTriggerListRefreshAndListMatches() throws Exception {
+    void lanzaLaActualizacionDeListasYMuestraLasCoincidencias() throws Exception {
         Map<ComplianceListType, RefreshRestrictiveListsUseCase.RefreshResult> results = new LinkedHashMap<>();
         results.put(ComplianceListType.OFAC, new RefreshRestrictiveListsUseCase.RefreshResult(ComplianceListType.OFAC, true, 12000, null));
         when(triggerRefreshUseCase.execute(eq(adminId), any())).thenReturn(results);
@@ -122,7 +122,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldScheduleActivateAndListMaintenanceWindows() throws Exception {
+    void programaActivaYListaVentanasDeMantenimiento() throws Exception {
         UUID windowId = UUID.randomUUID();
         MaintenanceWindow window = MaintenanceWindow.builder().id(windowId).descripcion("Migración").activo(true)
                 .inicio(Instant.now().minusSeconds(60)).fin(Instant.now().plusSeconds(3600)).build();
@@ -145,7 +145,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldRejectMaintenanceThatEndsInThePast() throws Exception {
+    void rechazaUnMantenimientoQueTerminaEnElPasado() throws Exception {
         mvc.perform(post("/v1/admin/maintenance").principal(admin).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"descripcion\":\"x\",\"inicio\":\"2020-01-01T00:00:00Z\",\"fin\":\"2020-01-02T00:00:00Z\"}"))
                 .andExpect(status().isBadRequest())
@@ -155,7 +155,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldCreateToggleAndDeleteInvestmentInstruments() throws Exception {
+    void creaActivaODesactivaYBorraInstrumentosDeInversion() throws Exception {
         UUID instrumentId = UUID.randomUUID();
         when(instrumentPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(instrumentPort.findById(instrumentId)).thenReturn(Optional.of(InvestmentInstrument.builder()
@@ -177,7 +177,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldRejectInstrumentsWithoutRateOrBelowMinimumAmount() throws Exception {
+    void rechazaInstrumentosSinTasaOConMontoBajoElMinimo() throws Exception {
         mvc.perform(post("/v1/admin/investment-instruments").principal(admin).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"CDT\",\"plazoDias\":0,\"montoMinimo\":500}"))
                 .andExpect(status().isBadRequest())
@@ -187,7 +187,7 @@ class AdminOperationsControllersTest {
     }
 
     @Test
-    void shouldAnswer400ForTogglingAnUnknownInstrument() throws Exception {
+    void responde400AlActivarODesactivarUnInstrumentoDesconocido() throws Exception {
         UUID unknown = UUID.randomUUID();
         when(instrumentPort.findById(unknown)).thenReturn(Optional.empty());
 

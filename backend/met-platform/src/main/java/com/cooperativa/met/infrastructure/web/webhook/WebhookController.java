@@ -76,12 +76,12 @@ public class WebhookController {
             } else if (legacySignatureHeader != null) {
                 isValid = isValidLegacySignature(rawPayload, legacySignatureHeader);
             } else {
-                log.warn("Missing webhook signature (neither signature.checksum nor X-Signature). Rejecting request.");
+                log.warn("Aviso de pago sin firma (no trae signature.checksum ni X-Signature). Se rechaza.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             if (!isValid) {
-                log.warn("Invalid webhook signature. Rejecting request.");
+                log.warn("La firma del aviso de pago no es válida. Se rechaza.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -89,7 +89,7 @@ public class WebhookController {
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
-            log.error("Error processing webhook: {}", e.getMessage(), e);
+            log.error("Error procesando el aviso de pago: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -99,8 +99,8 @@ public class WebhookController {
         if (wompiPayload.getEvent() != null && wompiPayload.getData() != null) {
             processWompiEvent(wompiPayload);
         } else {
-            log.warn("Payload is missing event or data fields");
-            throw new IllegalArgumentException("Invalid Wompi payload");
+            log.warn("El aviso de pago no trae los campos event o data");
+            throw new IllegalArgumentException("Aviso de Wompi inválido");
         }
     }
 
@@ -110,13 +110,13 @@ public class WebhookController {
      */
     private void processWompiEvent(WompiWebhookPayload payload) {
         if (!"transaction.updated".equals(payload.getEvent())) {
-            log.info("Ignoring unhandled Wompi event: {}", payload.getEvent());
+            log.info("Se ignora el evento de Wompi que no se maneja: {}", payload.getEvent());
             return;
         }
 
         WompiWebhookPayload.WompiTransaction tx = payload.getData().getTransaction();
         if (tx == null || !"APPROVED".equals(tx.getStatus())) {
-            log.info("Wompi transaction {} not approved. Status: {} ({})",
+            log.info("La transacción de Wompi {} no fue aprobada. Estado: {} ({})",
                     tx != null ? tx.getReference() : "null",
                     tx != null ? tx.getStatus() : "null",
                     tx != null ? tx.getStatusMessage() : "");
@@ -124,7 +124,7 @@ public class WebhookController {
         }
 
         if (tx.getCurrency() != null && !"COP".equals(tx.getCurrency())) {
-            log.error("Ignoring Wompi transaction {} in unsupported currency {}", tx.getId(), tx.getCurrency());
+            log.error("Se ignora la transacción de Wompi {} en una moneda no soportada: {}", tx.getId(), tx.getCurrency());
             return;
         }
 
@@ -133,40 +133,40 @@ public class WebhookController {
 
         // Idempotencia: no procesar la misma transacción dos veces
         if (processedWebhookRepository.existsById(txId)) {
-            log.info("Transaction {} already processed (Idempotency check).", txId);
+            log.info("La transacción {} ya fue procesada (idempotencia).", txId);
             return;
         }
 
         // Extraer userId de la referencia (formato: MET-{userIdUUID}-{timestamp})
         UUID userId = extractUserIdFromReference(reference);
         if (userId == null) {
-            log.error("Could not extract userId from Wompi reference: {}", reference);
+            log.error("No se pudo obtener el usuario de la referencia de Wompi: {}", reference);
             return;
         }
 
         // Wompi envía el monto en centavos para COP
         BigDecimal amountInPesos = BigDecimal.valueOf(tx.getAmountInCents()).divide(BigDecimal.valueOf(100));
 
-        log.info("Processing approved Wompi transaction {} ({}) for user {} amount={} COP",
+        log.info("Procesando la transacción aprobada de Wompi {} ({}) para el usuario {}, monto={} COP",
                 txId, payload.getEnvironment(), userId, amountInPesos);
 
         String method = "WOMPI_" + tx.getPaymentMethodType();
         processWebhookUseCase.execute(txId, "WOMPI", userId, amountInPesos, method);
 
-        log.info("Successfully queued deposit of {} COP for user {} via Wompi", amountInPesos, userId);
+        log.info("Depósito de {} COP acreditado al usuario {} vía Wompi", amountInPesos, userId);
     }
 
     private boolean isValidWompiChecksum(JsonNode event, String receivedChecksum) {
         String expected = WompiSignatures.eventChecksum(event, wompiWebhookSecret);
         if (expected == null) {
-            log.warn("Wompi event without usable signature.properties/timestamp: {}", event.path("signature"));
+            log.warn("Evento de Wompi sin signature.properties o timestamp utilizables: {}", event.path("signature"));
             return false;
         }
         boolean valid = WompiSignatures.checksumMatches(expected, receivedChecksum);
         if (!valid) {
             // Sin secretos en el log: solo qué propiedades firmó Wompi, para diagnosticar
             // un secreto de eventos equivocado (p. ej. el de producción en sandbox).
-            log.warn("Wompi checksum mismatch. properties={} timestamp={} environment={}",
+            log.warn("El checksum de Wompi no coincide. properties={} timestamp={} environment={}",
                     event.path("signature").path("properties"), event.path("timestamp"),
                     event.path("environment").asText("?"));
         }
@@ -189,7 +189,7 @@ public class WebhookController {
                     expectedSignature.getBytes(StandardCharsets.UTF_8),
                     signatureHeader.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Error calculating legacy HMAC signature", e);
+            log.error("Error calculando la firma HMAC antigua", e);
             return false;
         }
     }
@@ -204,10 +204,10 @@ public class WebhookController {
                 String uuidString = parts[1] + "-" + parts[2] + "-" + parts[3] + "-" + parts[4] + "-" + parts[5];
                 return UUID.fromString(uuidString);
             }
-            log.error("Reference format is invalid: {}", reference);
+            log.error("El formato de la referencia no es válido: {}", reference);
             return null;
         } catch (Exception e) {
-            log.error("Error extracting UUID from reference: {}", reference, e);
+            log.error("Error obteniendo el UUID de la referencia: {}", reference, e);
             return null;
         }
     }

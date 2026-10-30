@@ -49,7 +49,7 @@ public class AiChatService {
 
     public String generateReply(String userMessage) {
         if (geminiApiKey == null || geminiApiKey.trim().isEmpty() || geminiApiKey.contains("tu_api_key")) {
-            log.warn("Gemini API key no está configurada, devolviendo mock");
+            log.warn("La llave de la API de Gemini no está configurada; se responde con una simulación");
             return "¡Hola! Soy tu asistente 24/7 (Mock). No tengo una API Key configurada todavía. Me dijiste: " + userMessage;
         }
 

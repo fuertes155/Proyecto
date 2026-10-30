@@ -67,7 +67,7 @@ class AdminLoginProtectionTest {
     }
 
     @Test
-    void shouldRateLimitTheAdminLoginLikeTheMemberLogin() throws Exception {
+    void limitaLosIntentosDeIngresoDeAdministradorComoLosDeSocios() throws Exception {
         AuthRateLimitFilter filter = new AuthRateLimitFilter(new RateLimitProperties(), new ObjectMapper(), redisRateLimiter);
         when(redisRateLimiter.tryConsume(startsWith("ratelimit:auth:ip:"), anyLong(), any())).thenReturn(false);
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/admin/auth/login");
@@ -80,7 +80,7 @@ class AdminLoginProtectionTest {
     }
 
     @Test
-    void shouldLockTheAdminAccountAfterFiveWrongPasswordsWhateverTheIp() {
+    void bloqueaLaCuentaDeAdministradorTrasCincoClavesErradasDesdeCualquierIp() {
         AdminLoginAttemptService attempts = new AdminLoginAttemptService(redisTemplate);
 
         for (int i = 0; i < 4; i++) {
@@ -96,7 +96,7 @@ class AdminLoginProtectionTest {
     }
 
     @Test
-    void shouldForgetFailedAttemptsAfterASuccessfulLogin() {
+    void olvidaLosIntentosFallidosTrasUnIngresoExitoso() {
         AdminLoginAttemptService attempts = new AdminLoginAttemptService(redisTemplate);
         for (int i = 0; i < 4; i++) {
             attempts.recordFailure("oficial");

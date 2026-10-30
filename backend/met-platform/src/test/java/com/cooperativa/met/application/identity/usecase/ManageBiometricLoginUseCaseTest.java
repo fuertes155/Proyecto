@@ -66,7 +66,7 @@ class ManageBiometricLoginUseCaseTest {
     }
 
     @Test
-    void shouldStoreOnlyTheHashOfTheDeviceTokenWhenThePinIsCorrect() {
+    void guardaSoloElHashDeLaLlaveDelCelularSiElPinEsCorrecto() {
         givenUser(user);
         when(encryptionPort.decryptRsa("encrypted-pin")).thenReturn("1234");
         when(encryptionPort.verifyPin("1234", "pin-hash")).thenReturn(true);
@@ -81,7 +81,7 @@ class ManageBiometricLoginUseCaseTest {
     }
 
     @Test
-    void shouldNotEnableAndShouldCountTheAttemptWhenThePinIsWrong() {
+    void noActivaYCuentaElIntentoSiElPinEsErrado() {
         givenUser(user);
         when(encryptionPort.decryptRsa("encrypted-pin")).thenReturn("9999");
         when(encryptionPort.verifyPin("9999", "pin-hash")).thenReturn(false);
@@ -97,7 +97,7 @@ class ManageBiometricLoginUseCaseTest {
     }
 
     @Test
-    void shouldNotCheckThePinWhileTheAccountIsLocked() {
+    void noRevisaElPinMientrasLaCuentaEstaBloqueada() {
         givenUser(user);
         doThrow(new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta está bloqueada temporalmente."))
                 .when(pinAttemptService).checkBlocked(user.getId());
@@ -111,7 +111,7 @@ class ManageBiometricLoginUseCaseTest {
     }
 
     @Test
-    void shouldRemoveTheStoredHashWhenDisabled() {
+    void borraElHashGuardadoAlDesactivar() {
         givenUser(user.withBiometricHash("token-hash"));
 
         useCase.disable(user.getId());

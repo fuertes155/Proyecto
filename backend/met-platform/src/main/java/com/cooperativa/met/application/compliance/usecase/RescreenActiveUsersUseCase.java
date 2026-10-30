@@ -35,11 +35,11 @@ public class RescreenActiveUsersUseCase {
                 complianceCheckPort.persistCheck(user.getId(), listType, result, "{\"context\":\"PERIODIC_RESCREEN\"}");
                 if (result == ComplianceResult.MATCH) {
                     newMatches++;
-                    log.warn("Re-screening: posible coincidencia en lista {} para userId={}", listType, user.getId());
+                    log.warn("Revisión periódica de listas: posible coincidencia en la lista {} para userId={}", listType, user.getId());
                 }
             }
         }
-        log.info("Re-screening periódico completado. {} coincidencias detectadas.", newMatches);
+        log.info("Revisión periódica de listas terminada. {} coincidencias detectadas.", newMatches);
         return newMatches;
     }
 }

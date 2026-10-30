@@ -75,7 +75,7 @@ public class AesEncryptionAdapter implements EncryptionPort {
                 this.rsaPublicKeyBase64 = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to initialize RSA keys", e);
+            throw new IllegalStateException("No se pudieron inicializar las llaves RSA", e);
         }
     }
 

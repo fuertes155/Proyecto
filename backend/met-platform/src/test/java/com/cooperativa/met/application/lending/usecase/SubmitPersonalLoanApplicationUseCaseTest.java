@@ -75,7 +75,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_submitLoanSuccessfully_withGoodCreditScore() {
+    void radicaLaSolicitudConBuenPuntajeCrediticio() {
         // Arrange: score 750 -> banda RIESGO_MEDIO (2x saldo, tope 15M, 24 meses, 22%)
         SubmitLoanApplicationRequest request = buildRequest(new BigDecimal("10000000"), 24, true);
         CreditScoreResult goodScore = CreditScoreResult.builder()
@@ -105,7 +105,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsUserNotActive_whenUserIsSuspended() {
+    void fallaSiElUsuarioEstaSuspendido() {
         User suspended = User.builder().id(userId).status(UserStatus.SUSPENDED).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(suspended));
 
@@ -117,7 +117,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsKycRequired_whenUserHasNotCompletedBiometricKyc() {
+    void fallaSiElUsuarioNoHaCompletadoElKycBiometrico() {
         User activeButNotVerified = activeUser.toBuilder().kycStatus(null).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeButNotVerified));
 
@@ -129,7 +129,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsPendingApplicationExists_whenAlreadyHasPendingLoan() {
+    void fallaSiYaTieneUnaSolicitudPendiente() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(applicationPort.hasPendingApplication(userId)).thenReturn(true);
 
@@ -140,7 +140,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsComplianceMatch_whenUserIsOnRestrictiveList() {
+    void fallaSiElUsuarioEstaEnUnaListaRestrictiva() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(applicationPort.hasPendingApplication(userId)).thenReturn(false);
         // Primer check de compliance devuelve MATCH
@@ -155,7 +155,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsHabeasDataRequired_whenNotAccepted() {
+    void fallaSiNoSeAceptoHabeasData() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(applicationPort.hasPendingApplication(userId)).thenReturn(false);
         when(complianceCheckPort.checkUser(any(), any())).thenReturn(ComplianceResult.CLEAR);
@@ -167,7 +167,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsRiskScoreLow_whenCreditScoreBelowMinimum() {
+    void fallaConPuntajeCrediticioBajoElMinimo() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(applicationPort.hasPendingApplication(userId)).thenReturn(false);
         when(complianceCheckPort.checkUser(any(), any())).thenReturn(ComplianceResult.CLEAR);
@@ -182,7 +182,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsMaxLoanExceeded_whenAmountExceedsRiskTierLimit() {
+    void fallaSiElMontoSuperaElLimiteDelNivelDeRiesgo() {
         // Balance: 5,000,000, score 750 -> RIESGO_MEDIO: máximo 2x = 10,000,000. Solicitamos 20,000,000
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(applicationPort.hasPendingApplication(userId)).thenReturn(false);
@@ -199,7 +199,7 @@ class SubmitPersonalLoanApplicationUseCaseTest {
     }
 
     @Test
-    void execute_throwsMaxTermExceeded_whenTermExceedsRiskTierLimit() {
+    void fallaSiElPlazoSuperaElLimiteDelNivelDeRiesgo() {
         // Score 750 -> RIESGO_MEDIO: plazo máximo 24 meses. Solicitamos 36.
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(applicationPort.hasPendingApplication(userId)).thenReturn(false);

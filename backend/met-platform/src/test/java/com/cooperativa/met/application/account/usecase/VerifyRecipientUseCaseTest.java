@@ -41,7 +41,7 @@ class VerifyRecipientUseCaseTest {
     }
 
     @Test
-    void shouldVerifyRecipientByAccountNumber() {
+    void verificaAlDestinatarioPorNumeroDeCuenta() {
         UUID currentUserId = UUID.randomUUID();
         UUID recipientUserId = UUID.randomUUID();
         String accountNumber = "1234567890";
@@ -92,7 +92,7 @@ class VerifyRecipientUseCaseTest {
     }
 
     @Test
-    void shouldThrowWhenSameAccount() {
+    void fallaSiEsLaMismaCuenta() {
         UUID currentUserId = UUID.randomUUID();
         String accountNumber = "1234567890";
 

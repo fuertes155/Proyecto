@@ -34,7 +34,7 @@ class EmergencyLockControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldExecuteLock() throws Exception {
+    void ejecutaElBloqueo() throws Exception {
         Mockito.doNothing().when(emergencyLockUseCase).execute(any(UUID.class), any(EmergencyLockRequest.class), anyString());
 
         String json = "{\"scope\": \"USER\", \"targetId\": \"12345678-1234-1234-1234-123456789012\", \"reason\": \"Suspicious activity\"}";

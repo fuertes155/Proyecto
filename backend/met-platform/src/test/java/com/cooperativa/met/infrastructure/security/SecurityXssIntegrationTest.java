@@ -40,7 +40,7 @@ class SecurityXssIntegrationTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"USER"}) // ID de usuario mockeado
-    void shouldSanitizeXssPayloadInTransferConcept() throws Exception {
+    void limpiaCodigoXssEnElConceptoDeLaTransferencia() throws Exception {
         // Arrange
         Mockito.when(attestationService.verifyIntegrity(Mockito.any(), Mockito.any())).thenReturn(true);
         String maliciousConcept = "Regalo <script>alert('hack')</script>";

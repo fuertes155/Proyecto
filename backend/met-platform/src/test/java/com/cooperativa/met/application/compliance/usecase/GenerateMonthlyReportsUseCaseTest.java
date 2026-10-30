@@ -34,7 +34,7 @@ class GenerateMonthlyReportsUseCaseTest {
     private GenerateMonthlyReportsUseCase generateMonthlyReportsUseCase;
 
     @Test
-    void shouldGenerateEveryReportTypeForThePreviousMonth() {
+    void generaCadaTipoDeReporteDelMesAnterior() {
         int generated = generateMonthlyReportsUseCase.execute();
 
         assertEquals(REPORT_TYPES, generated);
@@ -48,7 +48,7 @@ class GenerateMonthlyReportsUseCaseTest {
     }
 
     @Test
-    void shouldKeepGoingWhenOneReportAlreadyExistsOrFails() {
+    void sigueAunqueUnReporteYaExistaOFalle() {
         // lenient: los demás tipos de reporte llaman al mismo método con otros argumentos a propósito.
         lenient().when(generateReportUseCase.execute(isNull(), argThat(r -> r != null && r.reportType() == SupersolidariaReportType.ASOCIADOS)))
                 .thenThrow(new BusinessRuleException("REPORT_ALREADY_EXISTS", "ya existe"));

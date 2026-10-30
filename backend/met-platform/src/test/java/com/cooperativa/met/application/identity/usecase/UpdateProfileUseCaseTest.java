@@ -48,7 +48,7 @@ class UpdateProfileUseCaseTest {
     }
 
     @Test
-    void shouldAddContactDataToAccountRegisteredWithoutEmail() {
+    void agregaDatosDeContactoAUnaCuentaRegistradaSinCorreo() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user(userId, null)));
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
@@ -59,7 +59,7 @@ class UpdateProfileUseCaseTest {
     }
 
     @Test
-    void shouldRejectEmailRegisteredByAnotherUser() {
+    void rechazaUnCorreoRegistradoPorOtroUsuario() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user(userId, null)));
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user(UUID.randomUUID(), EMAIL)));
 
@@ -71,7 +71,7 @@ class UpdateProfileUseCaseTest {
     }
 
     @Test
-    void shouldAllowUserToKeepOwnEmail() {
+    void permiteQueElUsuarioConserveSuPropioCorreo() {
         User current = user(userId, EMAIL);
         when(userRepository.findById(userId)).thenReturn(Optional.of(current));
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(current));

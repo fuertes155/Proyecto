@@ -70,7 +70,7 @@ class LoginUseCaseTest {
     }
 
     @Test
-    void shouldBindNewDeviceWithoutOtpWhenUserHasNoEmail() {
+    void vinculaElCelularNuevoSinOtpSiElUsuarioNoTieneCorreo() {
         // Cuenta creada con el registro simplificado (sin correo): no hay a dónde enviar el
         // código de dispositivo nuevo ni la alerta de IP nueva.
         User user = activeUser().lastKnownDeviceId("old-device").lastKnownIp("190.0.0.1").build();
@@ -92,7 +92,7 @@ class LoginUseCaseTest {
     }
 
     @Test
-    void shouldStillRequireDeviceOtpWhenUserHasEmail() {
+    void exigeOtpDeCelularNuevoSiElUsuarioTieneCorreo() {
         User user = activeUser().email("socio@example.com").lastKnownDeviceId("old-device").build();
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
         stubPinVerification(true);
@@ -106,7 +106,7 @@ class LoginUseCaseTest {
     }
 
     @Test
-    void shouldCountWrongPinTowardsTemporaryLock() {
+    void cuentaElPinErradoParaElBloqueoTemporal() {
         User user = activeUser().build();
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
         stubPinVerification(false);
@@ -122,7 +122,7 @@ class LoginUseCaseTest {
     }
 
     @Test
-    void shouldRejectLoginWithoutCheckingPinWhileLocked() {
+    void rechazaElIngresoSinRevisarElPinMientrasEstaBloqueado() {
         User user = activeUser().build();
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
         doThrow(new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta está bloqueada temporalmente."))
@@ -136,7 +136,7 @@ class LoginUseCaseTest {
     }
 
     @Test
-    void shouldNeverLoginWithWrongPinEvenIfAttemptServiceDoesNotThrow() {
+    void nuncaIngresaConPinErradoAunqueElServicioDeIntentosNoFalle() {
         User user = activeUser().build();
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
         stubPinVerification(false);
@@ -149,7 +149,7 @@ class LoginUseCaseTest {
     }
 
     @Test
-    void shouldLoginWithTheDeviceTokenWhenFingerprintLoginIsEnabled() {
+    void ingresaConLaLlaveDelCelularSiLaHuellaEstaActivada() {
         User user = activeUser().biometricHash("token-hash").lastKnownDeviceId("device-1").lastKnownIp("190.0.0.1").build();
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
         when(encryptionPort.hashBiometric("device-token")).thenReturn("token-hash");
@@ -165,7 +165,7 @@ class LoginUseCaseTest {
     }
 
     @Test
-    void shouldRejectFingerprintLoginWhenItWasNeverEnabled() {
+    void rechazaElIngresoConHuellaSiNuncaSeActivo() {
         User user = activeUser().biometricHash("").build();
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
 

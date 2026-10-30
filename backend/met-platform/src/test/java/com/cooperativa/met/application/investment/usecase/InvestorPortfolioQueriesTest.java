@@ -60,7 +60,7 @@ class InvestorPortfolioQueriesTest {
     private final UUID paidOffLoan = UUID.randomUUID();
 
     @Test
-    void shouldSummarizeWhereEachPesoOfTheInvestorIs() {
+    void resumeDondeEstaCadaPesoDelInversionista() {
         givenInvestorFractions();
         GetInvestorPortfolioSummaryUseCase summary = new GetInvestorPortfolioSummaryUseCase(
                 accountRepository, fractionRepository, matchRepository, loanRepository);
@@ -77,7 +77,7 @@ class InvestorPortfolioQueriesTest {
     }
 
     @Test
-    void shouldListWhoTheInvestorIsFundingNewestFirst() {
+    void listaAQuienFinanciaElInversionistaDelMasRecienteAlMasAntiguo() {
         givenInvestorFractions();
         when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(User.builder().firstName("Luis").lastName("Gómez").build()));
         GetInvestorFundingBreakdownUseCase breakdown = new GetInvestorFundingBreakdownUseCase(
@@ -94,7 +94,7 @@ class InvestorPortfolioQueriesTest {
     }
 
     @Test
-    void shouldReturnEmptyResultsForUsersWithoutAnAccount() {
+    void devuelveResultadosVaciosAUsuariosSinCuenta() {
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         InvestmentPortfolioSummaryResponse summary = new GetInvestorPortfolioSummaryUseCase(
@@ -108,7 +108,7 @@ class InvestorPortfolioQueriesTest {
     }
 
     @Test
-    void shouldSplitDepositIntoFractionsOfAtMostTenThousand() {
+    void divideElDepositoEnFraccionesDeMaximoDiezMil() {
         DistributeDepositUseCase distribute = new DistributeDepositUseCase(fractionRepository, matchUseCase);
         UUID depositId = UUID.randomUUID();
         when(fractionRepository.findByOriginalDepositId(depositId)).thenReturn(List.of());
@@ -125,7 +125,7 @@ class InvestorPortfolioQueriesTest {
     }
 
     @Test
-    void shouldNotSplitTheSameDepositTwice() {
+    void noDivideDosVecesElMismoDeposito() {
         DistributeDepositUseCase distribute = new DistributeDepositUseCase(fractionRepository, matchUseCase);
         UUID depositId = UUID.randomUUID();
         when(fractionRepository.findByOriginalDepositId(depositId)).thenReturn(List.of(fraction(InvestmentFractionStatus.AVAILABLE, "10000")));
@@ -137,7 +137,7 @@ class InvestorPortfolioQueriesTest {
     }
 
     @Test
-    void shouldReportGuaranteeFundBalanceRulesAndMovements() {
+    void informaSaldoReglasYMovimientosDelFondoDeGarantias() {
         when(guaranteeFundPort.getBalance()).thenReturn(new BigDecimal("830000"));
         when(guaranteeFundPort.findAllOrderByCreatedAtDesc()).thenReturn(List.of(GuaranteeFundMovement.builder()
                 .id(UUID.randomUUID()).type(GuaranteeFundMovementType.CONTRIBUTION).amount(new BigDecimal("1000"))

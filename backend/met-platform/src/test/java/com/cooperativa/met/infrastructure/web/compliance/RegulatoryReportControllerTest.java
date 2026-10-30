@@ -54,7 +54,7 @@ class RegulatoryReportControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldListReportTypes() throws Exception {
+    void listaLosTiposDeReporte() throws Exception {
         mockMvc.perform(get("/v1/compliance/reports/types")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -63,7 +63,7 @@ class RegulatoryReportControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldGenerateReport() throws Exception {
+    void generaUnReporte() throws Exception {
         RegulatoryReportResponse response = new RegulatoryReportResponse(
                 UUID.randomUUID(),
                 SupersolidariaReportType.ASOCIADOS,
@@ -96,7 +96,7 @@ class RegulatoryReportControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldListReports() throws Exception {
+    void listaLosReportes() throws Exception {
         RegulatoryReportResponse response = new RegulatoryReportResponse(
                 UUID.randomUUID(),
                 SupersolidariaReportType.ASOCIADOS,

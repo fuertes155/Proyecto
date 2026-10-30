@@ -6,7 +6,11 @@ El backend lo usa con el perfil de Spring **`sandbox`**, que se suma al perfil b
 | Dónde | `SPRING_PROFILES_ACTIVE` |
 |---|---|
 | Local (Docker) | `dev,sandbox` |
-| Render | `prod,sandbox` |
+| Render | `prod,demo,sandbox` |
+
+`sandbox` va de último para que gane en la pasarela de depósitos. En Render se conserva `demo`
+porque escribe en los logs el monto del micro-depósito con que se verifica una cuenta bancaria:
+sin él no hay forma de confirmar cuentas externas y no se pueden probar los retiros.
 
 Con `sandbox`, los depósitos (checkout y PSE nativo) van contra `https://sandbox.wompi.co/v1`.
 Los retiros a banco externo siguen simulados: "Pagos a Terceros" es otro producto de Wompi
@@ -63,7 +67,7 @@ Las variables del `.env` tienen prioridad sobre los valores de ejemplo que `setu
 
 **Render:** en el dashboard del servicio `met-backend`:
 
-1. Cambia `SPRING_PROFILES_ACTIVE` a `prod,sandbox`.
+1. Cambia `SPRING_PROFILES_ACTIVE` a `prod,demo,sandbox`.
 2. Pon las 4 llaves. En `render.yaml` están como `sync: false`, así que el blueprint no las sobrescribe.
 
 `WOMPI_REDIRECT_URL` ya viene configurada en el blueprint.
@@ -113,7 +117,7 @@ La redirección de Wompi nunca acredita saldo. Solo lo hace el webhook firmado.
 
 | Síntoma en los logs | Causa |
 |---|---|
-| `Wompi checksum mismatch ... environment=test` | `WOMPI_WEBHOOK_SECRET` no es el secreto de eventos de sandbox. |
+| `El checksum de Wompi no coincide ... environment=test` | `WOMPI_WEBHOOK_SECRET` no es el secreto de eventos de sandbox. |
 | `Wompi respondió 422 ... "signature"` | `WOMPI_INTEGRITY_SECRET` no corresponde a la llave pública. |
 | `Wompi respondió 401` | Llaves de producción contra la URL de sandbox, o al revés. |
 | No llega ningún evento | La URL de eventos no está registrada en Wompi, el túnel cambió de URL o Render estaba dormido. Wompi reintenta a los 30 min, 3 h y 24 h. |

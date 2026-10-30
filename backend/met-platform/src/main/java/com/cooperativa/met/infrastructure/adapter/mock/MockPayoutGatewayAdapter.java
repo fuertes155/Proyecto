@@ -37,7 +37,7 @@ public class MockPayoutGatewayAdapter implements PayoutGatewayPort {
 
     @Override
     public PayoutGatewayResult initiatePayout(PayoutGatewayRequest request) {
-        log.info("[DEV] Payout simulado ACEPTADO: reference={} monto={} banco={} cuenta=****{}",
+        log.info("[DEV] Retiro simulado ACEPTADO: referencia={} monto={} banco={} cuenta=****{}",
                 request.reference(), request.amount(), request.destinationWompiBankId(),
                 lastFour(request.destinationAccountNumber()));
         return new PayoutGatewayResult("MOCK-RAIL-" + request.reference(),

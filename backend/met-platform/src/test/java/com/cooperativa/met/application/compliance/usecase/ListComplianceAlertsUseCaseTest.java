@@ -47,7 +47,7 @@ class ListComplianceAlertsUseCaseTest {
     private final UUID deletedUserId = UUID.randomUUID();
 
     @Test
-    void shouldShowWhoEachAlertIsAboutEvenIfTheUserWasDeleted() {
+    void muestraAQuienCorrespondeCadaAlertaAunqueSeHayaBorradoElUsuario() {
         when(alertRepository.findByStatus(AlertStatus.OPEN, 0, 20)).thenReturn(List.of(alert(knownUserId), alert(deletedUserId)));
         givenUsers();
 
@@ -60,7 +60,7 @@ class ListComplianceAlertsUseCaseTest {
     }
 
     @Test
-    void shouldListRestrictiveListMatchesWithTheMatchedPerson() {
+    void listaLasCoincidenciasEnListasRestrictivasConLaPersona() {
         when(complianceCheckPort.findByResult(ComplianceResult.MATCH, 0, 20)).thenReturn(List.of(
                 match(knownUserId, ComplianceListType.OFAC), match(deletedUserId, ComplianceListType.ONU)));
         givenUsers();

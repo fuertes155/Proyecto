@@ -31,7 +31,7 @@ public class LegalSignatureService {
         otpCache.put(transactionId, otp);
         
         // Simulating Twilio API Call
-        log.info("[TWILIO MOCK] Enviaremos el SMS al {}: 'Tu código de firma electrónica para MET Cooperativa es: {}'", phoneNumber, otp);
+        log.info("[TWILIO SIMULADO] Enviaremos el SMS al {}: 'Tu código de firma electrónica para MET Cooperativa es: {}'", phoneNumber, otp);
         
         return transactionId;
     }
@@ -53,7 +53,7 @@ public class LegalSignatureService {
      * In a real implementation, this would take the Thymeleaf Context and call PdfRendererBuilder.
      */
     public byte[] generateMandatePdf(String userName, String amount, String date) {
-        log.info("Rendering PDF Contract using OpenHTMLToPDF for user {}", userName);
+        log.info("Generando el PDF del contrato con OpenHTMLToPDF para el usuario {}", userName);
         
         String simulatedPdfContent = "--- CONTRATO DE MANDATO ---\n" +
                 "Usuario: " + userName + "\n" +

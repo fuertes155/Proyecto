@@ -33,7 +33,7 @@ class IdempotencyServiceTest {
     // ── tryAcquire ────────────────────────────────────────────────────────────
 
     @Test
-    void tryAcquire_returnsTrue_forNewKey() {
+    void reservarFuncionaConUnaLlaveNueva() {
         // Primera vez que se ve esta clave → Redis devuelve true (setIfAbsent exitoso)
         when(valueOps.setIfAbsent(eq("idempotency:idem-001"), eq("PROCESSING"), eq(Duration.ofHours(24))))
                 .thenReturn(true);
@@ -44,7 +44,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void tryAcquire_returnsFalse_forDuplicateKey() {
+    void reservarNoFuncionaConUnaLlaveRepetida() {
         // Clave ya existe → Redis devuelve false (setIfAbsent falla)
         when(valueOps.setIfAbsent(eq("idempotency:idem-001"), any(), any(Duration.class)))
                 .thenReturn(false);
@@ -55,7 +55,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void tryAcquire_returnsTrue_whenRedisThrowsException_failOpenBehavior() {
+    void reservarDejaPasarSiRedisFalla() {
         // Si Redis falla, permitimos continuar (fail-open) para no bloquear operaciones
         when(valueOps.setIfAbsent(any(), any(), any(Duration.class)))
                 .thenThrow(new RuntimeException("Redis connection refused"));
@@ -66,7 +66,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void tryAcquire_returnsFalse_whenRedisReturnsNull() {
+    void reservarNoFuncionaSiRedisDevuelveNulo() {
         // setIfAbsent puede devolver null en casos edge
         when(valueOps.setIfAbsent(any(), any(), any(Duration.class))).thenReturn(null);
 
@@ -79,7 +79,7 @@ class IdempotencyServiceTest {
     // ── getResult ─────────────────────────────────────────────────────────────
 
     @Test
-    void getResult_returnsEmpty_whenKeyIsProcessing() {
+    void consultarDevuelveVacioMientrasLaLlaveSeProcesa() {
         // La clave existe pero está en estado PROCESSING (aún no terminó)
         when(valueOps.get("idempotency:idem-001")).thenReturn("PROCESSING");
 
@@ -89,7 +89,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void getResult_returnsEmpty_whenKeyDoesNotExist() {
+    void consultarDevuelveVacioSiLaLlaveNoExiste() {
         when(valueOps.get("idempotency:idem-new")).thenReturn(null);
 
         Optional<String> result = service.getResult("idem-new");
@@ -98,7 +98,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void getResult_returnsValue_whenResultWasSaved() {
+    void consultarDevuelveElResultadoGuardado() {
         // La operación ya completó y guardó el ID de transacción
         when(valueOps.get("idempotency:idem-done")).thenReturn("txn-uuid-abc123");
 
@@ -109,7 +109,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void getResult_returnsEmpty_whenRedisThrowsException() {
+    void consultarDevuelveVacioSiRedisFalla() {
         // Si Redis falla al consultar, devolvemos empty (no bloqueamos)
         when(valueOps.get(any())).thenThrow(new RuntimeException("Redis timeout"));
 
@@ -121,14 +121,14 @@ class IdempotencyServiceTest {
     // ── saveResult ────────────────────────────────────────────────────────────
 
     @Test
-    void saveResult_callsRedisSetWithCorrectKeyAndTtl() {
+    void guardarResultadoUsaLaLlaveYElTiempoDeVidaCorrectos() {
         service.saveResult("idem-001", "txn-12345");
 
         verify(valueOps).set("idempotency:idem-001", "txn-12345", Duration.ofHours(24));
     }
 
     @Test
-    void saveResult_doesNotThrow_whenRedisIsUnavailable() {
+    void guardarResultadoNoFallaSiRedisNoEstaDisponible() {
         // Si Redis falla al guardar, no propagamos la excepción (operación ya completó)
         doThrow(new RuntimeException("Redis down")).when(valueOps)
                 .set(any(), any(), any(Duration.class));
@@ -139,7 +139,7 @@ class IdempotencyServiceTest {
     // ── release ───────────────────────────────────────────────────────────────
 
     @Test
-    void release_freesAKeyThatIsStillProcessing() {
+    void liberarSueltaUnaLlaveQueSigueEnProceso() {
         when(valueOps.get("idempotency:idem-001")).thenReturn("PROCESSING");
 
         service.release("idem-001");
@@ -148,7 +148,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void release_keepsTheResultOfAnOperationThatAlreadyFinished() {
+    void liberarConservaElResultadoDeUnaOperacionYaTerminada() {
         when(valueOps.get("idempotency:idem-done")).thenReturn("txn-uuid-abc123");
 
         service.release("idem-done");
@@ -157,7 +157,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    void release_doesNotThrow_whenRedisIsUnavailable() {
+    void liberarNoFallaSiRedisNoEstaDisponible() {
         when(valueOps.get(any())).thenThrow(new RuntimeException("Redis down"));
 
         assertDoesNotThrow(() -> service.release("idem-001"));
@@ -166,7 +166,7 @@ class IdempotencyServiceTest {
     // ── Flujo completo ────────────────────────────────────────────────────────
 
     @Test
-    void fullFlow_acquireThenSaveThenRetrieve() {
+    void flujoCompletoReservarGuardarYConsultar() {
         String key = "idem-transfer-flow";
         String transactionId = "txn-flow-999";
 

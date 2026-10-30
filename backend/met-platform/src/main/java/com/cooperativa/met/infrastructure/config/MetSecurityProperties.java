@@ -23,24 +23,24 @@ public class MetSecurityProperties {
     @PostConstruct
     void validate() {
         if (jwt == null || jwt.getSecret() == null || jwt.getSecret().isBlank()) {
-            throw new IllegalStateException("Missing required config: met.security.jwt.secret (no defaults en application.yml).");
+            throw new IllegalStateException("Falta la configuración obligatoria met.security.jwt.secret (no tiene valor por defecto en application.yml).");
         }
         byte[] jwtSecretBytes = jwt.getSecret().getBytes(java.nio.charset.StandardCharsets.UTF_8);
         if (jwtSecretBytes.length < MIN_JWT_SECRET_BYTES) {
-            throw new IllegalStateException("Invalid met.security.jwt.secret: must be at least 256-bit / 32 bytes when UTF-8 encoded.");
+            throw new IllegalStateException("met.security.jwt.secret no es válido: debe tener al menos 256 bits (32 bytes en UTF-8).");
         }
 
         if (encryption == null || encryption.getAesKey() == null || encryption.getAesKey().isBlank()) {
-            throw new IllegalStateException("Missing required config: met.security.encryption.aesKey (no defaults en application.yml).");
+            throw new IllegalStateException("Falta la configuración obligatoria met.security.encryption.aesKey (no tiene valor por defecto en application.yml).");
         }
 
         // Como el AES adapter usa el string tal cual para derivar una SecretKey, validamos el formato y tamaño razonable.
         if (!SAFE_AES_KEY_PATTERN.matcher(encryption.getAesKey()).matches()) {
-            throw new IllegalStateException("Invalid met.security.encryption.aesKey format: contains unsupported characters or length.");
+            throw new IllegalStateException("met.security.encryption.aesKey no es válida: tiene caracteres o una longitud no soportados.");
         }
         // AES-256 => 32 bytes como referencia; por seguridad validamos longitud mínima 32 chars (antes era default 32 chars)
         if (encryption.getAesKey().length() < 32) {
-            throw new IllegalStateException("Invalid met.security.encryption.aesKey: must be at least 32 characters for AES-256.");
+            throw new IllegalStateException("met.security.encryption.aesKey no es válida: debe tener al menos 32 caracteres para AES-256.");
         }
     }
 

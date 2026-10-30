@@ -11,7 +11,7 @@
 #     (OOM en el arranque). Si pasa, subir el servicio "met-backend" a Standard.
 #   - El Postgres "free" de Render expira a los 30 días (uno por workspace).
 #   - Wompi: las 4 llaves van en el dashboard de Render (sync: false). Son
-#     obligatorias para arrancar; con SPRING_PROFILES_ACTIVE=prod,sandbox los
+#     obligatorias para arrancar; con SPRING_PROFILES_ACTIVE=prod,demo,sandbox los
 #     depósitos van contra el sandbox real de Wompi (sin dinero real).
 # ==============================================================================
 
@@ -48,7 +48,8 @@ services:
     envVars:
       # ── Perfil / arranque ──
       # prod,demo    = producción + pasarela de pago SIMULADA (sin Wompi real). Ver application-demo.yml.
-      # prod,sandbox = producción + SANDBOX REAL de Wompi (llaves pub_test_…). Ver application-sandbox.yml.
+      # prod,demo,sandbox = producción + SANDBOX REAL de Wompi (llaves pub_test_…), conservando de
+      #   "demo" el monto del micro-depósito en los logs para verificar cuentas. Ver docs/WOMPI-SANDBOX.md.
       # prod         = Wompi de producción (llaves pub_prod_… y WOMPI_API_URL de producción).
       - key: SPRING_PROFILES_ACTIVE
         value: prod,demo

@@ -51,7 +51,7 @@ class CoreAccountControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldReturnMyAccountDetails() throws Exception {
+    void devuelveLosDetallesDeMiCuenta() throws Exception {
         // Arrange
         CoreAccountResponse mockResponse = new CoreAccountResponse(
                 UUID.randomUUID(),
@@ -76,7 +76,7 @@ class CoreAccountControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
-    void shouldReturnBadRequestWhenTransferFailsBusinessRule() throws Exception {
+    void respondePeticionInvalidaSiLaTransferenciaIncumpleUnaRegla() throws Exception {
         // Arrange
         Mockito.when(deviceAttestationService.verifyIntegrity(Mockito.any(), Mockito.any())).thenReturn(true);
         Mockito.doThrow(new BusinessRuleException("INSUFFICIENT_FUNDS", "Fondos insuficientes"))

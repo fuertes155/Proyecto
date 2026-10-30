@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class InstallmentPlanCalculatorTest {
 
     @Test
-    void shouldGenerateCorrectNumberOfInstallments() {
+    void generaElNumeroCorrectoDeCuotas() {
         UUID loanId = UUID.randomUUID();
         List<LoanInstallment> plan = InstallmentPlanCalculator.generate(
                 loanId,

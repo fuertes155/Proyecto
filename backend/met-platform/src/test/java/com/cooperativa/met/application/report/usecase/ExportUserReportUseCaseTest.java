@@ -87,7 +87,7 @@ class ExportUserReportUseCaseTest {
     }
 
     @Test
-    void shouldGatherOnlyWhatBelongsToThePeriodAndWhatIsStillActive() {
+    void reuneSoloLoDelPeriodoYLoQueSigueActivo() {
         givenFullHistory();
 
         UserReportData data = dataUseCase.execute(userId, FROM, TO);
@@ -111,7 +111,7 @@ class ExportUserReportUseCaseTest {
     }
 
     @Test
-    void shouldRenderAReadablePdf() throws Exception {
+    void generaUnPdfLegible() throws Exception {
         givenFullHistory();
 
         ReportFileResult pdf = exportUseCase.execute(userId, FROM, TO, "PDF");
@@ -127,7 +127,7 @@ class ExportUserReportUseCaseTest {
     }
 
     @Test
-    void shouldRenderAnExcelWithOneSheetPerSection() throws Exception {
+    void generaUnExcelConUnaHojaPorSeccion() throws Exception {
         givenFullHistory();
 
         ReportFileResult excel = exportUseCase.execute(userId, FROM, TO, "xlsx");
@@ -146,7 +146,7 @@ class ExportUserReportUseCaseTest {
     }
 
     @Test
-    void shouldStillRenderBothFormatsForANewAccountWithNoActivity() throws Exception {
+    void generaAmbosFormatosParaUnaCuentaNuevaSinActividad() throws Exception {
         givenUserAndAccount();
         when(transactionRepository.findByAccountId(accountId)).thenReturn(List.of());
         when(investmentPort.findByUserId(userId)).thenReturn(List.of());
@@ -164,7 +164,7 @@ class ExportUserReportUseCaseTest {
     }
 
     @Test
-    void shouldRejectUnknownFormatAndInvertedDates() {
+    void rechazaFormatoDesconocidoYFechasInvertidas() {
         givenUserAndAccount();
         when(transactionRepository.findByAccountId(accountId)).thenReturn(List.of());
         when(investmentPort.findByUserId(userId)).thenReturn(List.of());
@@ -178,7 +178,7 @@ class ExportUserReportUseCaseTest {
     }
 
     @Test
-    void shouldFailForUserWithoutAccount() {
+    void fallaConUnUsuarioSinCuenta() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).build()));
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.empty());
 

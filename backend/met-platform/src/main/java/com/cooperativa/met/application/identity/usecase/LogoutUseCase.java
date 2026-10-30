@@ -38,7 +38,7 @@ public class LogoutUseCase {
         // 2. Revocar todos los refresh tokens del usuario
         try {
             refreshTokenRepository.revokeAllByUserId(userId);
-            log.info("Logout exitoso. userId={} tokens revocados.", userId);
+            log.info("Sesión cerrada. userId={}: tokens revocados.", userId);
         } catch (Exception e) {
             log.warn("Error al revocar refresh tokens en logout. userId={}: {}", userId, e.getMessage());
         }

@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SupersolidariaFlatFileGeneratorTest {
 
     @Test
-    void shouldGenerateFlatFileWithHeaderDetailTrailer() {
+    void generaElArchivoPlanoConEncabezadoDetalleYCierre() {
         ReportDataset dataset = ReportDataset.builder()
                 .reportType(SupersolidariaReportType.ASOCIADOS)
                 .periodYear(2026)

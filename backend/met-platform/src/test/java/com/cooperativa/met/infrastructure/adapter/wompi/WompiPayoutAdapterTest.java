@@ -44,7 +44,7 @@ class WompiPayoutAdapterTest {
     }
 
     @Test
-    void shouldSendThePayoutInCentsWithTheBeneficiaryKycData() {
+    void enviaElRetiroEnCentavosConLosDatosKycDelBeneficiario() {
         server.expect(requestTo(BASE + "/payouts"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(jsonPath("$.amountInCents").value(15000000))
@@ -63,7 +63,7 @@ class WompiPayoutAdapterTest {
     }
 
     @Test
-    void shouldUseOurReferenceWhenTheProviderDoesNotReturnAnId() {
+    void usaNuestraReferenciaSiElProveedorNoDevuelveId() {
         server.expect(requestTo(BASE + "/payouts"))
                 .andExpect(jsonPath("$.accountType").value("CORRIENTE"))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
@@ -74,7 +74,7 @@ class WompiPayoutAdapterTest {
     }
 
     @Test
-    void shouldReportSynchronousRejectionWithTheProviderStatus() {
+    void informaElRechazoInmediatoConElEstadoDelProveedor() {
         server.expect(requestTo(BASE + "/payouts"))
                 .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY)
                         .body("{\"error\":\"INVALID_ACCOUNT\"}").contentType(MediaType.APPLICATION_JSON));
@@ -87,7 +87,7 @@ class WompiPayoutAdapterTest {
     }
 
     @Test
-    void shouldAlsoReportServerErrorsAsRejected() {
+    void tambienInformaLosErroresDelServidorComoRechazo() {
         // Comportamiento actual: un 5xx se trata como rechazo y el caso de uso devuelve el dinero,
         // aunque el proveedor pudo haber procesado el pago (resultado incierto).
         server.expect(requestTo(BASE + "/payouts")).andRespond(withServerError());
@@ -96,7 +96,7 @@ class WompiPayoutAdapterTest {
     }
 
     @Test
-    void shouldReadTheBankCatalogSkippingIncompleteEntries() {
+    void leeElCatalogoDeBancosOmitiendoLosIncompletos() {
         server.expect(requestTo(BASE + "/banks")).andRespond(withSuccess("""
                 [{"id":"1507","name":"Bancolombia"},{"bankId":"1051","name":"Davivienda"},{"name":"Sin id"}]
                 """, MediaType.APPLICATION_JSON));
@@ -108,7 +108,7 @@ class WompiPayoutAdapterTest {
     }
 
     @Test
-    void shouldExplainWhenTheCatalogIsUnavailable() {
+    void explicaCuandoElCatalogoNoEstaDisponible() {
         server.expect(requestTo(BASE + "/banks")).andRespond(withServerError());
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> adapter.fetchSupportedBanks());

@@ -53,7 +53,7 @@ class NotificationControllerTest {
     }
 
     @Test
-    void shouldGetNotifications() throws Exception {
+    void consultaLasNotificaciones() throws Exception {
         NotificationResponse response = NotificationResponse.builder()
                 .id(UUID.randomUUID())
                 .title("New Transfer")
@@ -72,7 +72,7 @@ class NotificationControllerTest {
     }
 
     @Test
-    void shouldGetUnreadCount() throws Exception {
+    void consultaCuantasNoSeHanLeido() throws Exception {
         Mockito.when(getUnreadNotificationsCountUseCase.execute(any(UUID.class))).thenReturn(5);
 
         mockMvc.perform(get("/v1/notifications/unread-count")
@@ -83,7 +83,7 @@ class NotificationControllerTest {
     }
 
     @Test
-    void shouldMarkAsRead() throws Exception {
+    void marcaComoLeida() throws Exception {
         UUID notificationId = UUID.randomUUID();
 
         Mockito.doNothing().when(markNotificationReadUseCase).execute(any(UUID.class), any(UUID.class));

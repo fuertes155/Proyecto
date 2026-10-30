@@ -28,7 +28,7 @@ class GeoLocationServiceTest {
     }
 
     @Test
-    void shouldReturnCountryCoordinatesAndProxyFlags() {
+    void devuelvePaisCoordenadasYMarcasDeProxy() {
         server.expect(requestTo("http://ip-api.com/json/190.85.10.4?fields=131379")).andRespond(withSuccess(
                 "{\"status\":\"success\",\"countryCode\":\"CO\",\"lat\":6.2518,\"lon\":-75.5636,\"proxy\":true,\"hosting\":false}",
                 MediaType.APPLICATION_JSON));
@@ -41,7 +41,7 @@ class GeoLocationServiceTest {
     }
 
     @Test
-    void shouldNotCallTheApiForLocalhost() {
+    void noConsultaLaApiParaLocalhost() {
         GeoLocationService.GeoLocationResponse location = geoLocationService.getLocationInfo("127.0.0.1");
 
         assertEquals("success", location.getStatus());
@@ -50,7 +50,7 @@ class GeoLocationServiceTest {
     }
 
     @Test
-    void shouldFailOpenWhenTheProviderCannotLocateTheIp() {
+    void dejaPasarSiElProveedorNoUbicaLaIp() {
         server.expect(requestTo("http://ip-api.com/json/10.0.0.1?fields=131379"))
                 .andRespond(withSuccess("{\"status\":\"fail\",\"message\":\"private range\"}", MediaType.APPLICATION_JSON));
 
@@ -62,7 +62,7 @@ class GeoLocationServiceTest {
     }
 
     @Test
-    void shouldFailOpenWhenTheProviderIsDown() {
+    void dejaPasarSiElProveedorEstaCaido() {
         server.expect(requestTo("http://ip-api.com/json/8.8.8.8?fields=131379")).andRespond(withServerError());
 
         assertEquals("fail", geoLocationService.getLocationInfo("8.8.8.8").getStatus());

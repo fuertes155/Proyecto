@@ -11,6 +11,6 @@ import org.springframework.test.context.ActiveProfiles;
 class MetPlatformApplicationTests {
 
     @Test
-    void contextLoads() {
+    void cargaElContexto() {
     }
 }

@@ -62,7 +62,7 @@ class AccountQueriesUseCasesTest {
     private final UUID accountId = UUID.randomUUID();
 
     @Test
-    void shouldSummarizeHomeWithActiveSavingsInvestmentsAndPendingLoans() {
+    void resumeElInicioConAhorrosActivosInversionesYCreditosPendientes() {
         givenMyAccount();
         when(transactionRepository.findByAccountId(accountId)).thenReturn(manyTransactions(12));
         when(savingsAccountPort.findByUserId(userId)).thenReturn(List.of(
@@ -85,7 +85,7 @@ class AccountQueriesUseCasesTest {
     }
 
     @Test
-    void shouldLabelEachMovementAndTellIncomingFromOutgoing() {
+    void nombraCadaMovimientoYDistingueEntradasDeSalidas() {
         givenMyAccount();
         UUID other = UUID.randomUUID();
         when(transactionRepository.findByAccountId(accountId)).thenReturn(new ArrayList<>(List.of(
@@ -103,7 +103,7 @@ class AccountQueriesUseCasesTest {
     }
 
     @Test
-    void shouldSuggestLastFiveDistinctPeopleIPaid() {
+    void sugiereLasUltimasCincoPersonasDistintasALasQuePague() {
         givenMyAccount();
         List<CoreTransaction> history = new ArrayList<>();
         List<UUID> destinations = new ArrayList<>();
@@ -128,7 +128,7 @@ class AccountQueriesUseCasesTest {
     }
 
     @Test
-    void shouldReturnNoRecipientsForUsersWithoutAnAccount() {
+    void noDevuelveDestinatariosAUsuariosSinCuenta() {
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         assertTrue(new GetRecentRecipientsUseCase(accountRepository, transactionRepository, userRepository).execute(userId).isEmpty());
@@ -136,7 +136,7 @@ class AccountQueriesUseCasesTest {
     }
 
     @Test
-    void shouldBuildMonthlyCsvStatementEscapingConcepts() {
+    void armaElExtractoMensualEnCsvEscapandoLosConceptos() {
         givenMyAccount();
         when(transactionRepository.findByAccountId(accountId)).thenReturn(List.of(
                 tx(TransactionType.DEPOSIT, null, accountId, Instant.parse("2026-09-30T23:59:59Z"), "mes anterior"),
@@ -156,7 +156,7 @@ class AccountQueriesUseCasesTest {
     }
 
     @Test
-    void shouldNeutralizeFormulasThatASenderPutInTheConcept() {
+    void neutralizaLasFormulasQueUnRemitentePongaEnElConcepto() {
         // El concepto lo escribe quien envía la transferencia; si empieza por = + - @, Excel lo
         // ejecutaría como fórmula al abrir el extracto de quien la recibe (CSV injection).
         givenMyAccount();
@@ -175,7 +175,7 @@ class AccountQueriesUseCasesTest {
     }
 
     @Test
-    void shouldShowMyAccountBalances() {
+    void muestraLosSaldosDeMiCuenta() {
         givenMyAccount();
 
         CoreAccountResponse response = new GetMyAccountUseCase(accountRepository).execute(userId);
@@ -185,7 +185,7 @@ class AccountQueriesUseCasesTest {
     }
 
     @Test
-    void shouldFailQueriesWhenUserHasNoAccount() {
+    void fallaLasConsultasSiElUsuarioNoTieneCuenta() {
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> new GetMyAccountUseCase(accountRepository).execute(userId));

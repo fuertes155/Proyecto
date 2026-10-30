@@ -23,7 +23,7 @@ public class MockCreditBureauAdapter implements CreditBureauPort {
 
     @Override
     public CreditScoreResult checkScore(UUID userId, String nationalId, String firstName, String lastName, LocalDate dateOfBirth) {
-        log.info("Mocking credit score check for user {} (nationalId: {})", userId, nationalId);
+        log.info("Consulta SIMULADA del puntaje crediticio para el usuario {} (documento: {})", userId, nationalId);
         
         // Simulación determinista: generamos un score de 300 a 950 basado en el hash del nationalId.
         // Se usa una máscara de bits en vez de Math.abs(): Math.abs(Integer.MIN_VALUE) sigue siendo negativo.
@@ -49,7 +49,7 @@ public class MockCreditBureauAdapter implements CreditBureauPort {
 
     @Override
     public void reportCreditBehavior(CreditReportEvent event) {
-        log.info("[MOCK DATACREDITO] Reportando {} para préstamo {} (usuario {}, {} días de mora, saldo {})",
+        log.info("[DATACRÉDITO SIMULADO] Reportando {} para préstamo {} (usuario {}, {} días de mora, saldo {})",
                 event.getEventType(), event.getLoanId(), event.getUserId(),
                 event.getDaysLate() != null ? event.getDaysLate() : 0, event.getOutstandingBalance());
     }

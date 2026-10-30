@@ -12,13 +12,13 @@ class XssSanitizerDeserializerTest {
             .registerModule(new SimpleModule().addDeserializer(String.class, new XssSanitizerDeserializer()));
 
     @Test
-    void shouldKeepAccentedLettersUntouched() throws Exception {
+    void dejaIntactasLasLetrasConTilde() throws Exception {
         // Un nombre en español no es un ataque: debe guardarse tal como se escribió.
         assertEquals("María Pabón Ñuñez", mapper.readValue("\"María Pabón Ñuñez\"", String.class));
     }
 
     @Test
-    void shouldEscapeHtmlSpecialCharacters() throws Exception {
+    void escapaLosCaracteresEspecialesDeHtml() throws Exception {
         assertEquals("&lt;b&gt;Tom &amp; Jerry&lt;/b&gt; &#39;x&#39; &quot;y&quot;",
                 mapper.readValue("\"<b>Tom & Jerry</b> 'x' \\\"y\\\"\"", String.class));
     }

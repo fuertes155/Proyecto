@@ -33,7 +33,7 @@ public class ProcessWebhookUseCase {
         log.info("Iniciando procesamiento transaccional del webhook {} para el usuario {}", txId, userId);
 
         if (processedWebhookRepository.existsById(txId)) {
-            log.info("Transaction {} already processed (Idempotency). Ignoring.", txId);
+            log.info("La transacción {} ya fue procesada (idempotencia). Se ignora.", txId);
             return;
         }
 

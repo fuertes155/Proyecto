@@ -43,7 +43,7 @@ class MandateSignatureUseCasesTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldSendTheSigningCodeToTheUsersEmail() {
+    void enviaElCodigoDeFirmaAlCorreoDelUsuario() {
         givenUser();
 
         String transactionId = new RequestMandateSignatureUseCase(userRepository, otpService).execute(userId);
@@ -53,7 +53,7 @@ class MandateSignatureUseCasesTest {
     }
 
     @Test
-    void shouldStoreASignedPdfWithItsHashAndTheLegalEvidence() throws Exception {
+    void guardaElPdfFirmadoConSuHashYLaEvidenciaLegal() throws Exception {
         givenUser();
         when(otpService.validateOtp("1086578123", "482913")).thenReturn(true);
         when(mandateRepository.findByUserId(userId)).thenReturn(Optional.empty());
@@ -72,7 +72,7 @@ class MandateSignatureUseCasesTest {
     }
 
     @Test
-    void shouldNotSignWithAWrongCode() {
+    void noFirmaConUnCodigoErrado() {
         givenUser();
         when(otpService.validateOtp("1086578123", "000000")).thenReturn(false);
 
@@ -82,7 +82,7 @@ class MandateSignatureUseCasesTest {
     }
 
     @Test
-    void shouldNotSignTwice() {
+    void noFirmaDosVeces() {
         givenUser();
         when(otpService.validateOtp("1086578123", "482913")).thenReturn(true);
         when(mandateRepository.findByUserId(userId)).thenReturn(Optional.of(MandateContract.builder().id(UUID.randomUUID()).build()));
@@ -93,7 +93,7 @@ class MandateSignatureUseCasesTest {
     }
 
     @Test
-    void shouldFailForUnknownUser() {
+    void fallaConUnUsuarioDesconocido() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertEquals("USR_01", assertThrows(BusinessRuleException.class,
@@ -101,7 +101,7 @@ class MandateSignatureUseCasesTest {
     }
 
     @Test
-    void shouldBurnTheSmsOtpOfTheLegacySignatureServiceAfterOneUse() throws Exception {
+    void anulaElOtpPorSmsDelServicioDeFirmaAntiguoTrasUsarloUnaVez() throws Exception {
         LegalSignatureService legacy = new LegalSignatureService();
         String transactionId = legacy.generateAndSendOtp("3001234567");
         @SuppressWarnings("unchecked")

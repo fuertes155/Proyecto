@@ -28,7 +28,7 @@ public class SmtpEmailSender implements EmailSenderPort {
                            @Value("${met.mail.from-address}") String fromAddress) {
         this.mailSender = mailSender;
         this.fromAddress = fromAddress;
-        log.info("Email provider: SMTP (from {})", fromAddress);
+        log.info("Proveedor de correo: SMTP (remitente {})", fromAddress);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class SmtpEmailSender implements EmailSenderPort {
             message.setSubject(subject);
             message.setText(body);
             mailSender.send(message);
-            log.info("SMTP email sent to {}", to);
+            log.info("Correo enviado por SMTP a {}", to);
         } catch (MailException e) {
             throw new EmailDeliveryException("SMTP no pudo enviar el correo a " + to, e);
         }

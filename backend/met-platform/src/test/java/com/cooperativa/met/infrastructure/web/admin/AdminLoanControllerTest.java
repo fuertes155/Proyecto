@@ -38,7 +38,7 @@ class AdminLoanControllerTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void shouldGetAllLoans() throws Exception {
+    void consultaTodosLosCreditos() throws Exception {
         PersonalLoanApplication loan = PersonalLoanApplication.builder()
                 .id(UUID.randomUUID())
                 .userId(UUID.randomUUID())
@@ -64,7 +64,7 @@ class AdminLoanControllerTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void shouldUpdateLoanStatus() throws Exception {
+    void actualizaElEstadoDelCredito() throws Exception {
         UUID loanId = UUID.randomUUID();
         PersonalLoanApplication loan = PersonalLoanApplication.builder()
                 .id(loanId)

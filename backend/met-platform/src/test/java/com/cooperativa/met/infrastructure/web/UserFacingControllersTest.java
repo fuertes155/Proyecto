@@ -90,7 +90,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldListOnlyTheAuthenticatedUsersBankAccounts() throws Exception {
+    void listaSoloLasCuentasBancariasDelUsuarioAutenticado() throws Exception {
         when(listUseCase.execute(userId)).thenReturn(List.of(ExternalBankAccountResponse.builder()
                 .id(accountId).bankCode("1007").bankName("Bancolombia").accountType(BankAccountType.SAVINGS)
                 .maskedAccountNumber("****6789").verificationStatus(BankAccountVerificationStatus.PENDING)
@@ -103,7 +103,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldRegisterAValidBankAccountForTheAuthenticatedUser() throws Exception {
+    void registraUnaCuentaBancariaValidaParaElUsuarioAutenticado() throws Exception {
         mvc.perform(post("/v1/accounts/external-bank-accounts").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"bankCode\":\"1007\",\"accountType\":\"SAVINGS\",\"accountNumber\":\"00123456789\"}"))
                 .andExpect(status().isOk());
@@ -112,7 +112,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldRejectAccountNumbersWithLettersBeforeCallingTheUseCase() throws Exception {
+    void rechazaNumerosDeCuentaConLetrasAntesDeLlamarAlCasoDeUso() throws Exception {
         mvc.perform(post("/v1/accounts/external-bank-accounts").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"bankCode\":\"1007\",\"accountType\":\"SAVINGS\",\"accountNumber\":\"12AB\"}"))
                 .andExpect(status().isBadRequest())
@@ -123,7 +123,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldReturnTheBusinessErrorCodeWhenTheVerificationAmountIsWrong() throws Exception {
+    void devuelveElCodigoDeErrorDeNegocioSiElMontoDeVerificacionEsErrado() throws Exception {
         doThrow(new BusinessRuleException("INCORRECT_AMOUNT", "El monto no coincide"))
                 .when(confirmUseCase).execute(userId, accountId, 2730);
 
@@ -134,14 +134,14 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldResendTheVerificationDeposit() throws Exception {
+    void reenviaElDepositoDeVerificacion() throws Exception {
         mvc.perform(post("/v1/accounts/external-bank-accounts/{id}/verify/resend", accountId)).andExpect(status().isOk());
 
         verify(initiateUseCase).execute(userId, accountId);
     }
 
     @Test
-    void shouldPassTheClientIpToThePayoutForFraudChecks() throws Exception {
+    void pasaLaIpDelClienteAlRetiroParaRevisarFraude() throws Exception {
         String body = "{\"externalBankAccountId\":\"" + accountId + "\",\"amount\":150000,\"pin\":\"rsa\",\"otp\":\"482913\",\"idempotencyKey\":\"k1\"}";
 
         mvc.perform(post("/v1/accounts/transactions/payout").contentType(MediaType.APPLICATION_JSON).content(body)
@@ -157,7 +157,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldRequireAnIdempotencyKeyForPayouts() throws Exception {
+    void exigeLlaveDeIdempotenciaParaLosRetiros() throws Exception {
         mvc.perform(post("/v1/accounts/transactions/payout").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"externalBankAccountId\":\"" + accountId + "\",\"amount\":150000,\"pin\":\"rsa\"}"))
                 .andExpect(status().isBadRequest())
@@ -167,7 +167,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldSignTheMandateRecordingIpAndUserAgent() throws Exception {
+    void firmaElMandatoRegistrandoIpYNavegador() throws Exception {
         UsernamePasswordAuthenticationToken principal = new UsernamePasswordAuthenticationToken(userId.toString(), null, List.of());
         when(requestMandateUseCase.execute(userId)).thenReturn("tx_1");
         UUID contractId = UUID.randomUUID();
@@ -186,7 +186,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldDownloadTheReportAsAnAttachment() throws Exception {
+    void descargaElReporteComoAdjunto() throws Exception {
         byte[] pdf = "%PDF-1.7".getBytes();
         when(exportUseCase.execute(userId, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30), "pdf"))
                 .thenReturn(new ReportFileResult("reporte.pdf", pdf, "application/pdf"));
@@ -199,7 +199,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldNotServeAnythingWithoutAnAuthenticatedUser() throws Exception {
+    void noEntregaNadaSinUnUsuarioAutenticado() throws Exception {
         SecurityContextHolder.clearContext();
 
         mvc.perform(get("/v1/accounts/external-bank-accounts")).andExpect(status().isInternalServerError());
@@ -208,7 +208,7 @@ class UserFacingControllersTest {
     }
 
     @Test
-    void shouldAcceptPrincipalsGivenAsStringsToo() throws Exception {
+    void aceptaTambienUsuariosAutenticadosDadosComoTexto() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userId.toString(), null, List.of()));
         when(listUseCase.execute(userId)).thenReturn(List.of());
 

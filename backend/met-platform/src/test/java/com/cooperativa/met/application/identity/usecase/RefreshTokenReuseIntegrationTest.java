@@ -34,7 +34,7 @@ class RefreshTokenReuseIntegrationTest {
     private RefreshTokenRepositoryPort refreshTokenRepository;
 
     @Test
-    void shouldKeepAllSessionsClosedAfterDetectingReuseOfAnAlreadyUsedRefreshToken() {
+    void mantieneCerradasLasSesionesTrasDetectarReusoDeUnTokenDeRenovacionYaUsado() {
         UUID userId = UUID.randomUUID();
         String stolenToken = tokenPort.generateRefreshToken(userId);
         UUID stolenJti = persist(stolenToken, userId, true);                       // ya fue usado (rotado)

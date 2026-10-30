@@ -39,7 +39,7 @@ class RateLimitingIntegrationTest {
     }
 
     @Test
-    void shouldBlockRequestsAfterTenAttemptsWithTooManyRequests() throws Exception {
+    void bloqueaLasPeticionesTrasDiezIntentosConDemasiadasPeticiones() throws Exception {
         // Arrange: 
         // El RateLimiter llamará a increment() por cada petición que ingrese.
         // Simulamos que cuenta del 1 al 11.

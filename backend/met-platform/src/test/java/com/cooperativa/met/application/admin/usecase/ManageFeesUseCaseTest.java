@@ -46,7 +46,7 @@ class ManageFeesUseCaseTest {
     private final UUID adminId = UUID.randomUUID();
 
     @Test
-    void shouldCloseCurrentVersionBeforeOpeningTheNewOne() {
+    void cierraLaVersionActualAntesDeAbrirLaNueva() {
         when(feeRepository.save(any())).thenAnswer(inv -> withId(inv.getArgument(0), UUID.randomUUID()));
 
         FeeSchedule created = manageFeesUseCase.create(adminId,
@@ -66,7 +66,7 @@ class ManageFeesUseCaseTest {
     }
 
     @Test
-    void shouldKeepFeeTypeAndDescriptionWhenUpdatingOnlyTheValue() {
+    void conservaTipoYDescripcionAlActualizarSoloElValor() {
         UUID feeId = UUID.randomUUID();
         when(feeRepository.findById(feeId)).thenReturn(Optional.of(existingFee(feeId)));
         when(feeRepository.save(any())).thenAnswer(inv -> withId(inv.getArgument(0), UUID.randomUUID()));
@@ -86,7 +86,7 @@ class ManageFeesUseCaseTest {
     }
 
     @Test
-    void shouldAuditDeletedFee() {
+    void auditaLaTarifaEliminada() {
         UUID feeId = UUID.randomUUID();
         when(feeRepository.findById(feeId)).thenReturn(Optional.of(existingFee(feeId)));
 
@@ -99,7 +99,7 @@ class ManageFeesUseCaseTest {
     }
 
     @Test
-    void shouldFailToUpdateOrDeleteUnknownFee() {
+    void fallaAlActualizarOEliminarUnaTarifaDesconocida() {
         UUID feeId = UUID.randomUUID();
         when(feeRepository.findById(feeId)).thenReturn(Optional.empty());
         FeeScheduleRequest request = new FeeScheduleRequest("RETIRO_PSE", null, BigDecimal.ONE, false, DESDE);

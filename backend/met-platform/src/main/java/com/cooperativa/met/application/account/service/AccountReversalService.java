@@ -56,6 +56,6 @@ public class AccountReversalService {
                 }
             }
         }
-        throw new IllegalStateException("unreachable");
+        throw new IllegalStateException("no debería llegar aquí");
     }
 }

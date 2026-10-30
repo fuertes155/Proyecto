@@ -54,14 +54,14 @@ void main() {
     service = BiometricLoginService(storage: SecureStorageService(), repository: repository);
   });
 
-  test('is available only when the phone has a fingerprint or face enrolled', () async {
+  test('solo está disponible si el celular tiene huella o rostro registrado', () async {
     expect(await service.isAvailable(), isTrue);
 
     enrolledBiometrics = [];
     expect(await service.isAvailable(), isFalse);
   });
 
-  test('enable confirms the fingerprint, sends the PIN with a new random key and keeps the key on the phone', () async {
+  test('al activar confirma la huella, envía el PIN con una llave aleatoria nueva y guarda la llave en el celular', () async {
     final activated = await service.enable(pin: '1234', documentType: 'CE', documentNumber: '456789');
 
     expect(activated, isTrue);
@@ -76,7 +76,7 @@ void main() {
     expect(credential?.documentNumber, '456789');
   });
 
-  test('enable does nothing when the fingerprint dialog is cancelled', () async {
+  test('al activar no hace nada si se cancela el diálogo de la huella', () async {
     fingerprintAccepted = false;
 
     final activated = await service.enable(pin: '1234', documentType: 'CC', documentNumber: '1098765432');
@@ -86,7 +86,7 @@ void main() {
     expect(await service.readCredential(), isNull);
   });
 
-  test('the fingerprint key survives logout but not another person signing in on the phone', () async {
+  test('la llave de la huella sobrevive al cierre de sesión, pero no a que otra persona ingrese en el celular', () async {
     await service.enable(pin: '1234', documentType: 'CC', documentNumber: '1098765432');
 
     await SecureStorageService().clear(); // lo que hace el cierre de sesión
@@ -99,7 +99,7 @@ void main() {
     expect(await service.readCredential(), isNull);
   });
 
-  test('disable turns it off on the server and removes the key from the phone', () async {
+  test('al desactivar la apaga en el servidor y borra la llave del celular', () async {
     await service.enable(pin: '1234', documentType: 'CC', documentNumber: '1098765432');
 
     await service.disable();

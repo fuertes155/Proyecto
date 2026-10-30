@@ -58,7 +58,7 @@ func toJSON(t *testing.T, v any) *bytes.Buffer {
 	t.Helper()
 	b, err := json.Marshal(v)
 	if err != nil {
-		t.Fatalf("error marshaling JSON: %v", err)
+		t.Fatalf("error al convertir a JSON: %v", err)
 	}
 	return bytes.NewBuffer(b)
 }
@@ -67,7 +67,7 @@ func toJSON(t *testing.T, v any) *bytes.Buffer {
 // Tests: secureCompare
 // ---------------------------------------------------------------------------
 
-func TestSecureCompare(t *testing.T) {
+func TestComparacionSegura(t *testing.T) {
 	tests := []struct {
 		name string
 		a, b string
@@ -84,7 +84,7 @@ func TestSecureCompare(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := secureCompare(tt.a, tt.b); got != tt.want {
-				t.Errorf("secureCompare(%q, %q) = %v, want %v", tt.a, tt.b, got, tt.want)
+				t.Errorf("secureCompare(%q, %q) = %v, se esperaba %v", tt.a, tt.b, got, tt.want)
 			}
 		})
 	}
@@ -94,7 +94,7 @@ func TestSecureCompare(t *testing.T) {
 // Tests: GET /health
 // ---------------------------------------------------------------------------
 
-func TestHealthEndpoint(t *testing.T) {
+func TestRutaDeSalud(t *testing.T) {
 	router := setupRouter("test-key", successClient())
 
 	req, _ := http.NewRequest(http.MethodGet, "/health", nil)
@@ -102,15 +102,15 @@ func TestHealthEndpoint(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+		t.Errorf("se esperaba 200, llegó %d", w.Code)
 	}
 
 	var body map[string]string
 	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
-		t.Fatalf("invalid JSON response: %v", err)
+		t.Fatalf("respuesta JSON inválida: %v", err)
 	}
 	if body["status"] != "UP" {
-		t.Errorf("expected status=UP, got %q", body["status"])
+		t.Errorf("se esperaba status=UP, llegó %q", body["status"])
 	}
 }
 
@@ -118,7 +118,7 @@ func TestHealthEndpoint(t *testing.T) {
 // Tests: Middleware de autenticación
 // ---------------------------------------------------------------------------
 
-func TestApiKeyMiddleware_MissingKey(t *testing.T) {
+func TestLlaveDeApiFaltante(t *testing.T) {
 	router := setupRouter("test-key", successClient())
 
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/notifications/push", nil)
@@ -126,17 +126,17 @@ func TestApiKeyMiddleware_MissingKey(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401, got %d", w.Code)
+		t.Errorf("se esperaba 401, llegó %d", w.Code)
 	}
 
 	var body map[string]string
 	json.Unmarshal(w.Body.Bytes(), &body)
 	if body["code"] != "MISSING_API_KEY" {
-		t.Errorf("expected code=MISSING_API_KEY, got %q", body["code"])
+		t.Errorf("se esperaba code=MISSING_API_KEY, llegó %q", body["code"])
 	}
 }
 
-func TestApiKeyMiddleware_InvalidKey(t *testing.T) {
+func TestLlaveDeApiInvalida(t *testing.T) {
 	router := setupRouter("clave-correcta", successClient())
 
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/notifications/push", nil)
@@ -145,13 +145,13 @@ func TestApiKeyMiddleware_InvalidKey(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusForbidden {
-		t.Errorf("expected 403, got %d", w.Code)
+		t.Errorf("se esperaba 403, llegó %d", w.Code)
 	}
 
 	var body map[string]string
 	json.Unmarshal(w.Body.Bytes(), &body)
 	if body["code"] != "INVALID_API_KEY" {
-		t.Errorf("expected code=INVALID_API_KEY, got %q", body["code"])
+		t.Errorf("se esperaba code=INVALID_API_KEY, llegó %q", body["code"])
 	}
 }
 
@@ -159,7 +159,7 @@ func TestApiKeyMiddleware_InvalidKey(t *testing.T) {
 // Tests: POST /api/v1/notifications/push
 // ---------------------------------------------------------------------------
 
-func TestSendPush_Success(t *testing.T) {
+func TestEnviarPushExitoso(t *testing.T) {
 	router := setupRouter("test-key", successClient())
 
 	payload := PushRequest{
@@ -176,22 +176,22 @@ func TestSendPush_Success(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d — body: %s", w.Code, w.Body.String())
+		t.Errorf("se esperaba 200, llegó %d — cuerpo: %s", w.Code, w.Body.String())
 	}
 
 	var resp PushResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("invalid JSON response: %v", err)
+		t.Fatalf("respuesta JSON inválida: %v", err)
 	}
 	if resp.Status != "SENT" {
-		t.Errorf("expected status=SENT, got %q", resp.Status)
+		t.Errorf("se esperaba status=SENT, llegó %q", resp.Status)
 	}
 	if resp.MessageID == "" {
-		t.Error("expected non-empty messageId")
+		t.Error("se esperaba un messageId no vacío")
 	}
 }
 
-func TestSendPush_ValidationError_MissingFields(t *testing.T) {
+func TestEnviarPushRechazaCamposFaltantes(t *testing.T) {
 	router := setupRouter("test-key", successClient())
 
 	// Payload incompleto: falta body y userId
@@ -204,17 +204,17 @@ func TestSendPush_ValidationError_MissingFields(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400, got %d", w.Code)
+		t.Errorf("se esperaba 400, llegó %d", w.Code)
 	}
 
 	var body map[string]string
 	json.Unmarshal(w.Body.Bytes(), &body)
 	if body["code"] != "VALIDATION_ERROR" {
-		t.Errorf("expected code=VALIDATION_ERROR, got %q", body["code"])
+		t.Errorf("se esperaba code=VALIDATION_ERROR, llegó %q", body["code"])
 	}
 }
 
-func TestSendPush_ValidationError_EmptyBody(t *testing.T) {
+func TestEnviarPushRechazaCuerpoVacio(t *testing.T) {
 	router := setupRouter("test-key", successClient())
 
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/notifications/push", bytes.NewBufferString("{}"))
@@ -224,11 +224,11 @@ func TestSendPush_ValidationError_EmptyBody(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400, got %d", w.Code)
+		t.Errorf("se esperaba 400, llegó %d", w.Code)
 	}
 }
 
-func TestSendPush_FCMError(t *testing.T) {
+func TestEnviarPushFallaDeFcm(t *testing.T) {
 	router := setupRouter("test-key", errorClient())
 
 	payload := PushRequest{
@@ -244,17 +244,17 @@ func TestSendPush_FCMError(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusInternalServerError {
-		t.Errorf("expected 500, got %d", w.Code)
+		t.Errorf("se esperaba 500, llegó %d", w.Code)
 	}
 
 	var body map[string]string
 	json.Unmarshal(w.Body.Bytes(), &body)
 	if body["code"] != "FCM_ERROR" {
-		t.Errorf("expected code=FCM_ERROR, got %q", body["code"])
+		t.Errorf("se esperaba code=FCM_ERROR, llegó %q", body["code"])
 	}
 }
 
-func TestSendPush_InvalidContentType(t *testing.T) {
+func TestEnviarPushTipoDeContenidoInvalido(t *testing.T) {
 	router := setupRouter("test-key", successClient())
 
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/notifications/push",
@@ -265,6 +265,6 @@ func TestSendPush_InvalidContentType(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400, got %d", w.Code)
+		t.Errorf("se esperaba 400, llegó %d", w.Code)
 	}
 }

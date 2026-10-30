@@ -62,7 +62,7 @@ class GetLoanEligibilityUseCaseTest {
     }
 
     @Test
-    void execute_returnsPersonalizedLimits_forGoodCreditScore() {
+    void daLimitesPersonalizadosConBuenPuntajeCrediticio() {
         // score 750 -> RIESGO_MEDIO: 2x saldo (5,000,000) = 10,000,000, tope 24 meses, 22%
         CreditScoreResult goodScore = CreditScoreResult.builder().score(750).referenceId("REF-001").build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
@@ -79,7 +79,7 @@ class GetLoanEligibilityUseCaseTest {
     }
 
     @Test
-    void execute_returnsRejected_whenCreditScoreBelowMinimum_withoutRequiringAccount() {
+    void rechazaConPuntajeBajoElMinimoSinExigirCuenta() {
         CreditScoreResult badScore = CreditScoreResult.builder().score(450).referenceId("REF-002").build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(creditBureauPort.checkScore(any(), any(), any(), any(), any())).thenReturn(badScore);
@@ -93,7 +93,7 @@ class GetLoanEligibilityUseCaseTest {
     }
 
     @Test
-    void execute_throwsUserNotActive_whenUserIsSuspended() {
+    void fallaSiElUsuarioEstaSuspendido() {
         User suspended = User.builder().id(userId).status(UserStatus.SUSPENDED).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(suspended));
 
@@ -105,7 +105,7 @@ class GetLoanEligibilityUseCaseTest {
     }
 
     @Test
-    void execute_throwsHabeasDataRequired_whenNotAccepted() {
+    void fallaSiNoSeAceptoHabeasData() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -116,7 +116,7 @@ class GetLoanEligibilityUseCaseTest {
     }
 
     @Test
-    void execute_throwsNoAccount_whenApprovedButUserHasNoWallet() {
+    void fallaSiQuedaAprobadoPeroElUsuarioNoTieneCuenta() {
         CreditScoreResult goodScore = CreditScoreResult.builder().score(750).referenceId("REF-003").build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
         when(creditBureauPort.checkScore(any(), any(), any(), any(), any())).thenReturn(goodScore);
@@ -129,7 +129,7 @@ class GetLoanEligibilityUseCaseTest {
     }
 
     @Test
-    void execute_returnsPrimeAbsoluteCap_whenSavingsMultiplierWouldExceedIt() {
+    void aplicaElTopeAbsolutoPrimeSiElMultiploDelAhorroLoSuperaria() {
         // score 920 -> PRIME: 5x saldo (20,000,000) = 100,000,000, pero tope absoluto 60,000,000
         CreditScoreResult primeScore = CreditScoreResult.builder().score(920).referenceId("REF-004").build();
         CoreAccount richAccount = CoreAccount.builder()

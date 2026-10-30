@@ -62,7 +62,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldSendARandomSmallAmountAndRememberIt() {
+        void enviaUnMontoPequenoAleatorioYLoRecuerda() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, null, 0));
             when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank("1507")));
             givenUser("socio@example.com");
@@ -83,7 +83,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldNotRememberAnAmountThatWasNeverSent() {
+        void noRecuerdaUnMontoQueNuncaSeEnvio() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, null, 0));
             when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank("1507")));
             givenUser("socio@example.com");
@@ -97,7 +97,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldRefuseAccountOfAnotherUser() {
+        void rechazaLaCuentaDeOtroUsuario() {
             givenAccount(account(UUID.randomUUID(), BankAccountVerificationStatus.PENDING, null, 0));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> initiateUseCase.execute(userId, accountId));
@@ -107,7 +107,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldNotResendToAnAlreadyVerifiedAccount() {
+        void noReenviaAUnaCuentaYaVerificada() {
             givenAccount(account(userId, BankAccountVerificationStatus.VERIFIED, null, 0));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> initiateUseCase.execute(userId, accountId));
@@ -116,7 +116,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldRefuseBankNotYetAvailableOnTheRail() {
+        void rechazaUnBancoQueAunNoEstaDisponibleEnLaPasarela() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, null, 0));
             when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank(" ")));
 
@@ -127,7 +127,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldAskForAnEmailBeforeSending() {
+        void pideUnCorreoAntesDeEnviar() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, null, 0));
             when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank("1507")));
             givenUser(null);
@@ -150,7 +150,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldVerifyAccountWhenTheAmountMatches() {
+        void verificaLaCuentaSiElMontoCoincide() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, 2731, 2));
 
             confirmUseCase.execute(userId, accountId, 2731);
@@ -162,7 +162,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldCountAWrongGuess() {
+        void cuentaUnIntentoErrado() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, 2731, 1));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> confirmUseCase.execute(userId, accountId, 2730));
@@ -173,7 +173,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldDiscardThePendingAmountOnTheFifthWrongGuess() {
+        void descartaElMontoPendienteAlQuintoIntentoErrado() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, 2731, 4));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> confirmUseCase.execute(userId, accountId, 2730));
@@ -183,7 +183,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldNotAcceptEvenTheRightAmountOnceAttemptsAreExhausted() {
+        void noAceptaNiElMontoCorrectoCuandoSeAgotanLosIntentos() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, 2731, 5));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> confirmUseCase.execute(userId, accountId, 2731));
@@ -193,7 +193,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldAuditAttemptsToVerifySomeoneElsesAccount() {
+        void auditaLosIntentosDeVerificarLaCuentaDeOtro() {
             givenAccount(account(UUID.randomUUID(), BankAccountVerificationStatus.PENDING, 2731, 0));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> confirmUseCase.execute(userId, accountId, 2731));
@@ -205,7 +205,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldAskForANewDepositWhenNoneIsPending() {
+        void pideUnNuevoDepositoSiNoHayNingunoPendiente() {
             givenAccount(account(userId, BankAccountVerificationStatus.PENDING, null, 0));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> confirmUseCase.execute(userId, accountId, 2731));
@@ -214,7 +214,7 @@ class BankAccountVerificationUseCasesTest {
         }
 
         @Test
-        void shouldRefuseToVerifyTwice() {
+        void noVerificaDosVeces() {
             givenAccount(account(userId, BankAccountVerificationStatus.VERIFIED, null, 0));
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class, () -> confirmUseCase.execute(userId, accountId, 2731));

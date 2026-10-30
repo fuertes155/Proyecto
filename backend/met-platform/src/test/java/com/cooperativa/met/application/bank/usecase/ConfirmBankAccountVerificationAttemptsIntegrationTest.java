@@ -31,7 +31,7 @@ class ConfirmBankAccountVerificationAttemptsIntegrationTest {
     private ExternalBankAccountRepositoryPort externalBankAccountRepository;
 
     @Test
-    void shouldCountEveryWrongGuessAndLockAfterTheFifth() {
+    void cuentaCadaIntentoErradoYBloqueaDespuesDelQuinto() {
         UUID userId = UUID.randomUUID();
         UUID accountId = UUID.randomUUID();
         externalBankAccountRepository.save(ExternalBankAccount.builder()

@@ -37,14 +37,14 @@ class AdminRequestValidationTest {
     }
 
     @Test
-    void feeMustSayWhetherItIsAPercentage() {
+    void laTarifaDebeIndicarSiEsPorcentaje() {
         assertEquals(Set.of("esPorcentaje"), invalidFields(
                 new FeeScheduleRequest("RETIRO_PSE", null, new BigDecimal("2500"), null, Instant.now())));
         assertTrue(invalidFields(new FeeScheduleRequest("RETIRO_PSE", null, new BigDecimal("2500"), false, Instant.now())).isEmpty());
     }
 
     @Test
-    void operationLimitNeedsBothAmounts() {
+    void elLimiteDeOperacionNecesitaAmbosMontos() {
         assertEquals(Set.of("montoDiarioMax", "montoPorTransaccionMax"),
                 invalidFields(new OperationLimitRequest("TRANSFERENCIA", null, null)));
         assertTrue(invalidFields(new OperationLimitRequest("TRANSFERENCIA", 5_000_000L, 2_000_000L)).isEmpty());

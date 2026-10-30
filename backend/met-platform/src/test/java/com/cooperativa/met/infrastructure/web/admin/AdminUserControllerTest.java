@@ -39,7 +39,7 @@ class AdminUserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void shouldGetAllUsers() throws Exception {
+    void consultaTodosLosUsuarios() throws Exception {
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .documentType(DocumentType.CC)
@@ -81,7 +81,7 @@ class AdminUserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void shouldUpdateKycStatus() throws Exception {
+    void actualizaElEstadoKyc() throws Exception {
         UUID userId = UUID.randomUUID();
         User user = User.builder()
                 .id(userId)

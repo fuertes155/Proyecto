@@ -38,7 +38,7 @@ class ManageOperationLimitsUseCaseTest {
     private final UUID adminId = UUID.randomUUID();
 
     @Test
-    void shouldUpdateLimitsAndAuditOldAndNewValues() {
+    void actualizaLosLimitesYAuditaValoresAnterioresYNuevos() {
         when(limitRepository.findByTipo("TRANSFERENCIA")).thenReturn(Optional.of(OperationLimit.builder()
                 .id(UUID.randomUUID()).tipoOperacion("TRANSFERENCIA").montoDiarioMax(5_000_000).montoPorTransaccionMax(2_000_000).activo(true).build()));
         when(limitRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -56,7 +56,7 @@ class ManageOperationLimitsUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownOperationType() {
+    void fallaConUnTipoDeOperacionDesconocido() {
         when(limitRepository.findByTipo("NO_EXISTE")).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> manageOperationLimitsUseCase.update(adminId,

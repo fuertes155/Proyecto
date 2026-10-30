@@ -54,7 +54,7 @@ class ResetPinWithOtpUseCaseTest {
     }
 
     @Test
-    void shouldSetNewPinWhenOtpIsValid() {
+    void poneElPinNuevoSiElOtpEsValido() {
         givenUser();
         when(otpService.validateOtp(DOCUMENT, "482913")).thenReturn(true);
         when(encryptionPort.decryptRsa("rsa(5678)")).thenReturn("5678");
@@ -68,7 +68,7 @@ class ResetPinWithOtpUseCaseTest {
     }
 
     @Test
-    void shouldNotTouchPinWhenOtpIsWrongOrExpired() {
+    void noTocaElPinSiElOtpEsErradoOVencio() {
         givenUser();
         when(otpService.validateOtp(DOCUMENT, "482913")).thenReturn(false);
 
@@ -80,7 +80,7 @@ class ResetPinWithOtpUseCaseTest {
     }
 
     @Test
-    void shouldRejectPinThatCannotBeDecrypted() {
+    void rechazaUnPinQueNoSePuedeDescifrar() {
         givenUser();
         when(otpService.validateOtp(DOCUMENT, "482913")).thenReturn(true);
         when(encryptionPort.decryptRsa("rsa(5678)")).thenThrow(new IllegalStateException("bad padding"));
@@ -92,7 +92,7 @@ class ResetPinWithOtpUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownDocumentWithoutTouchingOtps() {
+    void fallaConDocumentoDesconocidoSinTocarLosOtp() {
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> resetPinWithOtpUseCase.execute(request));

@@ -65,7 +65,7 @@ class PaymentDistributionUseCaseTest {
     }
 
     @Test
-    void distributesPrincipalAndNetYieldProportionallyBetweenTwoInvestors_andRecordsPlatformCommission() {
+    void repartePrincipalYRendimientoNetoEntreDosInversionistasYRegistraLaComision() {
         UUID loanId = UUID.randomUUID();
         UUID borrowerUserId = UUID.randomUUID();
         PersonalLoanApplication loan = PersonalLoanApplication.builder()
@@ -131,7 +131,7 @@ class PaymentDistributionUseCaseTest {
     }
 
     @Test
-    void doesNothingWhenLoanHasNoFundingMatches() {
+    void noHaceNadaSiElCreditoNoTieneFinanciadores() {
         UUID loanId = UUID.randomUUID();
         PersonalLoanApplication loan = PersonalLoanApplication.builder()
                 .id(loanId).userId(UUID.randomUUID()).amount(new BigDecimal("10000.00"))

@@ -42,7 +42,7 @@ class FeesControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldGetAllFees() throws Exception {
+    void consultaTodasLasTarifas() throws Exception {
         FeeSchedule fee = FeeSchedule.builder()
                 .id(UUID.randomUUID())
                 .tipoTarifa("WITHDRAWAL")
@@ -72,7 +72,7 @@ class FeesControllerTest {
     }
 
     @Test
-    void shouldCreateFee() throws Exception {
+    void creaUnaTarifa() throws Exception {
         FeeSchedule fee = FeeSchedule.builder()
                 .id(UUID.randomUUID())
                 .tipoTarifa("TRANSFER")

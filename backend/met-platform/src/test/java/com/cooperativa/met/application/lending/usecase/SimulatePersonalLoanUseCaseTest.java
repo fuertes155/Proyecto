@@ -31,7 +31,7 @@ class SimulatePersonalLoanUseCaseTest {
     }
 
     @Test
-    void shouldSimulateLoan() {
+    void simulaElCredito() {
         SimulateLoanRequest request = new SimulateLoanRequest(new BigDecimal("1000000"), 12);
 
         LoanSimulationResponse response = new LoanSimulationResponse(

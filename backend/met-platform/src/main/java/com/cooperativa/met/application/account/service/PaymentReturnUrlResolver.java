@@ -36,7 +36,7 @@ public class PaymentReturnUrlResolver {
             if (requestedReturnUrl.startsWith("https://met-platform.com") || requestedReturnUrl.startsWith("metapp://")) {
                 return requestedReturnUrl;
             }
-            log.warn("Blocked unvalidated redirect attempt to: {}", requestedReturnUrl);
+            log.warn("Se bloqueó una redirección no permitida hacia: {}", requestedReturnUrl);
         }
         return DEFAULT_DEEP_LINK + "?userId=" + userId;
     }

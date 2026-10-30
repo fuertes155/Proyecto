@@ -97,7 +97,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldDebitEarningsAndSendPayoutToTheRail() {
+    void debitaLasGananciasYEnviaElRetiroALaPasarela() {
         givenValidRequestUpToTheDebit(new BigDecimal("400000"));
         when(payoutGatewayPort.initiatePayout(any()))
                 .thenReturn(new PayoutGatewayResult("wompi-tx-77", PayoutGatewayResult.PayoutGatewayStatus.ACCEPTED, null, null));
@@ -131,7 +131,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldGiveTheMoneyBackWhenTheRailRejectsThePayout() {
+    void devuelveElDineroSiLaPasarelaRechazaElRetiro() {
         givenValidRequestUpToTheDebit(new BigDecimal("400000"));
         when(payoutGatewayPort.initiatePayout(any())).thenReturn(new PayoutGatewayResult(null,
                 PayoutGatewayResult.PayoutGatewayStatus.REJECTED, "ACCOUNT_CLOSED", "La cuenta destino está cerrada"));
@@ -151,7 +151,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldGiveTheMoneyBackWhenTheRailCannotBeReached() {
+    void devuelveElDineroSiNoSeLograContactarLaPasarela() {
         givenValidRequestUpToTheDebit(new BigDecimal("400000"));
         when(payoutGatewayPort.initiatePayout(any())).thenThrow(new IllegalStateException("timeout"));
 
@@ -163,7 +163,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldOnlyAllowWithdrawingEarningsNotCapital() {
+    void soloPermiteRetirarGananciasNoCapital() {
         givenValidRequestUpToTheDebit(new BigDecimal("100000"));
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -176,7 +176,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldFreeTheIdempotencyKeyWhenTheOtpIsStillMissing() {
+    void liberaLaLlaveDeIdempotenciaSiAunFaltaElOtp() {
         // La app envía primero sin código, recibe OTP_REQUIRED y reenvía con el código y la misma
         // clave: si la clave quedara tomada, el segundo envío respondería CONCURRENT_REQUEST.
         givenIdempotencyKeyIsFree();
@@ -194,7 +194,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldRefuseToPayIntoSomeoneElsesBankAccount() {
+    void rechazaPagarALaCuentaBancariaDeOtro() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.APPROVED);
         givenValidPin();
@@ -211,7 +211,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldStopOnWrongPin() {
+    void seDetieneConPinErrado() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.APPROVED);
         when(encryptionPort.decryptRsa("rsa(pin)")).thenReturn("0000");
@@ -227,7 +227,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldTreatUndecryptablePinAsWrongPin() {
+    void tomaComoErradoUnPinQueNoSePuedeDescifrar() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.APPROVED);
         when(encryptionPort.decryptRsa("rsa(pin)")).thenThrow(new IllegalArgumentException("padding"));
@@ -239,7 +239,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldStopOnWrongOtpBeforeMovingMoney() {
+    void seDetieneConOtpErradoAntesDeMoverDinero() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.APPROVED);
         givenValidPin();
@@ -254,7 +254,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldRequireOtp() {
+    void exigeOtp() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.APPROVED);
         givenValidPin();
@@ -268,7 +268,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldRequireApprovedKyc() {
+    void exigeKycAprobado() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.PENDING);
 
@@ -280,7 +280,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldRefuseRejectedOrDeactivatedBankAccount() {
+    void rechazaCuentaBancariaRechazadaODesactivada() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.APPROVED);
         givenValidPin();
@@ -294,7 +294,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldRefuseBankNotYetMappedToTheRail() {
+    void rechazaUnBancoQueAunNoEstaEnLaPasarela() {
         givenIdempotencyKeyIsFree();
         givenUser(KycStatus.APPROVED);
         givenValidPin();
@@ -309,7 +309,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldIgnoreARepeatedRequestThatAlreadyCompleted() {
+    void ignoraUnaPeticionRepetidaQueYaTermino() {
         when(idempotencyService.tryAcquire("idem-1")).thenReturn(false);
         when(idempotencyService.getResult("idem-1")).thenReturn(Optional.of("tx-previo"));
 
@@ -319,7 +319,7 @@ class ExecuteExternalPayoutUseCaseTest {
     }
 
     @Test
-    void shouldRejectARepeatedRequestStillInProgress() {
+    void rechazaUnaPeticionRepetidaQueSigueEnCurso() {
         when(idempotencyService.tryAcquire("idem-1")).thenReturn(false);
         when(idempotencyService.getResult("idem-1")).thenReturn(Optional.empty());
 

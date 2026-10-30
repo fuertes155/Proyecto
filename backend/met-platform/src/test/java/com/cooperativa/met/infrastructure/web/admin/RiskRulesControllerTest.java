@@ -44,7 +44,7 @@ class RiskRulesControllerTest {
 
     @Test
     @WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000", roles = {"ADMIN"})
-    void shouldGetAllRiskRules() throws Exception {
+    void consultaTodasLasReglasDeRiesgo() throws Exception {
         RiskRule rule = RiskRule.builder()
                 .id(UUID.randomUUID())
                 .nombre("MAX_DAILY_AMOUNT")
@@ -74,7 +74,7 @@ class RiskRulesControllerTest {
     }
 
     @Test
-    void shouldCreateRiskRule() throws Exception {
+    void creaUnaReglaDeRiesgo() throws Exception {
         RiskRule rule = RiskRule.builder()
                 .id(UUID.randomUUID())
                 .nombre("MAX_TX")
@@ -100,7 +100,7 @@ class RiskRulesControllerTest {
     }
 
     @Test
-    void shouldToggleRiskRule() throws Exception {
+    void activaODesactivaUnaReglaDeRiesgo() throws Exception {
         UUID ruleId = UUID.randomUUID();
         RiskRule rule = RiskRule.builder()
                 .id(ruleId)

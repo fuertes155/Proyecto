@@ -55,7 +55,7 @@ class IdentityCompliancePersistenceIntegrationTest {
     @Autowired private NotificationRepositoryPort notificationRepository;
 
     @Test
-    void shouldFindUsersByTheirEncryptedDocumentAndByContactData() {
+    void encuentraUsuariosPorSuDocumentoCifradoYPorSusDatosDeContacto() {
         String document = String.valueOf(ThreadLocalRandom.current().nextLong(1_000_000_000L, 9_999_999_999L));
         String phone = "300" + document.substring(0, 7);
         User saved = userRepository.save(user(document, document + "@example.com", phone));
@@ -71,7 +71,7 @@ class IdentityCompliancePersistenceIntegrationTest {
     }
 
     @Test
-    void shouldReturnTheLatestBiometricRegistration() {
+    void devuelveElRegistroBiometricoMasReciente() {
         UUID userId = UUID.randomUUID();
         biometricPort.save(biometric(userId, Instant.now().minus(Duration.ofDays(30))));
         BiometricRegistration latest = biometricPort.save(biometric(userId, Instant.now()));
@@ -80,7 +80,7 @@ class IdentityCompliancePersistenceIntegrationTest {
     }
 
     @Test
-    void shouldKeepScreeningHistoryAndListMatches() {
+    void conservaElHistorialDeConsultasYListaLasCoincidencias() {
         UUID userId = UUID.randomUUID();
         complianceCheckPort.persistCheck(userId, ComplianceListType.OFAC, ComplianceResult.MATCH, "{\"score\":0.91}");
         complianceCheckPort.persistCheck(userId, ComplianceListType.ONU, ComplianceResult.CLEAR, null);
@@ -91,7 +91,7 @@ class IdentityCompliancePersistenceIntegrationTest {
     }
 
     @Test
-    void shouldQueueAlertsByStatusForTheComplianceOfficer() {
+    void agrupaLasAlertasPorEstadoParaElOficialDeCumplimiento() {
         UUID userId = UUID.randomUUID();
         ComplianceAlert open = alertRepository.save(alert(userId, AlertStatus.OPEN));
         alertRepository.save(alert(userId, AlertStatus.DISMISSED));
@@ -106,7 +106,7 @@ class IdentityCompliancePersistenceIntegrationTest {
     }
 
     @Test
-    void shouldFindRegulatoryReportsByTypeAndPeriod() {
+    void encuentraReportesRegulatoriosPorTipoYPeriodo() {
         int year = 2000 + ThreadLocalRandom.current().nextInt(50);
         RegulatoryReport saved = reportPort.save(RegulatoryReport.builder()
                 .id(UUID.randomUUID()).reportType(SupersolidariaReportType.CREDITO_PERSONAL).periodYear(year).periodMonth(7)
@@ -121,7 +121,7 @@ class IdentityCompliancePersistenceIntegrationTest {
     }
 
     @Test
-    void shouldReplaceARestrictiveListCompletely() {
+    void reemplazaUnaListaRestrictivaCompleta() {
         restrictiveListRepository.deleteByListType(ComplianceListType.ONU);
         restrictiveListRepository.saveAll(List.of(entry("SANCIONADO UNO"), entry("SANCIONADO DOS")));
         assertEquals(2, restrictiveListRepository.countByListType(ComplianceListType.ONU));
@@ -132,7 +132,7 @@ class IdentityCompliancePersistenceIntegrationTest {
     }
 
     @Test
-    void shouldCountOnlyUnreadNotificationsOfTheUser() {
+    void cuentaSoloLasNotificacionesNoLeidasDelUsuario() {
         UUID userId = UUID.randomUUID();
         Notification unread = notificationRepository.save(notification(userId, false, LocalDateTime.now()));
         notificationRepository.save(notification(userId, true, LocalDateTime.now().minusDays(1)));

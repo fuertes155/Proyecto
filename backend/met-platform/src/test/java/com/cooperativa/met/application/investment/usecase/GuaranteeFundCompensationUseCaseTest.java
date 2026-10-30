@@ -69,7 +69,7 @@ class GuaranteeFundCompensationUseCaseTest {
     }
 
     @Test
-    void shouldCoverSeventyPercentSplitByHowMuchEachInvestorFunded() {
+    void cubreElSetentaPorCientoRepartidoSegunLoQueFinancioCadaInversionista() {
         // A aportó 30.000 en dos fracciones y B 10.000: A recibe el 75% de la cobertura y B el 25%.
         givenFractions(fraction(investorA, "20000"), fraction(investorA, "10000"), fraction(investorB, "10000"));
         when(fundPort.getBalance()).thenReturn(new BigDecimal("5000000"));
@@ -94,7 +94,7 @@ class GuaranteeFundCompensationUseCaseTest {
     }
 
     @Test
-    void shouldPayOnlyWhatTheFundHasWithoutLosingCentsInTheSplit() {
+    void pagaSoloLoQueTieneElFondoSinPerderCentavosAlRepartir() {
         givenFractions(fraction(investorA, "10000"), fraction(investorB, "20000"));
         when(fundPort.getBalance()).thenReturn(new BigDecimal("1000.00"));
         givenInvestorAccounts();
@@ -106,7 +106,7 @@ class GuaranteeFundCompensationUseCaseTest {
     }
 
     @Test
-    void shouldLeaveInvestorsUncoveredWhenTheFundIsEmpty() {
+    void dejaSinCoberturaALosInversionistasSiElFondoEstaVacio() {
         givenFractions(fraction(investorA, "10000"));
         when(fundPort.getBalance()).thenReturn(BigDecimal.ZERO);
 
@@ -117,7 +117,7 @@ class GuaranteeFundCompensationUseCaseTest {
     }
 
     @Test
-    void shouldDoNothingForLoansWithoutInvestors() {
+    void noHaceNadaConCreditosSinInversionistas() {
         when(matchPort.findByBorrowerLoanId(loanId)).thenReturn(List.of());
 
         compensationUseCase.compensate(loan(), lateInstallment("90000", "10000"));

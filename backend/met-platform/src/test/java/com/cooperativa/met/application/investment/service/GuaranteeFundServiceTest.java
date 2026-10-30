@@ -34,7 +34,7 @@ class GuaranteeFundServiceTest {
     }
 
     @Test
-    void contribute_recordsAContributionMovement() {
+    void aportarRegistraUnMovimientoDeAporte() {
         UUID reference = UUID.randomUUID();
 
         service.contribute(new BigDecimal("15000.00"), "FGA - desembolso", reference);
@@ -46,7 +46,7 @@ class GuaranteeFundServiceTest {
     }
 
     @Test
-    void coverDefault_coversFullyWhenFundHasEnoughBalance() {
+    void cubrirMoraCubreTodoSiElFondoTieneSaldoSuficiente() {
         when(fundPort.getBalance()).thenReturn(new BigDecimal("1000000.00"));
 
         BigDecimal covered = service.coverDefault(new BigDecimal("100000.00"), new BigDecimal("0.70"),
@@ -58,7 +58,7 @@ class GuaranteeFundServiceTest {
     }
 
     @Test
-    void coverDefault_neverExceedsAvailableBalance_evenIfCoverageRatioAllowsMore() {
+    void cubrirMoraNuncaSuperaElSaldoDisponibleAunqueLaCoberturaPermitaMas() {
         when(fundPort.getBalance()).thenReturn(new BigDecimal("30000.00"));
 
         BigDecimal covered = service.coverDefault(new BigDecimal("100000.00"), new BigDecimal("0.70"),
@@ -69,7 +69,7 @@ class GuaranteeFundServiceTest {
     }
 
     @Test
-    void coverDefault_returnsZeroAndDoesNotRecordMovement_whenFundIsEmpty() {
+    void cubrirMoraDevuelveCeroYNoRegistraMovimientoSiElFondoEstaVacio() {
         when(fundPort.getBalance()).thenReturn(BigDecimal.ZERO);
 
         BigDecimal covered = service.coverDefault(new BigDecimal("100000.00"), new BigDecimal("0.70"),
@@ -80,7 +80,7 @@ class GuaranteeFundServiceTest {
     }
 
     @Test
-    void coverDefault_neverCovers100Percent_capReflectedInResult() {
+    void cubrirMoraNuncaCubreElCienPorCientoYElTopeSeVeEnElResultado() {
         when(fundPort.getBalance()).thenReturn(new BigDecimal("1000000.00"));
 
         BigDecimal covered = service.coverDefault(new BigDecimal("100000.00"), new BigDecimal("1.00"),

@@ -33,7 +33,7 @@ class WompiReturnControllerTest {
     private ApplicationContext context;
 
     @Test
-    void returnPageIsPublicStaticAndHasItsOwnCsp() throws Exception {
+    void laPaginaDeRetornoEsPublicaEstaticaYTieneSuPropiaCsp() throws Exception {
         mockMvc.perform(get("/v1/payments/wompi/return").servletPath("/v1/payments/wompi/return")
                         .param("id", "<script>alert(1)</script>"))
                 .andExpect(status().isOk())
@@ -44,7 +44,7 @@ class WompiReturnControllerTest {
     }
 
     @Test
-    void signedWompiEventPassesTheSecurityFiltersWithoutJwt() throws Exception {
+    void unEventoFirmadoDeWompiPasaLosFiltrosDeSeguridadSinJwt() throws Exception {
         // Firmado con met.wompi.webhook-secret de application-test.yml:
         // printf '%s' "tx-42DECLINED50000001735000000test-webhook-secret" | sha256sum
         String declinedEvent = """
@@ -68,7 +68,7 @@ class WompiReturnControllerTest {
     }
 
     @Test
-    void realWompiAdaptersAreWiredByDefault() {
+    void losAdaptadoresRealesDeWompiSeConectanPorDefecto() {
         assertInstanceOf(WompiPseAdapter.class, context.getBean(PseGatewayPort.class));
         assertInstanceOf(WompiPayoutAdapter.class, context.getBean(PayoutGatewayPort.class));
     }

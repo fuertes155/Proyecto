@@ -51,7 +51,7 @@ class EmergencyLockUseCaseTest {
     }
 
     @Test
-    void shouldSuspendUserCloseTheirSessionsAndAuditBeforeAndAfter() {
+    void suspendeAlUsuarioCierraSusSesionesYAuditaAntesYDespues() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).status(UserStatus.ACTIVE).build()));
 
         emergencyLockUseCase.execute(adminId, new EmergencyLockRequest(userId.toString(), "user", "Celular robado"), IP);
@@ -70,7 +70,7 @@ class EmergencyLockUseCaseTest {
     }
 
     @Test
-    void shouldOnlyRevokeSessionsForAccessTokenScope() {
+    void soloRevocaSesionesConElAlcanceDeToken() {
         emergencyLockUseCase.execute(adminId, new EmergencyLockRequest(userId.toString(), "ACCESS_TOKEN", "Sesión sospechosa"), IP);
 
         verify(refreshTokenRepository).revokeAllByUserId(userId);
@@ -79,7 +79,7 @@ class EmergencyLockUseCaseTest {
     }
 
     @Test
-    void shouldRejectUnsupportedScope() {
+    void rechazaUnAlcanceNoSoportado() {
         // El DTO documenta CARD, pero no está implementado: debe fallar explícitamente, no "hacer nada".
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () ->
                 emergencyLockUseCase.execute(adminId, new EmergencyLockRequest(userId.toString(), "CARD", "x"), IP));
@@ -89,7 +89,7 @@ class EmergencyLockUseCaseTest {
     }
 
     @Test
-    void shouldRejectMalformedTargetId() {
+    void rechazaUnIdentificadorMalFormado() {
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () ->
                 emergencyLockUseCase.execute(adminId, new EmergencyLockRequest("no-es-un-uuid", "USER", "x"), IP));
 
@@ -98,7 +98,7 @@ class EmergencyLockUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownUserWithoutAuditingALockThatDidNotHappen() {
+    void fallaConUsuarioDesconocidoSinAuditarUnBloqueoQueNoOcurrio() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->

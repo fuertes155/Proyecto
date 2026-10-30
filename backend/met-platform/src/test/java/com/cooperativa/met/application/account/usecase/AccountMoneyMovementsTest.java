@@ -17,6 +17,7 @@ import com.cooperativa.met.domain.bank.port.PseTransactionRequest;
 import com.cooperativa.met.domain.bank.port.PseTransactionResult;
 import com.cooperativa.met.domain.common.exception.BusinessRuleException;
 import com.cooperativa.met.domain.identity.model.DocumentType;
+import com.cooperativa.met.domain.identity.model.KycStatus;
 import com.cooperativa.met.domain.identity.model.User;
 import com.cooperativa.met.domain.identity.port.UserRepositoryPort;
 import com.cooperativa.met.infrastructure.persistence.webhook.entity.ProcessedWebhookJpaEntity;
@@ -63,7 +64,7 @@ class AccountMoneyMovementsTest {
     private final UUID accountId = UUID.randomUUID();
 
     @Test
-    void shouldRejectTransferAbovePerTransactionLimit() {
+    void rechazaTransferenciaQueSuperaElLimitePorTransaccion() {
         TransferLimitService limits = new TransferLimitService(transactionRepository);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -74,7 +75,7 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldRejectTransferThatWouldExceedTheDailyLimit() {
+    void rechazaTransferenciaQueSuperariaElLimiteDiario() {
         TransferLimitService limits = new TransferLimitService(transactionRepository);
         when(transactionRepository.sumOutgoingTransfersByAccountIdAndDateRange(eq(accountId), any(), any()))
                 .thenReturn(new BigDecimal("4900000.00"));
@@ -86,7 +87,7 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldAllowSmallTransfersAtAnyHour() {
+    void permiteTransferenciasPequenasACualquierHora() {
         TransferLimitService limits = new TransferLimitService(transactionRepository);
         when(transactionRepository.sumOutgoingTransfersByAccountIdAndDateRange(eq(accountId), any(), any())).thenReturn(BigDecimal.ZERO);
 
@@ -94,7 +95,7 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldBlockLargeTransfersAtNightWithTheTimeVault() {
+    void bloqueaTransferenciasGrandesDeNocheConLaBovedaDeTiempo() {
         // La "bóveda de tiempo" depende de la hora real de Bogotá: este caso solo se puede verificar de 00:00 a 06:00.
         assumeTrue(ZonedDateTime.now(ZoneId.of("America/Bogota")).getHour() < 6, "solo aplica en la madrugada");
         TransferLimitService limits = new TransferLimitService(transactionRepository);
@@ -107,7 +108,7 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldRetryReversalOnConcurrentUpdateUntilItSucceeds() {
+    void reintentaLaReversionAnteUnCambioSimultaneoHastaLograrla() {
         AccountReversalService reversal = new AccountReversalService(accountRepository);
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account()));
         when(accountRepository.save(any()))
@@ -121,7 +122,7 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldGiveUpAfterThreeConflictsSoTheReversalIsReconciledByHand() {
+    void desisteTrasTresConflictosParaConciliarLaReversionAMano() {
         AccountReversalService reversal = new AccountReversalService(accountRepository);
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account()));
         when(accountRepository.save(any())).thenThrow(new OptimisticLockingFailureException("conflicto"));
@@ -132,11 +133,12 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldStartPseTopUpWithTheUsersOwnData() {
+    void iniciaLaRecargaPseConLosDatosDelPropioSocio() {
         CreateNativePseDepositUseCase pse = pseUseCase();
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(account()));
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).firstName(" Ana ").lastName("Pérez")
-                .email("socio@example.com").phone("3001234567").documentType(DocumentType.CC).documentNumber("1086578123").build()));
+                .email("socio@example.com").phone("3001234567").documentType(DocumentType.CC).documentNumber("1086578123")
+                .kycStatus(KycStatus.APPROVED).build()));
         when(bankRepository.findByCode("1007")).thenReturn(Optional.of(bank("1007", true, "1040")));
         when(returnUrlResolver.resolve(userId, "metapp://deposito")).thenReturn("https://met.app/retorno");
         when(pseGatewayPort.createPseTransaction(any())).thenReturn(new PseTransactionResult("wompi-1", "https://banco/pse", "PENDING"));
@@ -153,10 +155,10 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldRefusePseWithBanksThatAreNotReady() {
+    void rechazaPseConBancosQueNoEstanListos() {
         CreateNativePseDepositUseCase pse = pseUseCase();
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(account()));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).build()));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).kycStatus(KycStatus.APPROVED).build()));
         when(bankRepository.findByCode("0001")).thenReturn(Optional.of(bank("0001", false, "1")));
         when(bankRepository.findByCode("0002")).thenReturn(Optional.of(bank("0002", true, "")));
         when(bankRepository.findByCode("0003")).thenReturn(Optional.empty());
@@ -168,7 +170,18 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldRefusePseForInactiveAccount() {
+    void rechazaPseSiLaIdentidadAunNoEstaAprobada() {
+        // El webhook no podría acreditarle: no se debe crear el cobro en Wompi.
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(account()));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).kycStatus(KycStatus.IN_REVIEW).build()));
+
+        assertEquals("KYC_REQUIRED", assertThrows(BusinessRuleException.class,
+                () -> pseUseCase().execute(userId, pseRequest("1007"))).getCode());
+        verifyNoInteractions(pseGatewayPort);
+    }
+
+    @Test
+    void rechazaPseConCuentaInactiva() {
         when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(account().toBuilder().status(AccountStatus.BLOCKED).build()));
 
         assertEquals("DEP_ERR_03", assertThrows(BusinessRuleException.class,
@@ -176,7 +189,7 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldCreditDepositFromWebhookOnlyOnce() {
+    void acreditaElDepositoDelAvisoDePagoUnaSolaVez() {
         ProcessWebhookUseCase webhook = new ProcessWebhookUseCase(processedWebhookRepository, depositUseCase);
         when(processedWebhookRepository.existsById("wompi-1")).thenReturn(false, true);
 
@@ -190,7 +203,7 @@ class AccountMoneyMovementsTest {
     }
 
     @Test
-    void shouldNotCreditWhenAnotherThreadAlreadyClaimedTheWebhook() {
+    void noAcreditaSiOtroHiloYaTomoElAvisoDePago() {
         ProcessWebhookUseCase webhook = new ProcessWebhookUseCase(processedWebhookRepository, depositUseCase);
         when(processedWebhookRepository.saveAndFlush(any())).thenThrow(new DataIntegrityViolationException("duplicate key"));
 

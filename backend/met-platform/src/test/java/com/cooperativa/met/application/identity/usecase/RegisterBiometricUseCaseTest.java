@@ -66,7 +66,7 @@ class RegisterBiometricUseCaseTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void shouldApproveKycAndOpenAnEmptyAccountWhenEverythingChecksOut() {
+    void apruebaElKycYAbreUnaCuentaVaciaSiTodoCuadra() {
         givenUser(KycStatus.PENDING);
         when(complianceCheckPort.checkUser(eq(userId), any())).thenReturn(ComplianceResult.CLEAR);
         when(encryptionPort.encrypt(anyString())).thenAnswer(inv -> "enc:" + inv.getArgument(0));
@@ -96,7 +96,7 @@ class RegisterBiometricUseCaseTest {
     }
 
     @Test
-    void shouldBlockUserAndStopOnRestrictiveListMatch() {
+    void bloqueaAlUsuarioYSeDetieneSiApareceEnListasRestrictivas() {
         givenUser(KycStatus.PENDING);
         when(complianceCheckPort.checkUser(userId, ComplianceListType.SARLAFT)).thenReturn(ComplianceResult.MATCH);
 
@@ -111,7 +111,7 @@ class RegisterBiometricUseCaseTest {
     }
 
     @Test
-    void shouldRejectPdfDisguisedAsPhoto() {
+    void rechazaUnPdfDisfrazadoDeFoto() {
         givenUser(KycStatus.PENDING);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -123,7 +123,7 @@ class RegisterBiometricUseCaseTest {
     }
 
     @Test
-    void shouldRejectTextThatIsNotBase64() {
+    void rechazaTextoQueNoEsBase64() {
         givenUser(KycStatus.PENDING);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
@@ -134,7 +134,7 @@ class RegisterBiometricUseCaseTest {
     }
 
     @Test
-    void shouldNotRunKycTwice() {
+    void noHaceElKycDosVeces() {
         givenUser(KycStatus.APPROVED);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,

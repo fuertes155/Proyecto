@@ -57,7 +57,7 @@ class UpdatePinUseCaseTest {
     }
 
     @Test
-    void shouldReplacePinHashWhenCurrentPinIsCorrect() {
+    void reemplazaElHashDelPinSiElPinActualEsCorrecto() {
         givenUser();
         givenDecryptedPins();
         when(encryptionPort.verifyPin("1234", "old-hash")).thenReturn(true);
@@ -73,7 +73,7 @@ class UpdatePinUseCaseTest {
     }
 
     @Test
-    void shouldCountFailedAttemptAndKeepOldPinWhenCurrentPinIsWrong() {
+    void cuentaElIntentoFallidoYConservaElPinSiElActualEsErrado() {
         givenUser();
         givenDecryptedPins();
         when(encryptionPort.verifyPin("1234", "old-hash")).thenReturn(false);
@@ -89,7 +89,7 @@ class UpdatePinUseCaseTest {
     }
 
     @Test
-    void shouldNotEvenCheckThePinWhileUserIsBlockedForFailedAttempts() {
+    void niSiquieraRevisaElPinMientrasElUsuarioEstaBloqueado() {
         givenUser();
         doThrow(new BusinessRuleException("ACCOUNT_LOCKED", "Bloqueado"))
                 .when(pinAttemptService).checkBlocked(userId);
@@ -103,7 +103,7 @@ class UpdatePinUseCaseTest {
     }
 
     @Test
-    void shouldRejectPinThatCannotBeDecryptedWithoutCountingItAsWrongPin() {
+    void rechazaUnPinQueNoSePuedeDescifrarSinContarloComoErrado() {
         givenUser();
         when(encryptionPort.decryptRsa(anyString())).thenThrow(new IllegalStateException("bad padding"));
 
@@ -118,7 +118,7 @@ class UpdatePinUseCaseTest {
     }
 
     @Test
-    void shouldFailForUnknownUser() {
+    void fallaConUnUsuarioDesconocido() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> updatePinUseCase.execute(userId, request));

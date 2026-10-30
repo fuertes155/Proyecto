@@ -61,7 +61,7 @@ public class WompiPayoutAdapter implements PayoutGatewayPort {
                     .filter(Objects::nonNull)
                     .toList();
         } catch (Exception e) {
-            log.error("Error consultando catálogo de bancos en Wompi Payouts: {}", e.getMessage(), e);
+            log.error("Error consultando el catálogo de bancos de Wompi (Pagos a Terceros): {}", e.getMessage(), e);
             throw new BusinessRuleException("WOMPI_BANKS_UNAVAILABLE",
                     "No fue posible consultar el catálogo de bancos del proveedor de pagos");
         }
@@ -106,7 +106,7 @@ public class WompiPayoutAdapter implements PayoutGatewayPort {
                     ? response.get("id").toString()
                     : request.reference();
 
-            log.info("Payout {} aceptado por Wompi para procesamiento, railReference={}",
+            log.info("Retiro {} aceptado por Wompi para procesar, referencia del riel={}",
                     request.internalPayoutId(), railReference);
             return new PayoutGatewayResult(railReference, PayoutGatewayResult.PayoutGatewayStatus.ACCEPTED, null, null);
 
