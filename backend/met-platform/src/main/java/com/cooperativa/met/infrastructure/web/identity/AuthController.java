@@ -112,7 +112,8 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(
-            @org.springframework.web.bind.annotation.RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+            @org.springframework.web.bind.annotation.RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+            String authorization
     ) {
         // Esperado: Authorization: Bearer <refreshToken>
         if (authorization == null || !authorization.startsWith("Bearer ")) {

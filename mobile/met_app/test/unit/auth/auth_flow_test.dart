@@ -111,6 +111,8 @@ void main() {
 
   group('Cuenta', () {
     test('registra al socio con el PIN cifrado', () async {
+      // El linter sugiere const, pero un mapa const no admite repetir las claves de _user que aquí se sobrescriben.
+      // ignore: prefer_const_constructors
       server.on('POST', '/v1/auth/register', FakeResponse({..._user, 'status': 'PENDING_VERIFICATION'}));
 
       final user = await auth.register(RegisterRequest(
@@ -146,7 +148,9 @@ void main() {
     test('lee y actualiza el perfil y las notificaciones', () async {
       server
         ..on('GET', '/v1/auth/me', const FakeResponse(_user))
+        // ignore: prefer_const_constructors
         ..on('PUT', '/v1/auth/me', FakeResponse({..._user, 'email': 'nuevo@example.com'}))
+        // ignore: prefer_const_constructors
         ..on('PUT', '/v1/auth/notifications', FakeResponse({..._user, 'pushNotificationsEnabled': true}));
 
       expect((await auth.getProfile()).firstName, 'Ana');

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
+import '../router/app_router.dart';
 import '../storage/secure_storage_service.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
@@ -11,7 +11,11 @@ import '../../features/auth/presentation/providers/auth_provider.dart';
 class InactivityDetector extends ConsumerStatefulWidget {
   final Widget child;
 
-  const InactivityDetector({super.key, required this.child});
+  /// Reloj con el que se mide cuánto estuvo la app en segundo plano (las pruebas lo adelantan).
+  @visibleForTesting
+  final DateTime Function() now;
+
+  const InactivityDetector({super.key, required this.child, this.now = DateTime.now});
 
   @override
   ConsumerState<InactivityDetector> createState() => _InactivityDetectorState();
@@ -46,7 +50,7 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       if (_pausedAt != null) {
-        final backgroundDuration = DateTime.now().difference(_pausedAt!);
+        final backgroundDuration = widget.now().difference(_pausedAt!);
         if (backgroundDuration > _backgroundLockDuration) {
           _requireBiometrics();
         }
@@ -54,7 +58,7 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector>
       _pausedAt = null;
       _checkIfSessionExpired();
     } else if (state == AppLifecycleState.paused) {
-      _pausedAt = DateTime.now();
+      _pausedAt = widget.now();
       _saveLastActivity();
       _inactivityTimer?.cancel();
     }
@@ -135,7 +139,9 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector>
           duration: Duration(seconds: 4),
         ),
       );
-      context.go('/login');
+      // Este widget envuelve al enrutador (builder de MaterialApp.router), así que GoRouter no está
+      // en su context: se navega con la instancia de la app.
+      ref.read(appRouterProvider).go('/login');
     }
   }
 

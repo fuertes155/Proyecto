@@ -102,6 +102,8 @@ void main() {
   });
 
   testWidgets('lleva al registro biométrico si la identidad aún no se verificó', (tester) async {
+    // El linter sugiere const, pero un mapa const no admite repetir las claves de _user que aquí se sobrescriben.
+    // ignore: prefer_const_constructors
     server.on('GET', '/v1/auth/me', FakeResponse({..._user, 'kycStatus': 'PENDING'}));
     final router = await openLogin(tester);
 

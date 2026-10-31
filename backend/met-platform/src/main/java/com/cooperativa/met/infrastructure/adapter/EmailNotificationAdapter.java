@@ -2,6 +2,7 @@ package com.cooperativa.met.infrastructure.adapter;
 
 import com.cooperativa.met.domain.identity.port.NotificationPort;
 import com.cooperativa.met.domain.notification.port.EmailSenderPort;
+import com.cooperativa.met.infrastructure.security.PinAttemptService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,8 +25,9 @@ public class EmailNotificationAdapter implements NotificationPort {
                 email,
                 "Cuenta Bloqueada",
                 "Hola,\n\n" +
-                "Tu cuenta ha sido bloqueada tras 3 intentos fallidos de inicio de sesión.\n\n" +
-                "Por favor, contacta a soporte para desbloquearla.\n\n" +
+                "Bloqueamos el ingreso a tu cuenta por " + PinAttemptService.BLOCK_DURATION.toMinutes() +
+                " minutos tras " + PinAttemptService.MAX_ATTEMPTS + " intentos fallidos con tu PIN.\n\n" +
+                "Pasado ese tiempo podrás volver a intentarlo. Si no fuiste tú, cambia tu PIN y contacta a soporte.\n\n" +
                 "Saludos,\nEquipo MET"
             );
             log.info("Correo de cuenta bloqueada enviado");

@@ -98,7 +98,7 @@ export default function SimulatorSection() {
                   Monto del crédito
                   <span className={styles.value}>{formatCOP(monto)}</span>
                 </label>
-                <input type="range" min={500000} max={50000000} step={500000}
+                <input type="range" aria-label="Monto del crédito" min={500000} max={50000000} step={500000}
                   value={monto} onChange={(e) => setMonto(+e.target.value)} className={styles.range} />
                 <div className={styles.rangeLabels}><span>{formatCOP(500000)}</span><span>{formatCOP(50000000)}</span></div>
               </div>
@@ -108,7 +108,7 @@ export default function SimulatorSection() {
                   Plazo
                   <span className={styles.value}>{plazo} meses</span>
                 </label>
-                <input type="range" min={6} max={60} step={6}
+                <input type="range" aria-label="Plazo en meses" min={6} max={60} step={6}
                   value={plazo} onChange={(e) => setPlazo(+e.target.value)} className={styles.range} />
                 <div className={styles.rangeLabels}><span>6 meses</span><span>60 meses</span></div>
               </div>
@@ -159,7 +159,7 @@ export default function SimulatorSection() {
                   Aporte mensual
                   <span className={styles.value}>{formatCOP(aporte)}</span>
                 </label>
-                <input type="range" min={50000} max={5000000} step={50000}
+                <input type="range" aria-label="Aporte mensual" min={50000} max={5000000} step={50000}
                   value={aporte} onChange={(e) => setAporte(+e.target.value)} className={styles.range} />
                 <div className={styles.rangeLabels}><span>{formatCOP(50000)}</span><span>{formatCOP(5000000)}</span></div>
               </div>
@@ -169,7 +169,7 @@ export default function SimulatorSection() {
                   Período
                   <span className={styles.value}>{meses} meses</span>
                 </label>
-                <input type="range" min={3} max={36} step={3}
+                <input type="range" aria-label="Período en meses" min={3} max={36} step={3}
                   value={meses} onChange={(e) => setMeses(+e.target.value)} className={styles.range} />
                 <div className={styles.rangeLabels}><span>3 meses</span><span>36 meses</span></div>
               </div>

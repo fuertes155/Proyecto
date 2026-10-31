@@ -15,5 +15,11 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     css: true,
     exclude: ['node_modules', '.next', 'e2e'],
+    coverage: {
+      // Todo el código de la web, aunque ninguna prueba lo cargue; los estilos (.css) no son código
+      // que se pueda probar y antes aparecían en el reporte con 0 %.
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}'],
+    },
   },
 });

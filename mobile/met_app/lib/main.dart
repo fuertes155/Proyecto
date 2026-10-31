@@ -41,7 +41,7 @@ Future<void> main() async {
     try {
       await Firebase.initializeApp();
     } catch (e) {
-      debugPrint("Firebase init error: $e");
+      debugPrint("Error al iniciar Firebase: $e");
     }
   } else {
     debugPrint(
@@ -130,7 +130,7 @@ class _MetAppState extends ConsumerState<MetApp> {
         try {
           ref.read(pushNotificationServiceProvider).initialize();
         } catch (e) {
-          debugPrint("Push notification init error (likely test env): $e");
+          debugPrint("Error al iniciar las notificaciones push (probablemente entorno de pruebas): $e");
         }
       });
     }

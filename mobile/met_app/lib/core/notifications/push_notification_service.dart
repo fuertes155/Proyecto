@@ -32,9 +32,9 @@ class PushNotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      log('User granted permission');
+      log('El socio dio permiso para las notificaciones');
     } else {
-      log('User declined or has not accepted permission');
+      log('El socio no dio permiso para las notificaciones');
       return; // Si no aceptan, no seguimos.
     }
 
@@ -67,7 +67,7 @@ class PushNotificationService {
     try {
       String? token = await _messaging.getToken();
       if (token != null) {
-        log('FCM Token: $token');
+        log('Token de notificaciones (FCM): $token');
         await _saveTokenToBackend(token);
       }
     } catch (e) {

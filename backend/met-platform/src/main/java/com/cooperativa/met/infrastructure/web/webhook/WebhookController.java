@@ -4,6 +4,7 @@ import com.cooperativa.met.application.account.usecase.ProcessWebhookUseCase;
 import com.cooperativa.met.infrastructure.adapter.wompi.WompiSignatures;
 import com.cooperativa.met.infrastructure.persistence.webhook.repository.ProcessedWebhookJpaRepository;
 import com.cooperativa.met.infrastructure.web.webhook.dto.WompiWebhookPayload;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,10 @@ public class WebhookController {
             processWebhookPayload(rawPayload);
             return ResponseEntity.ok().build();
 
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            // Cuerpo que no es JSON o aviso sin event/data: lo envió mal quien llama, no falló el servidor.
+            log.warn("Aviso de pago mal formado: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("Error procesando el aviso de pago: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

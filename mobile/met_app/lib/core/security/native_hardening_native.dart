@@ -13,7 +13,7 @@ Future<void> applyNativeHardening() async {
       await FlutterWindowManagerPlus.addFlags(
           FlutterWindowManagerPlus.FLAG_SECURE);
     } catch (e) {
-      debugPrint('Error setting secure flag: $e');
+      debugPrint('Error activando la protección de pantalla (FLAG_SECURE): $e');
     }
   }
 
@@ -85,6 +85,6 @@ Future<void> applyNativeHardening() async {
   try {
     await Talsec.instance.start(config);
   } catch (e) {
-    debugPrint('freeRASP start error: $e');
+    debugPrint('Error al iniciar freeRASP: $e');
   }
 }

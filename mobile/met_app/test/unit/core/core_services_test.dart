@@ -243,7 +243,10 @@ void main() {
 
     test('actualiza perfil y notificaciones y deja pasar los errores a la pantalla', () async {
       server
+        // El linter sugiere const, pero un mapa const no admite repetir las claves de _user que aquí se sobrescriben.
+        // ignore: prefer_const_constructors
         ..on('PUT', '/v1/auth/me', FakeResponse({..._user, 'email': 'nuevo@example.com'}))
+        // ignore: prefer_const_constructors
         ..on('PUT', '/v1/auth/notifications', FakeResponse({..._user, 'emailNotificationsEnabled': false}))
         ..on('PUT', '/v1/auth/pin', const FakeResponse({'message': 'PIN actual incorrecto'}, status: 422));
 

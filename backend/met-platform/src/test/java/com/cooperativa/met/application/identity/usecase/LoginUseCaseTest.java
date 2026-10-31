@@ -122,6 +122,47 @@ class LoginUseCaseTest {
     }
 
     @Test
+    void avisaPorCorreoCuandoElPinErradoBloqueaLaCuenta() {
+        User user = activeUser().email("socio@correo.com").build();
+        when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
+        stubPinVerification(false);
+        doThrow(new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta ha sido bloqueada por 15 minutos."))
+                .when(pinAttemptService).checkAndRecordFailure(user.getId());
+
+        BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                () -> loginUseCase.execute(loginRequest("device-1"), "190.0.0.1"));
+
+        assertEquals("ACCOUNT_LOCKED", ex.getCode());
+        verify(notificationPort).sendAccountLockedEmail("socio@correo.com");
+    }
+
+    @Test
+    void noAvisaDelBloqueoPorUnPinErradoQueTodaviaNoBloquea() {
+        User user = activeUser().email("socio@correo.com").build();
+        when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
+        stubPinVerification(false);
+        doThrow(new BusinessRuleException("INVALID_PIN", "El PIN ingresado es incorrecto. Intento 2 de 5"))
+                .when(pinAttemptService).checkAndRecordFailure(user.getId());
+
+        assertThrows(BusinessRuleException.class, () -> loginUseCase.execute(loginRequest("device-1"), "190.0.0.1"));
+
+        verify(notificationPort, never()).sendAccountLockedEmail(any());
+    }
+
+    @Test
+    void sinCorreoRegistradoElBloqueoNoIntentaAvisar() {
+        User user = activeUser().build();
+        when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));
+        stubPinVerification(false);
+        doThrow(new BusinessRuleException("ACCOUNT_LOCKED", "Tu cuenta ha sido bloqueada por 15 minutos."))
+                .when(pinAttemptService).checkAndRecordFailure(user.getId());
+
+        assertThrows(BusinessRuleException.class, () -> loginUseCase.execute(loginRequest("device-1"), "190.0.0.1"));
+
+        verifyNoInteractions(notificationPort);
+    }
+
+    @Test
     void rechazaElIngresoSinRevisarElPinMientrasEstaBloqueado() {
         User user = activeUser().build();
         when(userRepository.findByDocument(DocumentType.CC, DOCUMENT)).thenReturn(Optional.of(user));

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Navbar from './Navbar';
 import FAQSection from './FAQSection';
@@ -20,6 +20,34 @@ describe('Navbar', () => {
     await user.click(mobileLinks[0]);
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.getAllByRole('link')).toHaveLength(linksBefore);
+  });
+
+  it('cambia de estilo al bajar por la página y vuelve al subir hasta arriba', () => {
+    render(<Navbar />);
+    const barra = screen.getByRole('banner');
+    const arriba = barra.className;
+
+    act(() => {
+      window.scrollY = 300;
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(barra.className).toMatch(/scrolled/);
+
+    act(() => {
+      window.scrollY = 0;
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(barra.className).toBe(arriba);
+  });
+
+  it('deja de escuchar el scroll al salir de la página', () => {
+    const quitar = vi.spyOn(window, 'removeEventListener');
+    const { unmount } = render(<Navbar />);
+
+    unmount();
+
+    expect(quitar).toHaveBeenCalledWith('scroll', expect.any(Function));
+    quitar.mockRestore();
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ContactSection from './ContactSection';
 
@@ -41,6 +41,30 @@ describe('ContactSection', () => {
 
     expect(await screen.findByText(/hubo un problema al enviar el mensaje/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText('¿En qué podemos ayudarte?')).toHaveValue('Quiero abrir una cuenta');
+  });
+
+  it('la confirmación desaparece a los 5 segundos y el formulario queda listo y vacío', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true })));
+      render(<ContactSection />);
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      await user.type(screen.getByPlaceholderText('Ej. Juan García'), 'Laura Gómez');
+      await user.type(screen.getByPlaceholderText('correo@ejemplo.com'), 'laura@example.com');
+      await user.type(screen.getByPlaceholderText('¿En qué podemos ayudarte?'), 'Quiero abrir una cuenta');
+      await user.click(screen.getByRole('button', { name: /enviar mensaje/i }));
+      expect(await screen.findByText('¡Mensaje enviado!')).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+
+      expect(screen.queryByText('¡Mensaje enviado!')).not.toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Ej. Juan García')).toHaveValue('');
+      expect(screen.getByPlaceholderText('¿En qué podemos ayudarte?')).toHaveValue('');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('sin conexión también avisa del problema', async () => {

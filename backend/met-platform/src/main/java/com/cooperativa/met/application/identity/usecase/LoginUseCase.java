@@ -72,7 +72,16 @@ public class LoginUseCase {
         log.debug("Resultado de la autenticación={} para userId={}", authenticated, user.getId());
 
         if (!authenticated) {
-            pinAttemptService.checkAndRecordFailure(user.getId()); // lanza INVALID_PIN o ACCOUNT_LOCKED
+            try {
+                pinAttemptService.checkAndRecordFailure(user.getId()); // lanza INVALID_PIN o ACCOUNT_LOCKED
+            } catch (BusinessRuleException e) {
+                // checkBlocked ya descartó un bloqueo anterior: este PIN errado es el que bloqueó la cuenta.
+                // Se avisa al socio por si no era él quien intentaba entrar.
+                if ("ACCOUNT_LOCKED".equals(e.getCode()) && user.hasEmail()) {
+                    notificationPort.sendAccountLockedEmail(user.getEmail());
+                }
+                throw e;
+            }
             // Red de seguridad: el login nunca continúa con un PIN incorrecto.
             throw new BusinessRuleException("INVALID_CREDENTIALS", "Credenciales inválidas");
         }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/home_page.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/biometric_registration_page.dart';
@@ -29,9 +30,20 @@ import '../../features/investment/presentation/pages/investment_breakdown_page.d
 import 'package:met/features/support/presentation/pages/chat_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 
+/// Rutas que se abren sin sesión iniciada; las demás muestran datos del socio.
+const publicRoutes = {'/', '/login', '/register', '/verify-email', '/auth/recover-pin'};
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    // Sin sesión, una ruta del socio (un enlace directo, volver atrás tras cerrar sesión) lleva al
+    // ingreso. Mientras la sesión carga no se redirige: el ingreso y la bienvenida la están armando.
+    redirect: (context, state) {
+      if (publicRoutes.contains(state.matchedLocation)) return null;
+      final auth = ref.read(authStateProvider);
+      if (auth.isLoading) return null;
+      return auth.valueOrNull == null ? '/login' : null;
+    },
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
@@ -42,7 +54,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return EmailVerificationPage(
-            documentType: extra?['documentType'] as String? ?? 'DNI',
+            documentType: extra?['documentType'] as String? ?? 'CC',
             documentNumber: extra?['documentNumber'] as String? ?? '',
           );
         },

@@ -22,13 +22,16 @@ import java.time.Duration;
  *
  * <p>El remitente ({@code met.mail.from-address}) debe estar verificado en
  * Brevo (Senders); sin dominio propio se verifica el correo suelto por email.
+ *
+ * <p>La URL de la API ({@code met.mail.brevo.endpoint}) solo se cambia en las pruebas, que
+ * apuntan a un servidor HTTP local en lugar de Brevo.
  */
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "met.mail.provider", havingValue = "brevo")
 public class BrevoEmailSender implements EmailSenderPort {
 
-    private static final URI ENDPOINT = URI.create("https://api.brevo.com/v3/smtp/email");
+    private static final String DEFAULT_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
 
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -38,11 +41,13 @@ public class BrevoEmailSender implements EmailSenderPort {
     private final String apiKey;
     private final String fromEmail;
     private final String fromName;
+    private final URI endpoint;
 
     public BrevoEmailSender(
             @Value("${met.mail.brevo.api-key:}") String apiKey,
             @Value("${met.mail.from-address}") String fromEmail,
-            @Value("${met.mail.from-name:MET}") String fromName) {
+            @Value("${met.mail.from-name:MET}") String fromName,
+            @Value("${met.mail.brevo.endpoint:" + DEFAULT_ENDPOINT + "}") String endpoint) {
 
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
@@ -51,6 +56,7 @@ public class BrevoEmailSender implements EmailSenderPort {
         this.apiKey = apiKey.trim();
         this.fromEmail = fromEmail;
         this.fromName = fromName;
+        this.endpoint = URI.create(endpoint);
         log.info("Proveedor de correo: Brevo (remitente {} <{}>)", fromName, fromEmail);
     }
 
@@ -63,7 +69,7 @@ public class BrevoEmailSender implements EmailSenderPort {
                 + "\"textContent\":" + jsonStr(body)
                 + "}";
 
-        HttpRequest request = HttpRequest.newBuilder(ENDPOINT)
+        HttpRequest request = HttpRequest.newBuilder(endpoint)
                 .timeout(Duration.ofSeconds(15))
                 .header("api-key", apiKey)
                 .header("content-type", "application/json")

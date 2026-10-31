@@ -13,11 +13,14 @@ class MoreActionsSheet {
 
     showModalBottomSheet(
       context: context,
+      // Sin esto la hoja se limita a 9/16 de la pantalla y en un celular de 844 px de alto la última
+      // fila de opciones quedaba cortada; así toma la altura de su contenido (y se desplaza si no cabe).
+      isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       showDragHandle: true,
       builder: (sheetContext) {
         return SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,

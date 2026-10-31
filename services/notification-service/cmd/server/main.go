@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -175,60 +176,89 @@ func secureCompare(a, b string) bool {
 // ---------------------------------------------------------------------------
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8090"
-	}
-
-	apiKey := os.Getenv("NOTIFICATION_API_KEY")
-	if apiKey == "" {
-		log.Fatal("NOTIFICATION_API_KEY no está configurada. El servicio no puede iniciarse sin una API Key.")
-	}
-
-	// Inicializar Firebase App (usando Application Default Credentials o un service_account.json)
-	ctx := context.Background()
-	var app *firebase.App
-	var err error
-
-	// FCM_OPTIONAL=true solo en desarrollo local: permite arrancar sin credenciales
-	// de Firebase. En producción la variable no se define y el fallo es fatal.
-	fcmOptional := os.Getenv("FCM_OPTIONAL") == "true"
-
-	credentialsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if credentialsFile != "" {
-		log.Printf("Inicializando Firebase con credenciales locales: %s", credentialsFile)
-		opt := option.WithCredentialsFile(credentialsFile)
-		app, err = firebase.NewApp(ctx, nil, opt)
-	} else {
-		log.Println("Inicializando Firebase usando Application Default Credentials (ADC)")
-		app, err = firebase.NewApp(ctx, nil)
-	}
-
-	var client MessagingClient
-	if err != nil {
-		if !fcmOptional {
-			log.Fatalf("Error al inicializar Firebase App: %v", err)
-		}
-		log.Printf("⚠️  Firebase no disponible (%v). FCM_OPTIONAL=true: los envíos push devolverán error.", err)
-		client = disabledMessagingClient{}
-	} else {
-		fcmClient, mErr := app.Messaging(ctx)
-		if mErr != nil {
-			if !fcmOptional {
-				log.Fatalf("Error al obtener el cliente FCM: %v", mErr)
-			}
-			log.Printf("⚠️  Cliente FCM no disponible (%v). FCM_OPTIONAL=true: los envíos push devolverán error.", mErr)
-			client = disabledMessagingClient{}
-		} else {
-			log.Println("Cliente FCM inicializado correctamente")
-			client = fcmClient
-		}
-	}
-
-	router := NewRouter(apiKey, client)
-
-	log.Printf("notification-service escuchando en :%s", port)
-	if err := router.Run(":" + port); err != nil {
+	serve := func(router *gin.Engine, addr string) error { return router.Run(addr) }
+	if err := run(os.Getenv, newFirebaseClient, serve); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// run arma el servicio y lo deja escuchando. Recibe sus dependencias (variables de entorno,
+// creación del cliente FCM y servidor HTTP) para poder probar el arranque sin Firebase ni red;
+// el error que devuelve es el que en main detiene el proceso.
+func run(getenv func(string) string, newFCM fcmFactory, serve func(*gin.Engine, string) error) error {
+	cfg, err := loadConfig(getenv)
+	if err != nil {
+		return err
+	}
+	client, err := messagingClientFor(context.Background(), cfg, newFCM)
+	if err != nil {
+		return err
+	}
+	log.Printf("notification-service escuchando en :%s", cfg.port)
+	return serve(NewRouter(cfg.apiKey, client), ":"+cfg.port)
+}
+
+// config de arranque, leída de las variables de entorno.
+type config struct {
+	port            string
+	apiKey          string
+	credentialsFile string
+	// FCM_OPTIONAL=true solo en desarrollo local: permite arrancar sin credenciales
+	// de Firebase. En producción la variable no se define y el fallo es fatal.
+	fcmOptional bool
+}
+
+func loadConfig(getenv func(string) string) (config, error) {
+	cfg := config{
+		port:            getenv("PORT"),
+		apiKey:          getenv("NOTIFICATION_API_KEY"),
+		credentialsFile: getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+		fcmOptional:     getenv("FCM_OPTIONAL") == "true",
+	}
+	if cfg.port == "" {
+		cfg.port = "8090"
+	}
+	if cfg.apiKey == "" {
+		return config{}, errors.New("NOTIFICATION_API_KEY no está configurada. El servicio no puede iniciarse sin una API Key")
+	}
+	return cfg, nil
+}
+
+// fcmFactory crea el cliente FCM; en las pruebas se reemplaza por uno falso.
+type fcmFactory func(ctx context.Context, credentialsFile string) (MessagingClient, error)
+
+// newFirebaseClient inicializa Firebase (con un service_account.json o con Application Default
+// Credentials) y devuelve su cliente de mensajería.
+func newFirebaseClient(ctx context.Context, credentialsFile string) (MessagingClient, error) {
+	var opts []option.ClientOption
+	if credentialsFile != "" {
+		log.Printf("Inicializando Firebase con credenciales locales: %s", credentialsFile)
+		opts = append(opts, option.WithCredentialsFile(credentialsFile))
+	} else {
+		log.Println("Inicializando Firebase usando Application Default Credentials (ADC)")
+	}
+	app, err := firebase.NewApp(ctx, nil, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("error al inicializar Firebase App: %w", err)
+	}
+	client, err := app.Messaging(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener el cliente FCM: %w", err)
+	}
+	return client, nil
+}
+
+// messagingClientFor devuelve el cliente FCM real. Si Firebase no está disponible, con
+// FCM_OPTIONAL=true usa uno deshabilitado (cada envío responde con error) y sin él falla.
+func messagingClientFor(ctx context.Context, cfg config, newFCM fcmFactory) (MessagingClient, error) {
+	client, err := newFCM(ctx, cfg.credentialsFile)
+	if err == nil {
+		log.Println("Cliente FCM inicializado correctamente")
+		return client, nil
+	}
+	if !cfg.fcmOptional {
+		return nil, err
+	}
+	log.Printf("⚠️  Firebase no disponible (%v). FCM_OPTIONAL=true: los envíos push devolverán error.", err)
+	return disabledMessagingClient{}, nil
 }

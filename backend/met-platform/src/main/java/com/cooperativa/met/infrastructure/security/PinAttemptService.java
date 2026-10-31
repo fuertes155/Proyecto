@@ -19,8 +19,9 @@ public class PinAttemptService {
 
     private static final String PREFIX = "pin:attempts:";
     private static final String BLOCK_PREFIX = "pin:blocked:";
-    private static final int MAX_ATTEMPTS = 5;
-    private static final Duration BLOCK_DURATION = Duration.ofMinutes(15);
+    /** Públicas para que los avisos al socio citen la regla real (ver EmailNotificationAdapter). */
+    public static final int MAX_ATTEMPTS = 5;
+    public static final Duration BLOCK_DURATION = Duration.ofMinutes(15);
     private static final Duration ATTEMPT_WINDOW = Duration.ofHours(1);
 
     private final StringRedisTemplate redisTemplate;

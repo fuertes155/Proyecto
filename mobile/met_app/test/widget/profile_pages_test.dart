@@ -27,6 +27,8 @@ void main() {
     mockNativePlugins(storage: {'access_token': 'acc-1', 'refresh_token': 'ref-1', 'user_id': 'user-1'});
     server = FakeDioAdapter()
       ..on('POST', '/v1/auth/logout', const FakeResponse({}))
+      // El linter sugiere const, pero un mapa const no admite repetir las claves de _user que aquí se sobrescriben.
+      // ignore: prefer_const_constructors
       ..on('PUT', '/v1/auth/me', FakeResponse({..._user, 'email': 'nuevo@example.com', 'phone': '3109876543'}));
   });
 

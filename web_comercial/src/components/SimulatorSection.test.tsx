@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SimulatorSection from './SimulatorSection';
 
@@ -80,6 +80,75 @@ describe('SimulatorSection', () => {
     render(<SimulatorSection />);
 
     expect(await screen.findByText(/no pudimos calcular la cuota/i)).toBeInTheDocument();
+  });
+
+  it('cada control deslizante dice qué ajusta, también para lectores de pantalla', async () => {
+    render(<SimulatorSection />);
+
+    expect(screen.getByRole('slider', { name: /monto del crédito/i })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: /plazo/i })).toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByRole('button', { name: /simulador de ahorro/i }));
+
+    expect(screen.getByRole('slider', { name: /aporte mensual/i })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: /período/i })).toBeInTheDocument();
+  });
+
+  it('al mover el monto y el plazo simula una sola vez con los valores finales', async () => {
+    render(<SimulatorSection />);
+    const [monto, plazo] = screen.getAllByRole('slider') as HTMLInputElement[];
+
+    fireEvent.change(monto, { target: { value: '10000000' } });
+    fireEvent.change(plazo, { target: { value: '36' } });
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 400)); // ya pasó el debounce: no llegan más
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const [, init] = vi.mocked(global.fetch).mock.calls[0];
+    expect(JSON.parse(String(init?.body))).toEqual({ amount: 10000000, termMonths: 36 });
+    expect(screen.getByText('36 meses')).toBeInTheDocument();
+  });
+
+  it('mientras el servidor calcula muestra indicadores de carga en lugar de cifras', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {}))); // el servidor todavía no responde
+    const { container } = render(<SimulatorSection />);
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+
+    // Cuota, total a pagar, intereses y tasa: los cuatro esperan la respuesta.
+    await waitFor(() => expect(container.querySelectorAll('[class*="skeleton"]')).toHaveLength(4));
+    expect(screen.queryByText('0.00%')).not.toBeInTheDocument();
+  });
+
+  it('sin conexión con el servidor también avisa en vez de quedarse cargando', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))));
+    render(<SimulatorSection />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/no pudimos calcular la cuota/i);
+  });
+
+  it('al volver del ahorro al crédito vuelve a simular la cuota', async () => {
+    const user = userEvent.setup();
+    render(<SimulatorSection />);
+    await user.click(screen.getByRole('button', { name: /simulador de ahorro/i }));
+
+    await user.click(screen.getByRole('button', { name: /simulador de crédito/i }));
+
+    expect(screen.getByText(/monto del crédito/i)).toBeInTheDocument();
+    expect(await screen.findByText(/250\.000/)).toBeInTheDocument();
+  });
+
+  it('al ahorrar más meses recalcula el total con sus intereses', async () => {
+    render(<SimulatorSection />);
+    await userEvent.setup().click(screen.getByRole('button', { name: /simulador de ahorro/i }));
+    const [, periodo] = screen.getAllByRole('slider') as HTMLInputElement[];
+
+    fireEvent.change(periodo, { target: { value: '24' } });
+
+    // 24 aportes de $500.000: $12.000.000 + 500.000 × 0,008 × (24 × 25 / 2) = $1.200.000 de intereses.
+    expect(screen.getByText('24 meses')).toBeInTheDocument();
+    expect(screen.getByText(/^\$\s*1\.200\.000$/)).toBeInTheDocument();
+    expect(screen.getByText(/13\.200\.000/)).toBeInTheDocument();
   });
 
   it('cada aporte de ahorro gana interés solo por los meses que lleva ahorrado', async () => {

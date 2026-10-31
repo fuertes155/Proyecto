@@ -42,7 +42,7 @@ void mockNativePlugins({Map<String, String> storage = const {}}) {
 /// Monta [screen] en un celular de 390×844 con la app real por debajo: providers, repositorios y
 /// fuentes remotas reales contra [server]. Como en la app, la pantalla se abre encima de otra
 /// ([previousScreen]), así que puede cerrarse con `pop`. Las rutas de [destinations] muestran
-/// "Pantalla <ruta>" para comprobar a dónde navegó la pantalla.
+/// `"Pantalla <ruta>"` para comprobar a dónde navegó la pantalla.
 Future<GoRouter> pumpScreen(
   WidgetTester tester,
   Widget screen, {
